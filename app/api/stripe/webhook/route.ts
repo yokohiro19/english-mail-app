@@ -1,0 +1,813 @@
+import { NextResponse } from "next/server";
+import Stripe from "stripe";
+import { getAdminDb } from "@/src/lib/firebaseAdmin.server";
+
+export const runtime = "nodejs";
+
+// apiVersionは固定しない（Stripeアカウントのデフォルトに従う）
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+
+function hasCurrentPeriodEnd(obj: any): obj is { current_period_end: number } {
+  return obj && typeof obj.current_period_end === "number";
+}
+
+function getUidFromMetadata(obj: any): string | null {
+  const uid = obj?.metadata?.uid;
+  return typeof uid === "string" && uid.length > 0 ? uid : null;
+}
+
+/**
+ * Firestoreの users を Stripe IDs から逆引きして uid を取る
+ * - stripeSubscriptionId があればそれ優先
+ * - 無ければ stripeCustomerId で探す
+ */
+async function findUidByStripeIds(params: {
+  stripeSubscriptionId?: string | null;
+  stripeCustomerId?: string | null;
+}): Promise<string | null> {
+  const db = getAdminDb();
+  const { stripeSubscriptionId, stripeCustomerId } = params;
+
+  if (stripeSubscriptionId) {
+    const snap = await db
+      .collection("users")
+      .where("stripeSubscriptionId", "==", stripeSubscriptionId)
+      .limit(1)
+      .get();
+    if (!snap.empty) return snap.docs[0].id;
+  }
+
+  if (stripeCustomerId) {
+    const snap = await db
+      .collection("users")
+      .where("stripeCustomerId", "==", stripeCustomerId)
+      .limit(1)
+      .get();
+    if (!snap.empty) return snap.docs[0].id;
+  }
+
+  return null;
+}
+
+/**
+ * Stripe Customer を retrieve して metadata.uid を取る（救済ルート）
+ */
+async function findUidFromCustomer(customerId: string | null): Promise<string | null> {
+  if (!customerId) return null;
+  try {
+    const c: any = await stripe.customers.retrieve(customerId);
+    if (c?.deleted === true) return null;
+    return getUidFromMetadata(c);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Stripeの Subscription から Firestore に書き込むパッチを作る
+ * 要件：
+ * - trialing で cancel_at_period_end=true なら plan は即 free（＝配信停止）
+ * - active で cancel_at_period_end=true なら plan は standard のまま（期間末までOK）
+ * - trialing になったら trialUsed=true を永久に立てる
+ */
+function buildPatchFromSubscription(sub: any, fallbackUid?: string | null) {
+  const status: string | undefined = sub?.status;
+
+  const cancelAtPeriodEnd: boolean = Boolean(sub?.cancel_at_period_end);
+  const cancelAt: number | null = typeof sub?.cancel_at === "number" ? sub.cancel_at : null;
+  const canceledAt: number | null = typeof sub?.canceled_at === "number" ? sub.canceled_at : null;
+
+  // 「キャンセル予約が入っている」を広めに判定
+  const hasCancellationScheduled = cancelAtPeriodEnd || cancelAt !== null || canceledAt !== null;
+
+  const metaUid = getUidFromMetadata(sub);
+  const uid = metaUid ?? fallbackUid ?? null;
+
+  const patch: any = {
+    subscriptionStatus: status ?? null,
+    cancelAtPeriodEnd,
+    updatedAt: new Date(),
+  };
+
+  if (hasCurrentPeriodEnd(sub)) {
+    patch.currentPeriodEnd = new Date(sub.current_period_end * 1000);
+  }
+
+  if (typeof sub?.trial_end === "number") {
+    patch.trialEndsAt = new Date(sub.trial_end * 1000);
+  }
+
+  if (status === "trialing") {
+    patch.trialUsed = true;
+  }
+
+  // plan 判定（現仕様：activeは期間末までstandard）
+  if (status === "trialing") {
+    patch.plan = hasCancellationScheduled ? "free" : "standard";
+  } else if (status === "active") {
+    patch.plan = "standard";
+  } else {
+    patch.plan = "free";
+  }
+
+  return { uid, patch, status, cancelAtPeriodEnd };
+}
+
+/**
+ * 🔒 Firestore上の「正サブスクID」と一致しないイベントを無視するためのヘルパー
+ * - uid が分かった後に呼ぶ
+ * - currentSubId があり、eventSubId と違うなら true（= 無視）
+ */
+async function shouldIgnoreNonCurrentSubscriptionEvent(params: { uid: string; eventSubId: string | null }) {
+  const db = getAdminDb();
+  const { uid, eventSubId } = params;
+
+  if (!eventSubId) return false;
+
+  const userSnap = await db.collection("users").doc(uid).get();
+  const user = userSnap.exists ? (userSnap.data() as any) : null;
+  const currentSubId = typeof user?.stripeSubscriptionId === "string" ? user.stripeSubscriptionId : null;
+
+  // currentSubId が未設定の時は「初回紐付け」フェーズなので無視しない
+  if (!currentSubId) return false;
+
+  // 異なる sub のイベントは無視（trial残骸等の汚染防止）
+  return currentSubId !== eventSubId;
+}
+
+/**
+ * ===== Phase6 5.2: Ops logging (Stripe webhook) =====
+ * - event.id をキーに1行ログ（重複は上書きでOK）
+ * - 監視ログの失敗でWebhookが落ちないようにする
+ */
+function nowIso() {
+  return new Date().toISOString();
+}
+function toIsoFromUnixSeconds(sec: number | null | undefined) {
+  if (typeof sec !== "number") return null;
+  const d = new Date(sec * 1000);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+}
+function pickCommonIdsFromEvent(event: Stripe.Event) {
+  const obj: any = event.data?.object as any;
+  const type = event.type;
+
+  let subId: string | null = null;
+  let customerId: string | null = null;
+
+  if (type === "checkout.session.completed") {
+    subId = typeof obj?.subscription === "string" ? obj.subscription : null;
+    customerId = typeof obj?.customer === "string" ? obj.customer : null;
+  } else if (type.startsWith("customer.subscription.")) {
+    subId = typeof obj?.id === "string" ? obj.id : null;
+    customerId = typeof obj?.customer === "string" ? obj.customer : null;
+  } else if (type.startsWith("invoice.")) {
+    subId =
+      typeof obj?.subscription === "string"
+        ? obj.subscription
+        : typeof obj?.subscription?.id === "string"
+          ? obj.subscription.id
+          : null;
+
+    customerId =
+      typeof obj?.customer === "string"
+        ? obj.customer
+        : typeof obj?.customer?.id === "string"
+          ? obj.customer.id
+          : null;
+  }
+
+  const metaUid = getUidFromMetadata(obj) ?? null;
+  return { subId, customerId, metaUid };
+}
+
+async function safeUpsertOpsStripeEvent(params: {
+  event: Stripe.Event;
+  uid?: string | null;
+  subId?: string | null;
+  customerId?: string | null;
+  outcome: "applied" | "ignored" | "skipped" | "no_uid" | "no_sub" | "noop";
+  note?: string | null;
+  extra?: Record<string, any> | null;
+}) {
+  try {
+    const db = getAdminDb();
+    const { event, uid, subId, customerId, outcome, note, extra } = params;
+
+    await db.collection("opsStripeEvents").doc(event.id).set(
+      {
+        eventId: event.id,
+        type: event.type,
+        created: typeof (event as any)?.created === "number" ? (event as any).created : null,
+        createdAtIso: toIsoFromUnixSeconds(typeof (event as any)?.created === "number" ? (event as any).created : null),
+        livemode: Boolean((event as any)?.livemode),
+        apiVersion: (event as any)?.api_version ?? null,
+        requestId: (event as any)?.request?.id ?? null,
+
+        uid: uid ?? null,
+        stripeSubscriptionId: subId ?? null,
+        stripeCustomerId: customerId ?? null,
+
+        outcome,
+        note: note ?? null,
+        extra: extra ?? null,
+
+        receivedAtIso: nowIso(),
+      },
+      { merge: true }
+    );
+
+  } catch (e: any) {
+    console.error("[opsStripeEvents] write failed:", e?.message ?? e);
+    console.error("[opsStripeEvents] code:", e?.code);
+    console.error("[opsStripeEvents] details:", e?.details);
+
+
+    console.error("[opsStripeEvents] full:", e);
+
+
+  }
+}
+
+async function safeWriteOpsStripeError(params: {
+  eventId: string;
+  type: string;
+  uid?: string | null;
+  subId?: string | null;
+  customerId?: string | null;
+  error: any;
+}) {
+  try {
+    const db = getAdminDb();
+    const { eventId, type, uid, subId, customerId, error } = params;
+
+    const message =
+      typeof error?.message === "string" ? error.message : typeof error === "string" ? error : "unknown_error";
+
+    await db.collection("opsStripeWebhookErrors").doc(eventId).set(
+      {
+        eventId,
+        type,
+        uid: uid ?? null,
+        stripeSubscriptionId: subId ?? null,
+        stripeCustomerId: customerId ?? null,
+        message,
+        name: error?.name ?? null,
+        stack: typeof error?.stack === "string" ? String(error.stack).slice(0, 5000) : null,
+        createdAtIso: nowIso(),
+      },
+      { merge: true }
+    );
+  } catch (e) {
+    console.error("[opsStripeWebhookErrors] write failed:", e);
+  }
+}
+
+/**
+ * Subscription event を共通処理（created/updated）
+ * - truth を retrieve
+ * - uid を複数ルートで解決
+ * - 非currentを無視
+ * - users を update
+ * - ops log を残す
+ */
+async function handleSubscriptionUpsert(event: Stripe.Event) {
+  const raw = event.data.object as any;
+  const subId = typeof raw?.id === "string" ? raw.id : null;
+  const customerId = typeof raw?.customer === "string" ? raw.customer : null;
+
+  if (!subId) {
+    await safeUpsertOpsStripeEvent({
+      event,
+      uid: getUidFromMetadata(raw),
+      subId,
+      customerId,
+      outcome: "no_sub",
+      note: "subscription event missing subId",
+      extra: null,
+    });
+    return;
+  }
+
+  // truth を取りに行く（payload薄い対策）
+  const truth: any = await stripe.subscriptions.retrieve(subId);
+  if (truth?.deleted === true) {
+    await safeUpsertOpsStripeEvent({
+      event,
+      uid: null,
+      subId,
+      customerId,
+      outcome: "skipped",
+      note: "truth subscription.deleted=true",
+      extra: null,
+    });
+    return;
+  }
+
+  // uid解決（強化版）
+  let uid: string | null =
+    getUidFromMetadata(truth) ??
+    getUidFromMetadata(raw) ??
+    (await findUidFromCustomer(customerId)) ??
+    (await findUidByStripeIds({ stripeSubscriptionId: subId, stripeCustomerId: customerId }));
+
+  if (!uid) {
+    await safeUpsertOpsStripeEvent({
+      event,
+      uid: null,
+      subId,
+      customerId,
+      outcome: "no_uid",
+      note: "cannot resolve uid (sub/customer/firestore)",
+      extra: { truthStatus: truth?.status ?? null },
+    });
+    return;
+  }
+
+  // 🔒 非current subscription のイベントなら無視
+  const ignore = await shouldIgnoreNonCurrentSubscriptionEvent({ uid, eventSubId: subId });
+  if (ignore) {
+    console.log("[stripe webhook] ignored non-current subscription event", {
+      uid,
+      eventSubId: subId,
+      truthStatus: truth?.status ?? null,
+    });
+
+    await safeUpsertOpsStripeEvent({
+      event,
+      uid,
+      subId,
+      customerId,
+      outcome: "ignored",
+      note: `ignored non-current ${event.type}`,
+      extra: { truthStatus: truth?.status ?? null },
+    });
+    return;
+  }
+
+  const built = buildPatchFromSubscription(truth, uid);
+
+  const db = getAdminDb();
+
+  await db.collection("users").doc(uid).set(
+    {
+      ...built.patch,
+      stripeCustomerId: customerId ?? null,
+      stripeSubscriptionId: subId,
+      updatedAt: new Date(),
+    },
+    { merge: true }
+  );
+
+  await safeUpsertOpsStripeEvent({
+    event,
+    uid,
+    subId,
+    customerId,
+    outcome: "applied",
+    note: `${event.type} applied`,
+    extra: {
+      status: truth?.status ?? null,
+      cancel_at_period_end: Boolean(truth?.cancel_at_period_end),
+      cancel_at: typeof truth?.cancel_at === "number" ? truth.cancel_at : null,
+      canceled_at: typeof truth?.canceled_at === "number" ? truth.canceled_at : null,
+      trial_end: typeof truth?.trial_end === "number" ? truth.trial_end : null,
+      current_period_end: typeof truth?.current_period_end === "number" ? truth.current_period_end : null,
+    },
+  });
+}
+
+/**
+ * invoice.paid / invoice.payment_succeeded 共通処理
+ */
+async function handleInvoicePaidLike(event: Stripe.Event) {
+  const invoice = event.data.object as any;
+
+  const stripeSubscriptionId =
+    typeof invoice.subscription === "string"
+      ? invoice.subscription
+      : typeof invoice.subscription?.id === "string"
+        ? invoice.subscription.id
+        : null;
+
+  const stripeCustomerId =
+    typeof invoice.customer === "string"
+      ? invoice.customer
+      : typeof invoice.customer?.id === "string"
+        ? invoice.customer.id
+        : null;
+
+  // uid解決
+  let uid: string | null =
+    (await findUidByStripeIds({ stripeSubscriptionId, stripeCustomerId })) ??
+    (await findUidFromCustomer(stripeCustomerId));
+
+  if (!uid) {
+    console.log(`[stripe webhook] ${event.type}: user_not_found`, {
+      stripeSubscriptionId,
+      stripeCustomerId,
+    });
+
+    await safeUpsertOpsStripeEvent({
+      event,
+      uid: null,
+      subId: stripeSubscriptionId,
+      customerId: stripeCustomerId,
+      outcome: "no_uid",
+      note: `${event.type} user_not_found`,
+      extra: null,
+    });
+    return;
+  }
+
+  // 🔒 非currentなら無視
+  const ignore = await shouldIgnoreNonCurrentSubscriptionEvent({
+    uid,
+    eventSubId: stripeSubscriptionId,
+  });
+  if (ignore) {
+    console.log(`[stripe webhook] ignored non-current ${event.type}`, {
+      uid,
+      eventSubId: stripeSubscriptionId,
+    });
+
+    await safeUpsertOpsStripeEvent({
+      event,
+      uid,
+      subId: stripeSubscriptionId,
+      customerId: stripeCustomerId,
+      outcome: "ignored",
+      note: `ignored non-current ${event.type}`,
+      extra: null,
+    });
+    return;
+  }
+
+  const db = getAdminDb();
+  await db.collection("users").doc(uid).set(
+    {
+      plan: "standard",
+      subscriptionStatus: "active",
+      updatedAt: new Date(),
+    },
+    { merge: true }
+  );
+
+  await safeUpsertOpsStripeEvent({
+    event,
+    uid,
+    subId: stripeSubscriptionId,
+    customerId: stripeCustomerId,
+    outcome: "applied",
+    note: `${event.type} applied`,
+    extra: null,
+  });
+}
+
+export async function POST(req: Request) {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    return NextResponse.json({ error: "missing_STRIPE_SECRET_KEY" }, { status: 500 });
+  }
+  if (!process.env.STRIPE_WEBHOOK_SECRET) {
+    return NextResponse.json({ error: "missing_STRIPE_WEBHOOK_SECRET" }, { status: 500 });
+  }
+
+  const sig = req.headers.get("stripe-signature");
+  if (!sig) {
+    return NextResponse.json({ error: "missing_signature" }, { status: 400 });
+  }
+
+  const body = await req.text();
+
+  let event: Stripe.Event;
+  try {
+    event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!);
+  } catch (err: any) {
+    return NextResponse.json(
+      { error: `webhook_signature_verification_failed: ${err.message}` },
+      { status: 400 }
+    );
+  }
+
+  // ===== debug logs（ユーザー指定）=====
+  console.log("[stripe webhook]", event.type);
+
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object as Stripe.Checkout.Session;
+    console.log("session.subscription", (session as any).subscription);
+  }
+  if (event.type.startsWith("customer.subscription.")) {
+    const sub = event.data.object as Stripe.Subscription;
+    console.log("sub.status", sub.status, "sub.metadata.uid", (sub as any).metadata?.uid);
+  }
+  // ================================
+
+  const { subId: guessedSubId, customerId: guessedCustomerId, metaUid } = pickCommonIdsFromEvent(event);
+
+  try {
+    switch (event.type) {
+      /**
+       * Checkout完了（サブスク作成直後）
+       * → subscription を retrieve して metadata.uid を見に行く
+       * ※ここだけは「正サブスクIDをセットする」ので、非current無視はしない
+       */
+      case "checkout.session.completed": {
+        const session = event.data.object as Stripe.Checkout.Session;
+
+        const subscriptionId =
+          typeof (session as any).subscription === "string" ? (session as any).subscription : null;
+        const customerId = typeof session.customer === "string" ? session.customer : null;
+
+        if (!subscriptionId || !customerId) {
+          await safeUpsertOpsStripeEvent({
+            event,
+            uid: metaUid ?? null,
+            subId: subscriptionId,
+            customerId,
+            outcome: "no_sub",
+            note: "checkout.session.completed missing subscriptionId/customerId",
+            extra: null,
+          });
+          break;
+        }
+
+        const subscription: any = await stripe.subscriptions.retrieve(subscriptionId);
+        if (subscription?.deleted === true) {
+          await safeUpsertOpsStripeEvent({
+            event,
+            uid: metaUid ?? null,
+            subId: subscriptionId,
+            customerId,
+            outcome: "skipped",
+            note: "subscription.deleted=true",
+            extra: null,
+          });
+          break;
+        }
+
+        // uid解決（強化：customer metadataも見る）
+        const uid =
+          getUidFromMetadata(subscription) ??
+          (await findUidFromCustomer(customerId)) ??
+          (await findUidByStripeIds({ stripeSubscriptionId: subscriptionId, stripeCustomerId: customerId }));
+
+        if (!uid) {
+          await safeUpsertOpsStripeEvent({
+            event,
+            uid: null,
+            subId: subscriptionId,
+            customerId,
+            outcome: "no_uid",
+            note: "cannot resolve uid in checkout.session.completed",
+            extra: { status: subscription?.status ?? null },
+          });
+          break;
+        }
+
+        const { patch } = buildPatchFromSubscription(subscription, uid);
+
+        const db = getAdminDb();
+
+        await db.collection("users").doc(uid).set(
+          {
+            ...patch,
+            stripeCustomerId: customerId,
+            stripeSubscriptionId: subscription?.id ?? subscriptionId,
+            updatedAt: new Date(),
+          },
+          { merge: true }
+        );
+
+        await safeUpsertOpsStripeEvent({
+          event,
+          uid,
+          subId: subscriptionId,
+          customerId,
+          outcome: "applied",
+          note: "checkout.session.completed applied",
+          extra: {
+            status: subscription?.status ?? null,
+            cancel_at_period_end: Boolean(subscription?.cancel_at_period_end),
+            trial_end: typeof subscription?.trial_end === "number" ? subscription.trial_end : null,
+            current_period_end: typeof subscription?.current_period_end === "number" ? subscription.current_period_end : null,
+          },
+        });
+
+        break;
+      }
+
+      /**
+       * created を追加：未対応だったのが今回の原因
+       */
+      case "customer.subscription.created":
+      case "customer.subscription.updated": {
+        await handleSubscriptionUpsert(event);
+        break;
+      }
+
+      /**
+       * 明示削除（たまに来る）
+       * → 🔒 正サブスク以外なら無視
+       */
+      case "customer.subscription.deleted": {
+        const raw = event.data.object as any;
+        const subId = typeof raw?.id === "string" ? raw.id : null;
+        const customerId = typeof raw?.customer === "string" ? raw.customer : null;
+
+        // uid解決（強化）
+        let uid: string | null =
+          getUidFromMetadata(raw) ??
+          (await findUidFromCustomer(customerId)) ??
+          (await findUidByStripeIds({ stripeSubscriptionId: subId, stripeCustomerId: customerId }));
+
+        if (!uid) {
+          await safeUpsertOpsStripeEvent({
+            event,
+            uid: null,
+            subId,
+            customerId,
+            outcome: "no_uid",
+            note: "cannot resolve uid for subscription.deleted",
+            extra: null,
+          });
+          break;
+        }
+
+        const ignore = await shouldIgnoreNonCurrentSubscriptionEvent({ uid, eventSubId: subId });
+        if (ignore) {
+          console.log("[stripe webhook] ignored non-current subscription.deleted", {
+            uid,
+            eventSubId: subId,
+          });
+
+          await safeUpsertOpsStripeEvent({
+            event,
+            uid,
+            subId,
+            customerId,
+            outcome: "ignored",
+            note: "ignored non-current subscription.deleted",
+            extra: null,
+          });
+          break;
+        }
+
+        const db = getAdminDb();
+        await db.collection("users").doc(uid).set(
+          {
+            plan: "free",
+            subscriptionStatus: raw?.status ?? "canceled",
+            cancelAtPeriodEnd: false,
+            updatedAt: new Date(),
+          },
+          { merge: true }
+        );
+
+        await safeUpsertOpsStripeEvent({
+          event,
+          uid,
+          subId,
+          customerId,
+          outcome: "applied",
+          note: "subscription.deleted applied",
+          extra: { status: raw?.status ?? "canceled" },
+        });
+
+        break;
+      }
+
+      /**
+       * 支払い失敗
+       */
+      case "invoice.payment_failed": {
+        const invoice = event.data.object as any;
+
+        const stripeSubscriptionId =
+          typeof invoice.subscription === "string"
+            ? invoice.subscription
+            : typeof invoice.subscription?.id === "string"
+              ? invoice.subscription.id
+              : null;
+
+        const stripeCustomerId =
+          typeof invoice.customer === "string"
+            ? invoice.customer
+            : typeof invoice.customer?.id === "string"
+              ? invoice.customer.id
+              : null;
+
+        let uid: string | null =
+          (await findUidByStripeIds({ stripeSubscriptionId, stripeCustomerId })) ??
+          (await findUidFromCustomer(stripeCustomerId));
+
+        if (!uid) {
+          console.log("[stripe webhook] invoice.payment_failed: user_not_found", {
+            stripeSubscriptionId,
+            stripeCustomerId,
+          });
+
+          await safeUpsertOpsStripeEvent({
+            event,
+            uid: null,
+            subId: stripeSubscriptionId,
+            customerId: stripeCustomerId,
+            outcome: "no_uid",
+            note: "invoice.payment_failed user_not_found",
+            extra: null,
+          });
+          break;
+        }
+
+        const ignore = await shouldIgnoreNonCurrentSubscriptionEvent({
+          uid,
+          eventSubId: stripeSubscriptionId,
+        });
+        if (ignore) {
+          console.log("[stripe webhook] ignored non-current invoice.payment_failed", {
+            uid,
+            eventSubId: stripeSubscriptionId,
+          });
+
+          await safeUpsertOpsStripeEvent({
+            event,
+            uid,
+            subId: stripeSubscriptionId,
+            customerId: stripeCustomerId,
+            outcome: "ignored",
+            note: "ignored non-current invoice.payment_failed",
+            extra: null,
+          });
+          break;
+        }
+
+        const db = getAdminDb();
+        await db.collection("users").doc(uid).set(
+          {
+            plan: "free",
+            subscriptionStatus: "past_due",
+            updatedAt: new Date(),
+          },
+          { merge: true }
+        );
+
+        await safeUpsertOpsStripeEvent({
+          event,
+          uid,
+          subId: stripeSubscriptionId,
+          customerId: stripeCustomerId,
+          outcome: "applied",
+          note: "invoice.payment_failed applied",
+          extra: null,
+        });
+
+        break;
+      }
+
+      /**
+       * 支払い成功（揺れ対策で2つ拾う）
+       */
+      case "invoice.paid":
+      case "invoice.payment_succeeded": {
+        await handleInvoicePaidLike(event);
+        break;
+      }
+
+      default: {
+        // 未対応イベントは noop としてログだけ残す
+        await safeUpsertOpsStripeEvent({
+          event,
+          uid: metaUid ?? null,
+          subId: guessedSubId ?? null,
+          customerId: guessedCustomerId ?? null,
+          outcome: "noop",
+          note: "unhandled event type (noop)",
+          extra: null,
+        });
+        break;
+      }
+    }
+
+    return NextResponse.json({ received: true });
+  } catch (err: any) {
+    await safeWriteOpsStripeError({
+      eventId: event.id,
+      type: event.type,
+      uid: metaUid ?? null,
+      subId: guessedSubId ?? null,
+      customerId: guessedCustomerId ?? null,
+      error: err,
+    });
+
+    await safeUpsertOpsStripeEvent({
+      event,
+      uid: metaUid ?? null,
+      subId: guessedSubId ?? null,
+      customerId: guessedCustomerId ?? null,
+      outcome: "skipped",
+      note: `handler_error: ${err?.message ?? "unknown_error"}`,
+      extra: null,
+    });
+
+    return NextResponse.json({ error: `webhook_handler_failed: ${err.message}` }, { status: 500 });
+  }
+}
