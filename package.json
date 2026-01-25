@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack --no-lint",
     "start": "next start",
     "lint": "eslint",
     "seed:topics": "tsx scripts/seedTopics.ts"

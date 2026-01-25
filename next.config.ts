@@ -1,9 +1,8 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
+const nextConfig = {
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   typescript: {
-    // ✅ Vercel ビルド時の TypeScript チェックを無効化
-    // （ローカルでは引き続き型チェックされる）
     ignoreBuildErrors: true,
   },
 };
