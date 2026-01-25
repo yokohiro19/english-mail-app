@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAdminDb } from "@/src/lib/firebaseAdmin.server";
 
 export const runtime = "nodejs";
+export const preferredRegion = "hnd1";
 
 function hasEnv(name: string) {
   const v = process.env[name];
