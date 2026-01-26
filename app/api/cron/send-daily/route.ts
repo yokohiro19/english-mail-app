@@ -7,6 +7,8 @@ import { Resend } from "resend";
 import crypto from "crypto";
 
 export const runtime = "nodejs";
+export const preferredRegion = "hnd1";
+export const maxDuration = 120;
 
 const OutputSchema = z.object({
   english_text: z.string(),
@@ -32,6 +34,15 @@ function dateKey(d: Date) {
   const mo = String(d.getUTCMonth() + 1).padStart(2, "0");
   const da = String(d.getUTCDate()).padStart(2, "0");
   return `${y}-${mo}-${da}`;
+}
+function hhmmListForLastMinutes(nowJst: Date, minutes = 5) {
+  // 例: minutes=5 なら [now, now-1, ... now-4] を HH:MM にしてユニーク化
+  const set = new Set<string>();
+  for (let i = 0; i < minutes; i++) {
+    const d = new Date(nowJst.getTime() - i * 60 * 1000);
+    set.add(hhmm(d));
+  }
+  return Array.from(set);
 }
 
 // ===== Billing guard =====
@@ -205,11 +216,8 @@ function buildEmailHtml(payload: {
 
 /**
  * ===== Phase6: Ops log helpers =====
- * - Firestoreに「実行サマリー」を1行残す（運用でめちゃくちゃ効く）
- * - 失敗してもCron本体は落とさない（ログ保存失敗で配信が止まるのは最悪なので）
  */
 function opsRunId(dateKey: string, hhmm: string) {
-  // 例: 2026-01-19_07-00
   return `${dateKey}_${hhmm.replace(":", "-")}`;
 }
 
@@ -227,7 +235,6 @@ async function safeWriteOpsCronRun(params: {
     const db = getAdminDb();
     const id = opsRunId(params.dateKey, params.targetHHMM);
 
-    // doc固定（同じ分に複数回叩かれても上書きされる＝重複しにくい）
     await db.collection("opsCronRuns").doc(id).set(
       {
         runId: id,
@@ -276,8 +283,9 @@ export async function GET(req: Request) {
     const targetHHMM = hhmm(nowJst);
     const today = dateKey(nowJst);
 
-    // sendTime が一致するユーザーを抽出
-    const usersSnap = await db.collection("users").where("sendTime", "==", targetHHMM).get();
+    // ✅ 直近5分のsendTimeを対象にする（Cron遅延に強い）
+    const windowHHMM = hhmmListForLastMinutes(nowJst, 5);
+    const usersSnap = await db.collection("users").where("sendTime", "in", windowHHMM).get();
 
     let attempted = 0;
     let sent = 0;
@@ -287,7 +295,6 @@ export async function GET(req: Request) {
     let skippedBilling = 0;
     let skippedDisabled = 0;
 
-    // ✅ Billingスキップ理由の集計（運用で超便利）
     const billingSkipReasons: Record<string, number> = {};
 
     const errors: any[] = [];
@@ -304,7 +311,6 @@ export async function GET(req: Request) {
         continue;
       }
 
-      // ✅ 強制停止フラグ（既存データに無い想定なので挙動は変わらない）
       if (u.disabled === true) {
         skippedDisabled++;
         continue;
@@ -322,11 +328,25 @@ export async function GET(req: Request) {
         continue;
       }
 
-      // 重複防止（その日送ってたらスキップ）
+      // ===== delivery lock (transaction) =====
       const deliveryId = `${uid}_${today}`;
       const deliveryRef = db.collection("deliveries").doc(deliveryId);
-      const deliverySnap = await deliveryRef.get();
-      if (deliverySnap.exists) {
+
+      // ✅ ここで “予約” を取れた人だけ送る（同時実行でも二重送信しない）
+      const reserved = await db.runTransaction(async (tx) => {
+        const snap = await tx.get(deliveryRef);
+        if (snap.exists) return false;
+
+        tx.set(deliveryRef, {
+          uid,
+          dateKey: today,
+          status: "reserved",
+          reservedAt: new Date(),
+        });
+        return true;
+      });
+
+      if (!reserved) {
         skippedAlreadySent++;
         continue;
       }
@@ -391,32 +411,46 @@ export async function GET(req: Request) {
           html,
         });
 
-        await deliveryRef.set({
-          uid,
-          dateKey: today,
-          sentAt: new Date(),
-          topicId: topic.id,
-          cefr,
-          emailProvider: "resend",
-          emailId: (sendRes as any)?.data?.id ?? null,
-        });
+        // ✅ “予約済み” を “sent” に更新（reservedAtなどを保持）
+        await deliveryRef.set(
+          {
+            status: "sent",
+            sentAt: new Date(),
+            topicId: topic.id,
+            cefr,
+            emailProvider: "resend",
+            emailId: (sendRes as any)?.data?.id ?? null,
+          },
+          { merge: true }
+        );
 
         sent++;
       } catch (err: any) {
         console.error(err);
         errors.push({ uid, error: err?.message ?? String(err) });
+
+        // ✅ 失敗も deliveries に残す（運用で原因追跡できる）
+        try {
+          await deliveryRef.set(
+            {
+              status: "error",
+              errorMessage: err?.message ?? String(err),
+              errorAt: new Date(),
+            },
+            { merge: true }
+          );
+        } catch (e) {
+          console.error("[deliveries] write error state failed:", e);
+        }
       }
     }
 
-    // billingSkips は監査用で上限維持
     const billingSkipsSample = billingSkips.slice(0, 50);
-
     const durationMs = Date.now() - startedAt;
 
-    // Phase6 5.1: FirestoreにCron実行サマリーを保存（失敗してもCronは落とさない）
     await safeWriteOpsCronRun({
       dateKey: today,
-      targetHHMM,
+      targetHHMM: targetHHMM, // opsRunIdはこの“実行時刻”をキーにする
       attempted,
       sent,
       skipped: {
@@ -433,6 +467,7 @@ export async function GET(req: Request) {
     return NextResponse.json({
       ok: true,
       targetHHMM,
+      windowHHMM, // ✅ 追加：どの時間帯を対象にしたか分かる
       dateKey: today,
       attempted,
       sent,
@@ -449,9 +484,6 @@ export async function GET(req: Request) {
     });
   } catch (e: any) {
     console.error(e);
-
-    // ここは「失敗した」という事実だけでも残したいが、
-    // このcatchでさらにDB書き込みして落ちると面倒なので、ログだけ。
     return NextResponse.json({ ok: false, error: e?.message ?? "Server error" }, { status: 500 });
   }
 }
