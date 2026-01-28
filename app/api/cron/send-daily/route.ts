@@ -260,7 +260,15 @@ export async function GET(req: Request) {
 
   try {
     // Cron保護
-    const secret = req.headers.get("x-cron-secret") ?? new URL(req.url).searchParams.get("secret");
+    const auth =
+      req.headers.get("authorization") ??
+      req.headers.get("x-cron-secret") ??
+      new URL(req.url).searchParams.get("secret");
+
+    const secret = auth?.startsWith("Bearer ")
+      ? auth.slice(7)
+      : auth;
+
     if (!process.env.CRON_SECRET || secret !== process.env.CRON_SECRET) {
       return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
     }
