@@ -1,11 +1,18 @@
 import { NextResponse } from "next/server";
-import { getAdminDb } from "@/src/lib/firebaseClient";
+import { getAdminAuth, getAdminDb } from "@/src/lib/firebaseClient";
 import { createRateLimiter, getClientIp } from "@/src/lib/rateLimit";
 
 const topicLimiter = createRateLimiter({ windowMs: 60_000, maxRequests: 20 });
 
 export async function GET(req: Request) {
   try {
+    const authHeader = req.headers.get("authorization") || "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
+    if (!token) return NextResponse.json({ ok: false, error: "missing_token" }, { status: 401 });
+
+    const adminAuth = getAdminAuth();
+    await adminAuth.verifyIdToken(token);
+
     const { ok: withinLimit } = topicLimiter.check(getClientIp(req));
     if (!withinLimit) {
       return NextResponse.json({ ok: false, error: "rate_limit_exceeded" }, { status: 429 });

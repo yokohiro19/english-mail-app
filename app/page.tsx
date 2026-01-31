@@ -1,65 +1,220 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect } from "react";
+import "./landing.css";
 
 export default function Home() {
+  useEffect(() => {
+    const handleClick = (e: Event) => {
+      const anchor = (e.target as HTMLElement).closest('a[href^="#"]');
+      if (!anchor) return;
+      const href = anchor.getAttribute("href");
+      if (!href || href === "#" || href === "#cta") return;
+      e.preventDefault();
+      const target = document.querySelector(href);
+      if (target) {
+        const offsetTop = (target as HTMLElement).offsetTop - 80;
+        window.scrollTo({ top: offsetTop, behavior: "smooth" });
+      }
+    };
+    document.addEventListener("click", handleClick);
+    return () => document.removeEventListener("click", handleClick);
+  }, []);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
+    <div className="landing">
+      <header>
+        <nav>
+          <a href="#" className="logo">
+            <img src="/images/logo.png" alt="TapSmart English" className="logo-img" />
           </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          <div className="nav-menu">
+            <a href="#features">特徴</a>
+            <a href="#strengths">強み</a>
+            <a href="#how">使い方</a>
+            <a href="/signup" className="nav-cta">無料で始める</a>
+          </div>
+        </nav>
+      </header>
+
+      <section className="hero">
+        <div className="hero-content">
+          <div className="hero-text">
+            <h2>
+              ビジネス英語、<br />
+              <span className="highlight">&quot;楽しめる難易度&quot;で、</span>
+              <br />
+              毎日絶対読む
+            </h2>
+            <p style={{ fontSize: "22px", fontWeight: 600, marginBottom: "20px" }}>
+              ビジネスマンは、メールに届けば続けられる
+            </p>
+            <div className="hero-cta">
+              <a href="/signup" className="btn-primary">
+                今すぐ無料で始める
+                <span className="price-note">月額500円（初回7日間無料）</span>
+              </a>
+              <a href="#how" className="btn-secondary">使い方を見る</a>
+            </div>
+          </div>
+          <div className="hero-visual">
+            {/* TODO: public/images/hero.jpg に画像を配置 */}
+            <img src="/images/hero.png" alt="ビジネスパーソン" className="hero-image" />
+          </div>
         </div>
-      </main>
+      </section>
+
+      <section className="features" id="features">
+        <div className="section-header">
+          <h2>TapSmart Englishの特徴</h2>
+          <p>自分に最適な難易度と文字数で、毎日英文がメールで届く。無理なく続けられる、新しいビジネス英語学習。</p>
+        </div>
+        <div className="features-grid">
+          <div className="feature-card">
+            <div className="feature-icon">🎯</div>
+            <h3>「楽しめる難易度」に調整</h3>
+            <p>TOEIC・TOEFL・英検の得点目安で設定できるので、自分のレベルに合った英文で無理なく学習できます。</p>
+          </div>
+          <div className="feature-card">
+            <div className="feature-icon">📧</div>
+            <h3>いつも使うメールアドレスを指定</h3>
+            <p>
+              指定したアドレスで受け取り可能。<br />
+              <span style={{ fontSize: "13px", opacity: 0.8 }}>※会社メールでの受け取りは社内規定をご確認ください</span>
+            </p>
+          </div>
+          <div className="feature-card">
+            <div className="feature-icon">✅</div>
+            <h3>読んで、ワンタップするだけ</h3>
+            <p>読んで理解して、ボタンを押すだけで積み重ね。シンプルな操作で学習習慣が自然と身につきます。</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="function-details" id="strengths">
+        <div className="section-header">
+          <h2>TapSmart Englishの強み</h2>
+          <p>継続することを徹底サポート</p>
+        </div>
+        <div className="function-list">
+          <div className="function-item">
+            <div className="function-icon">⚡</div>
+            <div className="function-content">
+              <h3>簡単な操作</h3>
+              <p>毎日指定した時間に、英文、単語の解説、日本語訳、が記載されたメールが届くので、読んだら「Read ✔」ボタンを押すだけ</p>
+            </div>
+          </div>
+          <div className="function-item">
+            <div className="function-icon">📈</div>
+            <div className="function-content">
+              <h3>積み重ねを記録</h3>
+              <p>これまでどれだけ読んだか、ダッシュボードで積み重ねを確認</p>
+            </div>
+          </div>
+          <div className="function-item">
+            <div className="function-icon">🎚️</div>
+            <div className="function-content">
+              <h3>モチベーションに合わせた調整</h3>
+              <p>「ちょっと読むのが大変」と感じたら、文章の難易度を下げるか、単語数を下げて調整、もちろん逆も大歓迎</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="how-it-works" id="how">
+        <div className="section-header">
+          <h2>使い方は簡単4ステップ</h2>
+          <p>登録から学習開始まで、わずか3分</p>
+        </div>
+        <div className="steps">
+          <div className="step">
+            <div className="step-number">1</div>
+            <div className="step-content">
+              <h3>無料アカウント登録</h3>
+              <p>メールアドレスだけで簡単に登録完了。クレジットカード不要で今すぐ始められます。</p>
+            </div>
+          </div>
+          <div className="step">
+            <div className="step-number">2</div>
+            <div className="step-content">
+              <h3>学習設定をカスタマイズ</h3>
+              <p>難易度(初級・中級・上級)、文字数(100〜1000文字)、配信時間を設定。いつでも変更可能です。</p>
+            </div>
+          </div>
+          <div className="step">
+            <div className="step-number">3</div>
+            <div className="step-content">
+              <h3>毎日メールを受け取る</h3>
+              <p>指定した時間に、ビジネスシーンで使える英文がメールで届きます。スマホでもPCでもOK。</p>
+            </div>
+          </div>
+          <div className="step">
+            <div className="step-number">4</div>
+            <div className="step-content">
+              <h3>読んで記録を残す</h3>
+              <p>英文を読んだら「読んだ」ボタンをタップ。学習記録が自動で残り、継続の励みになります。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="cta-section" id="cta">
+        <div className="cta-content">
+          <h2>今日から<span className="cta-highlight">毎日の英語習慣</span>を始めよう</h2>
+          <div style={{
+            background: "rgba(255, 255, 255, 0.95)",
+            backdropFilter: "blur(10px)",
+            padding: "45px 70px",
+            borderRadius: "20px",
+            margin: "30px auto",
+            maxWidth: "520px",
+            border: "2px solid rgba(255, 255, 255, 0.8)",
+            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.15)",
+          }}>
+            <p style={{ fontSize: "28px", fontWeight: 700, marginBottom: "8px", color: "var(--dark-navy)" }}>
+              月額500円（初回7日間無料）
+            </p>
+            <p style={{ fontSize: "16px", color: "var(--dark-navy)", opacity: 0.7, marginBottom: "30px" }}>
+              いつでもキャンセル可能
+            </p>
+            <a
+              href="/signup"
+              className="btn-primary"
+              style={{ fontSize: "20px", padding: "18px 50px", width: "100%", textAlign: "center", display: "block" }}
+            >
+              無料で始める →
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        <div className="footer-content">
+          <div className="footer-brand">
+            <h3>TapSmart English</h3>
+            <p>ビジネス英語を、自分のペースで。<br />毎日続けられる学習体験を提供します。</p>
+          </div>
+          <div className="footer-links">
+            <h4>プロダクト</h4>
+            <ul>
+              <li><a href="#features">特徴</a></li>
+              <li><a href="#strengths">強み</a></li>
+              <li><a href="#how">使い方</a></li>
+            </ul>
+          </div>
+          <div className="footer-links">
+            <h4>その他</h4>
+            <ul>
+              <li><a href="#contact">お問い合わせ</a></li>
+              <li><a href="#terms">利用規約</a></li>
+              <li><a href="#privacy">プライバシーポリシー</a></li>
+            </ul>
+          </div>
+        </div>
+        <div className="footer-bottom">
+          <p>&copy; 2026 TapSmart English. All rights reserved.</p>
+        </div>
+      </footer>
     </div>
   );
 }

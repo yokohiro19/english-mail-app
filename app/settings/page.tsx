@@ -389,7 +389,11 @@ export default function SettingsPage() {
     setMessage(null);
 
     try {
-      const res = await fetch("/api/topic/random", { method: "GET" });
+      const token = await user!.getIdToken();
+      const res = await fetch("/api/topic/random", {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const json = await res.json();
       setRandomTopic(json);
 

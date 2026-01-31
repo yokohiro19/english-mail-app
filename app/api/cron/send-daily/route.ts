@@ -423,6 +423,7 @@ export async function GET(req: Request) {
           to: email,
           subject,
           html,
+          headers: { "Idempotency-Key": deliveryId },
         });
 
         // ✅ “予約済み” を “sent” に更新（reservedAtなどを保持）
