@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAdminDb } from "@/src/lib/firebaseAdmin.server";
+import { safeCompare } from "@/src/lib/safeCompare";
 
 export const runtime = "nodejs";
 
@@ -8,7 +9,7 @@ function isAuthed(req: Request) {
   // ここは「簡易版」：ログインユーザー制限にしたい場合は後で強化する
   // まずは CRON_SECRET と同じ方式で守る（最短）
   const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
-  return process.env.CRON_SECRET && token === process.env.CRON_SECRET;
+  return !!process.env.CRON_SECRET && safeCompare(token, process.env.CRON_SECRET);
 }
 
 export async function GET(req: Request) {

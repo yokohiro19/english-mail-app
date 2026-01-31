@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
+import { z } from "zod";
 import { getAdminAuth, getAdminDb } from "@/src/lib/firebaseAdmin.server";
+import { createRateLimiter, getClientIp } from "@/src/lib/rateLimit";
+
+const checkoutLimiter = createRateLimiter({ windowMs: 60_000, maxRequests: 10 });
 
 
 export const runtime = "nodejs";
@@ -63,6 +67,11 @@ async function ensureCustomerHasUid(params: {
 
 export async function POST(req: Request) {
   try {
+    const { ok: withinLimit } = checkoutLimiter.check(getClientIp(req));
+    if (!withinLimit) {
+      return NextResponse.json({ ok: false, error: "rate_limit_exceeded" }, { status: 429 });
+    }
+
     if (!process.env.STRIPE_SECRET_KEY) {
       return NextResponse.json({ ok: false, error: "missing_STRIPE_SECRET_KEY" }, { status: 500 });
     }
@@ -122,11 +131,22 @@ export async function POST(req: Request) {
     }
 
     // ===== body =====
-    const body = await req.json().catch(() => ({}));
-    const requestedTrialDays = clampTrialDays(body?.trialDays, 7);
+    const CheckoutBodySchema = z.object({
+      trialDays: z.number().int().min(0).max(30).optional(),
+      successPath: z.string().max(500).optional(),
+      cancelPath: z.string().max(500).optional(),
+    });
 
-    const successPath = String(body?.successPath ?? "/settings?billing=success");
-    const cancelPath = String(body?.cancelPath ?? "/settings?billing=cancel");
+    const rawBody = await req.json().catch(() => ({}));
+    const parsed = CheckoutBodySchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json({ ok: false, error: "invalid_request_body" }, { status: 400 });
+    }
+    const body = parsed.data;
+    const requestedTrialDays = clampTrialDays(body.trialDays, 7);
+
+    const successPath = body.successPath ?? "/settings?billing=success";
+    const cancelPath = body.cancelPath ?? "/settings?billing=cancel";
 
     const appUrl = getAppUrl(req);
     const successUrl = `${appUrl}${successPath.startsWith("/") ? "" : "/"}${successPath}`;
@@ -197,6 +217,6 @@ export async function POST(req: Request) {
     });
   } catch (e: any) {
     console.error(e);
-    return NextResponse.json({ ok: false, error: e?.message ?? "unknown_error" }, { status: 400 });
+    return NextResponse.json({ ok: false, error: "Internal server error" }, { status: 500 });
   }
 }

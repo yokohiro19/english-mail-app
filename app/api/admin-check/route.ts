@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { getAdminApp, getAdminDb } from "@/src/lib/firebaseClient";
+import { safeCompare } from "@/src/lib/safeCompare";
 
 export async function GET(req: Request) {
   try {
     // 1) 簡易認証（これがないと危険）
     const secret = req.headers.get("x-admin-check-secret");
-    if (!process.env.ADMIN_CHECK_SECRET || secret !== process.env.ADMIN_CHECK_SECRET) {
+    if (!process.env.ADMIN_CHECK_SECRET || !safeCompare(secret, process.env.ADMIN_CHECK_SECRET)) {
       return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
     }
 
@@ -28,7 +29,7 @@ export async function GET(req: Request) {
     return NextResponse.json(
       {
         ok: false,
-        error: e?.message ?? "Admin check failed",
+        error: "Admin check failed",
       },
       { status: 500 }
     );

@@ -61,6 +61,7 @@ export async function GET(req: Request) {
     `;
     return new NextResponse(html, { headers: { "content-type": "text/html; charset=utf-8" } });
   } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e?.message ?? "unknown_error" }, { status: 400 });
+    console.error(e);
+    return NextResponse.json({ ok: false, error: "Internal server error" }, { status: 400 });
   }
 }

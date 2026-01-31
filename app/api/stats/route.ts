@@ -263,7 +263,7 @@ export async function GET(req: Request) {
       partialErrors: partialErrors.length ? partialErrors : undefined,
     });
   } catch (e: any) {
-    // 認証失敗など「致命的」は従来通り ok:false
-    return NextResponse.json({ ok: false, error: e?.message ?? "unknown_error" }, { status: 400 });
+    console.error(e);
+    return NextResponse.json({ ok: false, error: "Internal server error" }, { status: 500 });
   }
 }

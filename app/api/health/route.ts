@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAdminDb } from "@/src/lib/firebaseAdmin.server";
+import { safeCompare } from "@/src/lib/safeCompare";
 
 export const runtime = "nodejs";
 export const preferredRegion = "hnd1";
@@ -18,7 +19,7 @@ function isAuthorized(req: Request) {
   const url = new URL(req.url);
   const given = url.searchParams.get("secret") ?? "";
   const expected = process.env.CRON_SECRET ?? "";
-  return expected.length > 0 && given.length > 0 && given === expected;
+  return expected.length > 0 && given.length > 0 && safeCompare(given, expected);
 }
 
 export async function GET(req: Request) {

@@ -1,8 +1,16 @@
 import { NextResponse } from "next/server";
 import { getAdminDb } from "@/src/lib/firebaseClient";
+import { createRateLimiter, getClientIp } from "@/src/lib/rateLimit";
 
-export async function GET() {
+const topicLimiter = createRateLimiter({ windowMs: 60_000, maxRequests: 20 });
+
+export async function GET(req: Request) {
   try {
+    const { ok: withinLimit } = topicLimiter.check(getClientIp(req));
+    if (!withinLimit) {
+      return NextResponse.json({ ok: false, error: "rate_limit_exceeded" }, { status: 429 });
+    }
+
     const db = getAdminDb();
     const r = Math.random();
 
@@ -37,6 +45,6 @@ export async function GET() {
     });
   } catch (e: any) {
     console.error(e);
-    return NextResponse.json({ ok: false, error: e?.message ?? "Server error" }, { status: 500 });
+    return NextResponse.json({ ok: false, error: "Internal server error" }, { status: 500 });
   }
 }

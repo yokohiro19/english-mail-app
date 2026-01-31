@@ -5,6 +5,7 @@ import { z } from "zod";
 import { zodTextFormat } from "openai/helpers/zod";
 import { Resend } from "resend";
 import crypto from "crypto";
+import { safeCompare } from "@/src/lib/safeCompare";
 
 export const runtime = "nodejs";
 export const preferredRegion = "hnd1";
@@ -82,9 +83,15 @@ function normalizeStatus(v: any): SubscriptionStatus {
  * - status は trialing / active だけ送る
  * - それ以外は送らない（安全側）
  */
-function canSendByBilling(plan: Plan, status: SubscriptionStatus) {
+function canSendByBilling(plan: Plan, status: SubscriptionStatus, trialEndsAt?: Date | null) {
   if (plan !== "standard") return { ok: false, reason: `plan_${plan}` };
-  if (status === "trialing" || status === "active") return { ok: true, reason: `status_${status}` };
+  if (status === "active") return { ok: true, reason: "status_active" };
+  if (status === "trialing") {
+    if (trialEndsAt && trialEndsAt.getTime() < Date.now()) {
+      return { ok: false, reason: "trial_expired" };
+    }
+    return { ok: true, reason: "status_trialing" };
+  }
   return { ok: false, reason: `status_${status}` };
 }
 
@@ -259,17 +266,11 @@ export async function GET(req: Request) {
   const startedAt = Date.now();
 
   try {
-    // Cron保護
-    const auth =
-      req.headers.get("authorization") ??
-      req.headers.get("x-cron-secret") ??
-      new URL(req.url).searchParams.get("secret");
+    // Cron保護（Authorization: Bearer ヘッダーのみ受付）
+    const authHeader = req.headers.get("authorization") ?? "";
+    const secret = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
 
-    const secret = auth?.startsWith("Bearer ")
-      ? auth.slice(7)
-      : auth;
-
-    if (!process.env.CRON_SECRET || secret !== process.env.CRON_SECRET) {
+    if (!process.env.CRON_SECRET || !safeCompare(secret, process.env.CRON_SECRET)) {
       return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
     }
 
@@ -327,7 +328,12 @@ export async function GET(req: Request) {
       // ===== Billing Guard =====
       const plan = normalizePlan(u.plan);
       const status = normalizeStatus(u.subscriptionStatus);
-      const gate = canSendByBilling(plan, status);
+      const rawTrialEndsAt = u.trialEndsAt;
+      const trialEndsAt: Date | null =
+        rawTrialEndsAt instanceof Date ? rawTrialEndsAt :
+        typeof rawTrialEndsAt?.toDate === "function" ? rawTrialEndsAt.toDate() :
+        rawTrialEndsAt ? new Date(rawTrialEndsAt) : null;
+      const gate = canSendByBilling(plan, status, trialEndsAt);
 
       if (!gate.ok) {
         skippedBilling++;
@@ -398,7 +404,7 @@ export async function GET(req: Request) {
         });
 
         const out = resp.output_parsed!;
-        const subject = `Daily English (${today}) - ${topic.category}`;
+        const subject = `Daily English (${today}) - ${topic.category}`.replace(/[\r\n]/g, "");
 
         // ✅ 読んだURL（署名付き）
         const token = signReadToken({ uid, dateKey: today, deliveryId }, 7);
@@ -492,6 +498,6 @@ export async function GET(req: Request) {
     });
   } catch (e: any) {
     console.error(e);
-    return NextResponse.json({ ok: false, error: e?.message ?? "Server error" }, { status: 500 });
+    return NextResponse.json({ ok: false, error: "Internal server error" }, { status: 500 });
   }
 }

@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { getAdminDb } from "@/src/lib/firebaseAdmin.server";
+import { createRateLimiter, getClientIp } from "@/src/lib/rateLimit";
+
+const webhookLimiter = createRateLimiter({ windowMs: 60_000, maxRequests: 100 });
 
 export const runtime = "nodejs";
 
@@ -465,6 +468,11 @@ async function handleInvoicePaidLike(event: Stripe.Event) {
 }
 
 export async function POST(req: Request) {
+  const { ok: withinLimit } = webhookLimiter.check(getClientIp(req));
+  if (!withinLimit) {
+    return NextResponse.json({ error: "rate_limit_exceeded" }, { status: 429 });
+  }
+
   if (!process.env.STRIPE_SECRET_KEY) {
     return NextResponse.json({ error: "missing_STRIPE_SECRET_KEY" }, { status: 500 });
   }
@@ -484,7 +492,7 @@ export async function POST(req: Request) {
     event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!);
   } catch (err: any) {
     return NextResponse.json(
-      { error: `webhook_signature_verification_failed: ${err.message}` },
+      { error: "webhook_signature_verification_failed" },
       { status: 400 }
     );
   }
@@ -808,6 +816,6 @@ export async function POST(req: Request) {
       extra: null,
     });
 
-    return NextResponse.json({ error: `webhook_handler_failed: ${err.message}` }, { status: 500 });
+    return NextResponse.json({ error: "webhook_handler_failed" }, { status: 500 });
   }
 }

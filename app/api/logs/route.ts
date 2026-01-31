@@ -22,6 +22,7 @@ export async function GET(req: Request) {
     const items = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
     return NextResponse.json({ ok: true, items });
   } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e?.message ?? "unknown_error" }, { status: 400 });
+    console.error(e);
+    return NextResponse.json({ ok: false, error: "Internal server error" }, { status: 500 });
   }
 }

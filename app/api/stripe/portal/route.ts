@@ -72,6 +72,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, url: portal.url });
   } catch (e: any) {
     console.error(e);
-    return NextResponse.json({ ok: false, error: e?.message ?? "unknown_error" }, { status: 400 });
+    return NextResponse.json({ ok: false, error: "Internal server error" }, { status: 500 });
   }
 }

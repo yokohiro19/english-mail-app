@@ -3,6 +3,9 @@ import OpenAI from "openai";
 import { z } from "zod";
 import { zodTextFormat } from "openai/helpers/zod";
 import { getAdminAuth, getAdminDb } from "@/src/lib/firebaseClient";
+import { createRateLimiter, getClientIp } from "@/src/lib/rateLimit";
+
+const generateLimiter = createRateLimiter({ windowMs: 60_000, maxRequests: 5 });
 
 type ExamType = "TOEIC" | "EIKEN" | "TOEFL";
 
@@ -78,6 +81,11 @@ async function pickRandomTopic() {
 
 export async function POST(req: Request) {
   try {
+    const { ok: withinLimit } = generateLimiter.check(getClientIp(req));
+    if (!withinLimit) {
+      return NextResponse.json({ ok: false, error: "rate_limit_exceeded" }, { status: 429 });
+    }
+
     if (!process.env.OPENAI_API_KEY) {
       return NextResponse.json({ ok: false, error: "Missing OPENAI_API_KEY" }, { status: 500 });
     }
@@ -153,6 +161,6 @@ export async function POST(req: Request) {
     });
   } catch (e: any) {
     console.error(e);
-    return NextResponse.json({ ok: false, error: e?.message ?? "Server error" }, { status: 500 });
+    return NextResponse.json({ ok: false, error: "Internal server error" }, { status: 500 });
   }
 }
