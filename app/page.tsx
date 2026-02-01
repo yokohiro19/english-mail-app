@@ -204,9 +204,9 @@ export default function Home() {
           <div className="footer-links">
             <h4>その他</h4>
             <ul>
-              <li><a href="#contact">お問い合わせ</a></li>
-              <li><a href="#terms">利用規約</a></li>
-              <li><a href="#privacy">プライバシーポリシー</a></li>
+              <li><a href="/contact">お問い合わせ</a></li>
+              <li><a href="/terms">利用規約</a></li>
+              <li><a href="/privacy">プライバシーポリシー</a></li>
             </ul>
           </div>
         </div>
