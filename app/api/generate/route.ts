@@ -119,7 +119,9 @@ export async function POST(req: Request) {
 
     // 4) プロンプト（CEFRだけ渡す設計）
     const system = [
-      "You are an English writing tutor who creates short study emails.",
+      "You are creating English learning material for Japanese learners.",
+      "Your task is to generate a complete, ready-to-read English email text that requires NO editing or filling in by the reader.",
+      "NEVER use placeholders like [Your Name], [Company], [Date], [Recipient], etc. Instead, use realistic fictional names and details.",
       "Return output as JSON that strictly matches the schema.",
       "Difficulty MUST follow CEFR level only (A2/B1/B2/C1/C2).",
       "For A2–B1: keep sentences short, avoid complex subordinate clauses, minimize idioms, avoid abstract discussion.",
