@@ -219,7 +219,7 @@ export default function DashboardPage() {
 
           {/* Page title */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 28, fontWeight: 800 }}>Dashboard</h1>
+            <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 28, fontWeight: 800 }}>ダッシュボード</h1>
             <button
               onClick={refreshAll}
               disabled={loadingStats || loadingCalendar}

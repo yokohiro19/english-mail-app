@@ -328,7 +328,7 @@ export default function SettingsPage() {
 
           {/* Page title */}
           <div>
-            <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 28, fontWeight: 800, marginBottom: 4 }}>Settings</h1>
+            <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 28, fontWeight: 800, marginBottom: 4 }}>設定</h1>
             <p style={{ fontSize: 14, color: "#6B7280" }}>{user?.email}</p>
           </div>
 
@@ -336,7 +336,7 @@ export default function SettingsPage() {
           <div className="app-card">
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
               <div>
-                <p style={{ fontSize: 12, color: "#6B7280" }}>Current Plan</p>
+                <p style={{ fontSize: 12, color: "#6B7280" }}>現在のプラン</p>
                 <p style={{ fontFamily: "'Outfit', sans-serif", fontSize: 28, fontWeight: 800 }}>
                   {plan === "standard" ? "Standard" : "Free"}
                 </p>
