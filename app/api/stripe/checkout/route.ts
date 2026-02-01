@@ -152,8 +152,23 @@ export async function POST(req: Request) {
     const successUrl = `${appUrl}${successPath.startsWith("/") ? "" : "/"}${successPath}`;
     const cancelUrl = `${appUrl}${cancelPath.startsWith("/") ? "" : "/"}${cancelPath}`;
 
-    // ★ trialUsed 判定（既存ロジック）
+    // ★ trialUsed 判定 + トライアル残日数の計算
     const trialUsed = user?.trialUsed === true;
+    let remainingTrialDays = 0;
+    if (trialUsed) {
+      const trialEndsAt = user?.trialEndsAt;
+      if (trialEndsAt) {
+        const endMs = trialEndsAt instanceof Date
+          ? trialEndsAt.getTime()
+          : typeof trialEndsAt?.toDate === "function"
+            ? trialEndsAt.toDate().getTime()
+            : new Date(trialEndsAt).getTime();
+        if (Number.isFinite(endMs)) {
+          const days = Math.ceil((endMs - Date.now()) / (24 * 60 * 60 * 1000));
+          if (days > 0) remainingTrialDays = days;
+        }
+      }
+    }
 
     // ===== 🔥ここが本命：customer を必ず確定して metadata.uid を刻む =====
     let customerId = existingCustomerId;
@@ -179,13 +194,13 @@ export async function POST(req: Request) {
     }
 
     // subscription_data（uidをsubscriptionにも刻む）
+    // トライアル未使用 → フル日数、使用済みだが期間内 → 残日数で無料再開
+    const effectiveTrialDays = !trialUsed ? requestedTrialDays : remainingTrialDays;
     const subscriptionData: Stripe.Checkout.SessionCreateParams.SubscriptionData = {
       metadata: { uid },
-      ...(trialUsed
-        ? {}
-        : {
-            trial_period_days: requestedTrialDays,
-          }),
+      ...(effectiveTrialDays > 0
+        ? { trial_period_days: effectiveTrialDays }
+        : {}),
     };
 
     const session = await stripe.checkout.sessions.create({

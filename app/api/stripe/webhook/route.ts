@@ -378,6 +378,16 @@ async function handleSubscriptionUpsert(event: Stripe.Event) {
       current_period_end: typeof truth?.current_period_end === "number" ? truth.current_period_end : null,
     },
   });
+
+  // トライアル中にキャンセル予約が入った場合、即時キャンセルする
+  if (truth?.status === "trialing" && Boolean(truth?.cancel_at_period_end) && subId) {
+    try {
+      await stripe.subscriptions.cancel(subId);
+      console.log("[stripe webhook] immediately cancelled trialing subscription", { uid, subId });
+    } catch (cancelErr: any) {
+      console.error("[stripe webhook] failed to immediately cancel trialing sub:", cancelErr?.message);
+    }
+  }
 }
 
 /**

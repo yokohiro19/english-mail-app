@@ -309,8 +309,11 @@ export default function SettingsPage() {
 
   // Display logic
   const showFreeTrialLabel = plan === "free" && trialUsed === false;
-  const cancelledDuringTrial = plan === "free" && subscriptionStatus === "trialing" && Boolean(trialEndsAt);
-  const trialUntilText = cancelledDuringTrial ? formatDateOnly(trialEndsAt) : null;
+  const canRestartTrial = plan === "free" && trialUsed === true && (() => {
+    if (!trialEndsAt) return false;
+    const end = typeof trialEndsAt?.toDate === "function" ? trialEndsAt.toDate() : new Date(trialEndsAt);
+    return end.getTime() > Date.now();
+  })();
 
   if (loadingAuth || loadingData) {
     return (
@@ -346,9 +349,9 @@ export default function SettingsPage() {
                     {plan === "standard" ? "（月額500円）" : "（無料、メール受け取り不可）"}
                   </span>
                 </p>
-                {cancelledDuringTrial && trialUntilText && (
-                  <p style={{ fontSize: 13, color: "#6B7280", marginTop: 4 }}>
-                    トライアルは {trialUntilText} まで利用可能
+                {canRestartTrial && (
+                  <p style={{ fontSize: 13, color: "#059669", marginTop: 4 }}>
+                    トライアル期間内のため、無料で再開できます
                   </p>
                 )}
                 {plan === "standard" && currentPeriodEnd && (
@@ -365,7 +368,7 @@ export default function SettingsPage() {
                   </button>
                 ) : (
                   <button onClick={goCheckout} disabled={billingLoading} className="app-btn-primary">
-                    {billingLoading ? "処理中..." : showFreeTrialLabel ? "7日間無料で試す" : "アップグレード"}
+                    {billingLoading ? "処理中..." : showFreeTrialLabel ? "7日間無料で試す" : canRestartTrial ? "無料で再開する" : "アップグレード"}
                   </button>
                 )}
               </div>
