@@ -79,7 +79,7 @@
 .nav-cta {
   background: var(--primary-cyan);
   color: var(--dark-navy) !important;
-  padding: 6px 30px;
+  padding: 10px 30px;
   border-radius: 25px;
   text-decoration: none;
   font-weight: 600;
@@ -669,7 +669,7 @@
   }
 
   .nav-cta {
-    padding: 4px 16px;
+    padding: 7px 16px;
     font-size: 12px;
   }
 
