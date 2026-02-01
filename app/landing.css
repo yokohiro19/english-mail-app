@@ -156,6 +156,12 @@
   animation: fadeInUp 0.8s ease 0.2s both;
 }
 
+.hero-subtitle {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
 .hero-cta {
   display: flex;
   gap: 20px;
@@ -714,8 +720,15 @@
   }
 
   .hero-text h2 {
-    font-size: 28px;
-    margin-bottom: 12px;
+    font-size: 32px;
+    line-height: 1.35;
+    margin-bottom: 14px;
+  }
+
+  .hero-text .hero-subtitle {
+    font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 24px;
   }
 
   .hero-text p {

@@ -46,8 +46,8 @@ export default function Home() {
               <br />
               毎日絶対読む
             </h2>
-            <p style={{ fontSize: "22px", fontWeight: 600, marginBottom: "20px" }}>
-              ビジネスマンは、メールに届けば続けられる
+            <p className="hero-subtitle">
+              ビジネスマンは、<br />メールに届けば続けられる
             </p>
             <div className="hero-cta">
               <a href="/signup" className="btn-primary">
