@@ -46,7 +46,7 @@ export default function Home() {
             </h2>
             <p className="hero-subtitle">
               いつものメールボックスに、毎日届くビジネス英語。<br />
-              読んでタップするだけで、続いていることが目に見える。
+              読んでタップするだけで、継続が目に見える。
             </p>
             <div className="hero-cta">
               <a href="/signup" className="btn-primary">
