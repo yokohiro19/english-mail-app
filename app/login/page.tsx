@@ -7,6 +7,20 @@ import { useRouter } from "next/navigation";
 import "../app.css";
 import AppHeader from "../components/AppHeader";
 
+function firebaseErrorJa(err: any): string {
+  const code = typeof err?.code === "string" ? err.code : "";
+  switch (code) {
+    case "auth/invalid-email": return "メールアドレスの形式が正しくありません。";
+    case "auth/user-disabled": return "このアカウントは無効化されています。";
+    case "auth/user-not-found": return "このメールアドレスは登録されていません。";
+    case "auth/wrong-password": return "パスワードが正しくありません。";
+    case "auth/invalid-credential": return "メールアドレスまたはパスワードが正しくありません。";
+    case "auth/too-many-requests": return "リクエストが多すぎます。しばらくしてから再度お試しください。";
+    case "auth/network-request-failed": return "ネットワークエラーが発生しました。接続を確認してください。";
+    default: return "ログインに失敗しました。";
+  }
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -22,7 +36,7 @@ export default function LoginPage() {
       await signInWithEmailAndPassword(auth, email, password);
       router.push("/dashboard");
     } catch (err: any) {
-      setError(err?.message ?? "Login failed");
+      setError(firebaseErrorJa(err));
     } finally {
       setLoading(false);
     }

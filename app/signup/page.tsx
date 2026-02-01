@@ -7,6 +7,19 @@ import { useRouter } from "next/navigation";
 import "../app.css";
 import AppHeader from "../components/AppHeader";
 
+function firebaseErrorJa(err: any): string {
+  const code = typeof err?.code === "string" ? err.code : "";
+  switch (code) {
+    case "auth/email-already-in-use": return "このメールアドレスは既に登録されています。";
+    case "auth/invalid-email": return "メールアドレスの形式が正しくありません。";
+    case "auth/weak-password": return "パスワードが短すぎます。6文字以上にしてください。";
+    case "auth/operation-not-allowed": return "この操作は許可されていません。";
+    case "auth/too-many-requests": return "リクエストが多すぎます。しばらくしてから再度お試しください。";
+    case "auth/network-request-failed": return "ネットワークエラーが発生しました。接続を確認してください。";
+    default: return "アカウント作成に失敗しました。";
+  }
+}
+
 export default function SignupPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -22,7 +35,7 @@ export default function SignupPage() {
       await createUserWithEmailAndPassword(auth, email, password);
       router.push("/dashboard");
     } catch (err: any) {
-      setError(err?.message ?? "Signup failed");
+      setError(firebaseErrorJa(err));
     } finally {
       setLoading(false);
     }
