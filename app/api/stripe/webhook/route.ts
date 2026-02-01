@@ -143,13 +143,16 @@ async function shouldIgnoreNonCurrentSubscriptionEvent(params: { uid: string; ev
  * - event.id をキーに1行ログ（重複は上書きでOK）
  * - 監視ログの失敗でWebhookが落ちないようにする
  */
+function toJstString(d: Date) {
+  return d.toLocaleString("ja-JP", { timeZone: "Asia/Tokyo", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
+}
 function nowIso() {
-  return new Date().toISOString();
+  return toJstString(new Date());
 }
 function toIsoFromUnixSeconds(sec: number | null | undefined) {
   if (typeof sec !== "number") return null;
   const d = new Date(sec * 1000);
-  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+  return Number.isNaN(d.getTime()) ? null : toJstString(d);
 }
 function pickCommonIdsFromEvent(event: Stripe.Event) {
   const obj: any = event.data?.object as any;
