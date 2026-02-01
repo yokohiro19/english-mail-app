@@ -66,17 +66,17 @@ export default function Home() {
       <section className="features" id="features">
         <div className="section-header">
           <h2>TapSmart Englishの特徴</h2>
-          <p>自分に最適な難易度と文字数で、毎日英文がメールで届く。無理なく続けられる、新しいビジネス英語学習。</p>
+          <p>自分に最適な難易度と文字数で、毎日英文がメールで届く。<br />無理なく続けられる、新しいビジネス英語学習。</p>
         </div>
         <div className="features-grid">
           <div className="feature-card">
             <div className="feature-icon">🎯</div>
-            <h3>「楽しめる難易度」に調整</h3>
+            <h3>AIが「楽しめる難易度」でビジネスメールを作成</h3>
             <p>TOEIC・TOEFL・英検の得点目安で設定できるので、自分のレベルに合った英文で無理なく学習できます。</p>
           </div>
           <div className="feature-card">
             <div className="feature-icon">📧</div>
-            <h3>いつも使うメールアドレスを指定</h3>
+            <h3>いつも使うメールアドレスにお届け</h3>
             <p>
               指定したアドレスで受け取り可能。<br />
               <span style={{ fontSize: "13px", opacity: 0.8 }}>※会社メールでの受け取りは社内規定をご確認ください</span>
@@ -84,7 +84,7 @@ export default function Home() {
           </div>
           <div className="feature-card">
             <div className="feature-icon">✅</div>
-            <h3>読んで、ワンタップするだけ</h3>
+            <h3>１日１回、読んで、ワンタップするだけ</h3>
             <p>読んで理解して、ボタンを押すだけで積み重ね。シンプルな操作で学習習慣が自然と身につきます。</p>
           </div>
         </div>
