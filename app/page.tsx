@@ -57,8 +57,8 @@ export default function Home() {
             </div>
           </div>
           <div className="hero-visual">
-            {/* TODO: public/images/hero.jpg に画像を配置 */}
-            <img src="/images/hero.png" alt="ビジネスパーソン" className="hero-image" />
+            <img src="/images/hero.png" alt="ビジネスパーソン" className="hero-image hero-image-pc" />
+            <img src="/images/hero_smartphone.png" alt="ビジネスパーソン" className="hero-image hero-image-sp" />
           </div>
         </div>
       </section>

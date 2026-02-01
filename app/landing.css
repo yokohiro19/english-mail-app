@@ -233,6 +233,10 @@
   box-shadow: none;
 }
 
+.hero-image-sp {
+  display: none;
+}
+
 /* Features Section */
 .features {
   padding: 100px 40px;
@@ -696,6 +700,14 @@
     height: 100%;
     object-fit: cover;
     object-position: top center;
+  }
+
+  .hero-image-pc {
+    display: none;
+  }
+
+  .hero-image-sp {
+    display: block;
   }
 
   .hero-visual::after {
