@@ -229,7 +229,7 @@ export default function DashboardPage() {
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div>
               <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 28, fontWeight: 800, marginBottom: 4 }}>ダッシュボード</h1>
-              <p style={{ fontSize: 14, color: "#6B7280" }}>{nickname || user?.email || ""}さん</p>
+              <p style={{ fontSize: 14, color: "#6B7280" }}>{nickname || user?.email || ""}様</p>
             </div>
             <button
               onClick={refreshAll}

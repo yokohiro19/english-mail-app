@@ -189,7 +189,7 @@ export default function AccountPage() {
           {/* Page title */}
           <div>
             <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 28, fontWeight: 800, marginBottom: 4 }}>アカウント</h1>
-            <p style={{ fontSize: 14, color: "#6B7280" }}>{displayName}さん</p>
+            <p style={{ fontSize: 14, color: "#6B7280" }}>{displayName}様</p>
           </div>
 
           {/* Nickname */}
