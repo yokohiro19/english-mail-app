@@ -4,6 +4,8 @@ import { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../src/lib/firebase";
 import { useRouter } from "next/navigation";
+import "../app.css";
+import AppHeader from "../components/AppHeader";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -18,7 +20,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.push("/settings");
+      router.push("/dashboard");
     } catch (err: any) {
       setError(err?.message ?? "Login failed");
     } finally {
@@ -27,51 +29,40 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-6">
-      <div className="w-full max-w-md space-y-4">
-        <h1 className="text-2xl font-bold">Log in</h1>
+    <div className="app-page">
+      <AppHeader variant="auth" />
+      <main style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "calc(100vh - 56px)", padding: 24 }}>
+        <div className="auth-card">
+          <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 28, fontWeight: 800, marginBottom: 24 }}>
+            Log in
+          </h1>
 
-        <form onSubmit={onSubmit} className="space-y-3">
-          <div className="space-y-1">
-            <label className="text-sm">Email</label>
-            <input
-              className="w-full rounded border p-2"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
+          <form onSubmit={onSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div>
+              <label className="form-label">Email</label>
+              <input className="app-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            </div>
 
-          <div className="space-y-1">
-            <label className="text-sm">Password</label>
-            <input
-              className="w-full rounded border p-2"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
+            <div>
+              <label className="form-label">Password</label>
+              <input className="app-input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+            {error && <div className="app-error">{error}</div>}
 
-          <button
-            className="w-full rounded bg-black text-white p-2 disabled:opacity-50"
-            type="submit"
-            disabled={loading}
-          >
-            {loading ? "Logging in..." : "Log in"}
-          </button>
-        </form>
+            <button className="app-btn-primary" type="submit" disabled={loading} style={{ width: "100%", padding: "12px 24px", fontSize: 16 }}>
+              {loading ? "Logging in..." : "Log in"}
+            </button>
+          </form>
 
-        <p className="text-sm">
-          New here?{" "}
-          <a className="underline" href="/signup">
-            Create an account
-          </a>
-        </p>
-      </div>
-    </main>
+          <p style={{ marginTop: 20, fontSize: 14, color: "#6B7280" }}>
+            New here?{" "}
+            <a href="/signup" style={{ color: "#1d1f42", fontWeight: 600, textDecoration: "underline" }}>
+              Create an account
+            </a>
+          </p>
+        </div>
+      </main>
+    </div>
   );
 }
