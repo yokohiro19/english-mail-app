@@ -32,7 +32,7 @@ export default function Home() {
             <a href="#features">特徴</a>
             <a href="#strengths">強み</a>
             <a href="#how">使い方</a>
-            <a href="/signup" className="nav-cta" style={{ lineHeight: 1, textAlign: "center" }}><span style={{ fontWeight: 800 }}>無料で始める</span><br /><span style={{ fontSize: "9px", fontWeight: 400, opacity: 0.7, lineHeight: 1 }}>（ログイン）</span></a>
+            <a href="/signup" className="nav-cta" style={{ lineHeight: 0.8, textAlign: "center" }}><span style={{ fontWeight: 800 }}>無料で始める</span><br /><span style={{ fontSize: "9px", fontWeight: 400, opacity: 0.7 }}>（ログイン）</span></a>
           </div>
         </nav>
       </header>
