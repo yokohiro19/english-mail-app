@@ -87,6 +87,10 @@
   box-shadow: 0 4px 15px rgba(78, 255, 244, 0.3);
 }
 
+.nav-cta-label {
+  font-weight: 800;
+}
+
 .nav-cta:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 25px rgba(78, 255, 244, 0.5);
@@ -671,6 +675,10 @@
   .nav-cta {
     padding: 7px 16px;
     font-size: 12px;
+  }
+
+  .nav-cta-label {
+    font-weight: 600;
   }
 
   /* Hero: text overlaid on image */
