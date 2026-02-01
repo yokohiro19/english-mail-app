@@ -41,13 +41,13 @@ export default function AppHeader({ variant = "app" }: Props) {
         </a>
         <nav className="app-header-nav">
           <a href="/dashboard" className={pathname === "/dashboard" ? "active" : ""}>
-            Dashboard
+            ダッシュボード
           </a>
           <a href="/settings" className={pathname === "/settings" ? "active" : ""}>
-            Settings
+            設定
           </a>
           <button onClick={handleLogout} className="nav-logout">
-            Logout
+            ログアウト
           </button>
         </nav>
       </div>
