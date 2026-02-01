@@ -309,6 +309,16 @@
   box-shadow: 0 2px 6px rgba(78, 255, 244, 0.4);
 }
 
+/* ===== Warning message ===== */
+.app-warning {
+  background: #FFFBEB;
+  border: 1px solid #FDE68A;
+  color: #92400E;
+  border-radius: 12px;
+  padding: 16px;
+  font-size: 14px;
+}
+
 /* ===== Error message ===== */
 .app-error {
   background: #FEF2F2;

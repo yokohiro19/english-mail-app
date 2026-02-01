@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 import { auth } from "../../src/lib/firebase";
 import { useRouter } from "next/navigation";
 import "../app.css";
@@ -32,7 +32,8 @@ export default function SignupPage() {
     setError(null);
     setLoading(true);
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      await sendEmailVerification(cred.user).catch(() => {});
       router.push("/dashboard");
     } catch (err: any) {
       setError(firebaseErrorJa(err));

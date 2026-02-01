@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAdminDb } from "@/src/lib/firebaseClient";
+import { getAdminAuth, getAdminDb } from "@/src/lib/firebaseClient";
 import OpenAI from "openai";
 import { z } from "zod";
 import { zodTextFormat } from "openai/helpers/zod";
@@ -233,7 +233,7 @@ async function safeWriteOpsCronRun(params: {
   targetHHMM: string;
   attempted: number;
   sent: number;
-  skipped: { noEmail: number; alreadySent: number; billing: number; disabled: number };
+  skipped: { noEmail: number; alreadySent: number; billing: number; disabled: number; unverified: number };
   billingSkipReasons: Record<string, number>;
   errorsCount: number;
   durationMs: number;
@@ -303,6 +303,7 @@ export async function GET(req: Request) {
     let skippedAlreadySent = 0;
     let skippedBilling = 0;
     let skippedDisabled = 0;
+    let skippedUnverified = 0;
 
     const billingSkipReasons: Record<string, number> = {};
 
@@ -322,6 +323,19 @@ export async function GET(req: Request) {
 
       if (u.disabled === true) {
         skippedDisabled++;
+        continue;
+      }
+
+      // ===== Email Verification Guard =====
+      try {
+        const adminAuth = getAdminAuth();
+        const authUser = await adminAuth.getUser(uid);
+        if (!authUser.emailVerified) {
+          skippedUnverified++;
+          continue;
+        }
+      } catch {
+        skippedUnverified++;
         continue;
       }
 
@@ -475,6 +489,7 @@ export async function GET(req: Request) {
         alreadySent: skippedAlreadySent,
         billing: skippedBilling,
         disabled: skippedDisabled,
+        unverified: skippedUnverified,
       },
       billingSkipReasons,
       errorsCount: errors.length,
@@ -494,6 +509,7 @@ export async function GET(req: Request) {
         alreadySent: skippedAlreadySent,
         billing: skippedBilling,
         disabled: skippedDisabled,
+        unverified: skippedUnverified,
       },
       billingSkipReasons,
       billingSkips: billingSkipsSample,

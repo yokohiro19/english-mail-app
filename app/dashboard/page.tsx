@@ -1,7 +1,7 @@
 "use client";
 
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
-import { onAuthStateChanged, User } from "firebase/auth";
+import { onAuthStateChanged, sendEmailVerification, User } from "firebase/auth";
 import { auth } from "@/src/lib/firebase";
 import { useRouter } from "next/navigation";
 import "../app.css";
@@ -61,6 +61,9 @@ export default function DashboardPage() {
 
   const [user, setUser] = useState<User | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
+  const [emailVerified, setEmailVerified] = useState(true);
+  const [verifyMsg, setVerifyMsg] = useState<string | null>(null);
+  const [sendingVerify, setSendingVerify] = useState(false);
 
   const [loadingStats, setLoadingStats] = useState(false);
   const [stats, setStats] = useState<Stats | null>(null);
@@ -79,10 +82,36 @@ export default function DashboardPage() {
     const unsub = onAuthStateChanged(auth, (u) => {
       setUser(u);
       setLoadingAuth(false);
-      if (!u) router.replace("/login");
+      if (!u) { router.replace("/login"); return; }
+      setEmailVerified(u.emailVerified);
     });
     return () => unsub();
   }, [router]);
+
+  const resendVerification = async () => {
+    if (!user) return;
+    setSendingVerify(true);
+    setVerifyMsg(null);
+    try {
+      await sendEmailVerification(user);
+      setVerifyMsg("認証メールを送信しました。受信トレイを確認してください。");
+    } catch {
+      setVerifyMsg("送信に失敗しました。しばらくしてから再度お試しください。");
+    } finally {
+      setSendingVerify(false);
+    }
+  };
+
+  const checkVerified = async () => {
+    if (!user) return;
+    await user.reload();
+    setEmailVerified(user.emailVerified);
+    if (user.emailVerified) {
+      setVerifyMsg(null);
+    } else {
+      setVerifyMsg("まだ認証が完了していません。メール内のリンクをクリックしてください。");
+    }
+  };
 
   const fetchStats = async () => {
     if (!user) return;
@@ -169,6 +198,24 @@ export default function DashboardPage() {
       <AppHeader />
       <main style={{ maxWidth: 800, margin: "0 auto", padding: "32px 24px" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+
+          {/* Email verification banner */}
+          {!emailVerified && (
+            <div className="app-warning">
+              <div style={{ marginBottom: 8 }}>
+                メールアドレスが未認証です。受信トレイを確認し、認証リンクをクリックしてください。
+              </div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <button onClick={resendVerification} disabled={sendingVerify} className="app-btn-secondary" style={{ padding: "6px 16px", fontSize: 13 }}>
+                  {sendingVerify ? "送信中..." : "認証メールを再送する"}
+                </button>
+                <button onClick={checkVerified} className="app-btn-secondary" style={{ padding: "6px 16px", fontSize: 13 }}>
+                  認証済みです
+                </button>
+              </div>
+              {verifyMsg && <div style={{ marginTop: 8, fontSize: 13 }}>{verifyMsg}</div>}
+            </div>
+          )}
 
           {/* Page title */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
