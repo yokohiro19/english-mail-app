@@ -104,8 +104,17 @@ export default function SettingsPage() {
   const [logs, setLogs] = useState<StudyLogItem[]>([]);
   const [logsError, setLogsError] = useState<string | null>(null);
 
+  const levelOptionsByExam: Record<ExamType, string[]> = useMemo(
+    () => ({
+      TOEIC: ["TOEIC 990", "TOEIC 900", "TOEIC 800", "TOEIC 700", "TOEIC 600", "TOEIC 500", "TOEIC 400"],
+      EIKEN: ["英検 1級", "英検 準1級", "英検 2級", "英検 準2級プラス", "英検 準2級", "英検 3級"],
+      TOEFL: ["TOEFL 116~120", "TOEFL 109~115", "TOEFL 94~108", "TOEFL 63~93", "TOEFL 45~62", "TOEFL 30~44"],
+    }),
+    []
+  );
+
   const defaultLevelByExam: Record<ExamType, string> = useMemo(
-    () => ({ TOEIC: "TOEIC 500", EIKEN: "英検 2級", TOEFL: "TOEFL 80" }),
+    () => ({ TOEIC: "TOEIC 500", EIKEN: "英検 2級", TOEFL: "TOEFL 63~93" }),
     []
   );
 
@@ -336,17 +345,31 @@ export default function SettingsPage() {
 
               <div>
                 <label className="form-label">配信時間（JST）</label>
-                <input className="app-input" type="time" value={sendTime} onChange={(e) => setSendTime(e.target.value)} />
+                <select className="app-select" value={sendTime} onChange={(e) => setSendTime(e.target.value)}>
+                  {Array.from({ length: 144 }, (_, i) => {
+                    const h = String(Math.floor(i / 6)).padStart(2, "0");
+                    const m = String((i % 6) * 10).padStart(2, "0");
+                    return <option key={`${h}:${m}`} value={`${h}:${m}`}>{h}:{m}</option>;
+                  })}
+                </select>
               </div>
 
               <div>
                 <label className="form-label">レベル</label>
-                <input className="app-input" value={examLevel} onChange={(e) => setExamLevel(e.target.value)} placeholder="例：TOEIC 500 / 英検 2級 / TOEFL 80" />
+                <select className="app-select" value={examLevel} onChange={(e) => setExamLevel(e.target.value)}>
+                  {levelOptionsByExam[examType].map((lv) => (
+                    <option key={lv} value={lv}>{lv}</option>
+                  ))}
+                </select>
               </div>
 
               <div>
-                <label className="form-label">文字数（words）</label>
-                <input className="app-input" type="number" min={50} max={800} value={wordCount} onChange={(e) => setWordCount(Number(e.target.value))} />
+                <label className="form-label">単語数（words）</label>
+                <select className="app-select" value={wordCount} onChange={(e) => setWordCount(Number(e.target.value))}>
+                  {[50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800].map((n) => (
+                    <option key={n} value={n}>{n}</option>
+                  ))}
+                </select>
                 <p className="form-helper">目安：100〜250が読みやすい</p>
               </div>
             </div>
