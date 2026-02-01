@@ -51,6 +51,7 @@ export default function Home() {
             <div className="hero-cta">
               <a href="/signup" className="btn-primary">
                 今すぐ無料で始める
+                <br /><span style={{ fontSize: "12px", fontWeight: 400, opacity: 0.8 }}>（ログイン）</span>
                 <span className="price-note">月額500円（初回7日間無料）</span>
               </a>
               <a href="#how" className="btn-secondary">使い方を見る</a>
@@ -182,6 +183,7 @@ export default function Home() {
               style={{ fontSize: "20px", padding: "18px 50px", width: "100%", textAlign: "center", display: "block" }}
             >
               無料で始める →
+              <br /><span style={{ fontSize: "13px", fontWeight: 400, opacity: 0.8 }}>（ログイン）</span>
             </a>
           </div>
         </div>
