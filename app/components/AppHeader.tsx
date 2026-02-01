@@ -46,6 +46,9 @@ export default function AppHeader({ variant = "app" }: Props) {
           <a href="/settings" className={pathname === "/settings" ? "active" : ""}>
             設定
           </a>
+          <a href="/account" className={pathname === "/account" ? "active" : ""}>
+            アカウント
+          </a>
           <button onClick={handleLogout} className="nav-logout">
             ログアウト
           </button>

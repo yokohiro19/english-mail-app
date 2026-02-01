@@ -2,7 +2,8 @@
 
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { onAuthStateChanged, sendEmailVerification, User } from "firebase/auth";
-import { auth } from "@/src/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "@/src/lib/firebase";
 import { useRouter } from "next/navigation";
 import "../app.css";
 import AppHeader from "../components/AppHeader";
@@ -61,6 +62,7 @@ export default function DashboardPage() {
 
   const [user, setUser] = useState<User | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
+  const [nickname, setNickname] = useState("");
   const [emailVerified, setEmailVerified] = useState(true);
   const [verifyMsg, setVerifyMsg] = useState<string | null>(null);
   const [sendingVerify, setSendingVerify] = useState(false);
@@ -167,6 +169,12 @@ export default function DashboardPage() {
     if (!user) return;
     fetchStats().catch(() => {});
     fetchCalendar().catch(() => {});
+    const loadNickname = async () => {
+      const ref = doc(db, "users", user.uid);
+      const snap = await getDoc(ref);
+      if (snap.exists()) setNickname(snap.data().nickname ?? "");
+    };
+    loadNickname().catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
@@ -219,7 +227,10 @@ export default function DashboardPage() {
 
           {/* Page title */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 28, fontWeight: 800 }}>ダッシュボード</h1>
+            <div>
+              <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 28, fontWeight: 800, marginBottom: 4 }}>ダッシュボード</h1>
+              <p style={{ fontSize: 14, color: "#6B7280" }}>{nickname || user?.email || ""}さん</p>
+            </div>
             <button
               onClick={refreshAll}
               disabled={loadingStats || loadingCalendar}

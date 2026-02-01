@@ -84,6 +84,8 @@ export default function SettingsPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [messageType, setMessageType] = useState<"success" | "error">("success");
 
+  const [nickname, setNickname] = useState("");
+
   const [examType, setExamType] = useState<ExamType>(DEFAULT_SETTINGS.examType);
   const [examLevel, setExamLevel] = useState(DEFAULT_SETTINGS.examLevel);
   const [wordCount, setWordCount] = useState(DEFAULT_SETTINGS.wordCount);
@@ -141,7 +143,8 @@ export default function SettingsPage() {
     const snap = await getDoc(ref);
 
     if (snap.exists()) {
-      const data = snap.data() as Partial<UserSettings>;
+      const data = snap.data() as Partial<UserSettings> & { nickname?: string };
+      setNickname(data.nickname ?? "");
       const loadedExamType = (data.examType as ExamType) ?? DEFAULT_SETTINGS.examType;
       setExamType(loadedExamType);
       setExamLevel(data.examLevel ?? defaultLevelByExam[loadedExamType] ?? DEFAULT_SETTINGS.examLevel);
@@ -329,7 +332,7 @@ export default function SettingsPage() {
           {/* Page title */}
           <div>
             <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 28, fontWeight: 800, marginBottom: 4 }}>設定</h1>
-            <p style={{ fontSize: 14, color: "#6B7280" }}>{user?.email}</p>
+            <p style={{ fontSize: 14, color: "#6B7280" }}>{nickname || user?.email || ""}さん</p>
           </div>
 
           {/* Billing */}
