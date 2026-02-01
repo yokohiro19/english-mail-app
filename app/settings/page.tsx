@@ -342,6 +342,9 @@ export default function SettingsPage() {
                 <p style={{ fontSize: 12, color: "#6B7280" }}>現在のプラン</p>
                 <p style={{ fontFamily: "'Outfit', sans-serif", fontSize: 28, fontWeight: 800 }}>
                   {plan === "standard" ? "Standard" : "Free"}
+                  <span style={{ fontSize: 14, fontWeight: 400, color: "#6B7280", marginLeft: 8 }}>
+                    {plan === "standard" ? "（月額500円）" : "（無料、メール受け取り不可）"}
+                  </span>
                 </p>
                 {cancelledDuringTrial && trialUntilText && (
                   <p style={{ fontSize: 13, color: "#6B7280", marginTop: 4 }}>
