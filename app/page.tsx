@@ -41,13 +41,12 @@ export default function Home() {
         <div className="hero-content">
           <div className="hero-text">
             <h2>
-              ビジネス英語、<br />
-              <span className="highlight">&quot;楽しめる難易度&quot;で、</span>
-              <br />
-              毎日絶対読む
+              ちょうど楽しい難易度。<br />
+              だから、明日も読みたくなる。
             </h2>
             <p className="hero-subtitle">
-              ビジネスマンは、<br />メールに届けば続けられる
+              いつものメールボックスに、毎日届くビジネス英語。<br />
+              読んでタップするだけで、続いていることが目に見える。
             </p>
             <div className="hero-cta">
               <a href="/signup" className="btn-primary">
