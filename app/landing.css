@@ -733,13 +733,14 @@
 
   .hero-text h2 {
     font-size: 26px;
-    line-height: 1.35;
-    margin-bottom: 10px;
+    line-height: 1.5;
+    margin-bottom: 14px;
   }
 
   .hero-text .hero-subtitle {
     font-size: 13px;
     font-weight: 500;
+    line-height: 1.8;
     margin-bottom: 20px;
   }
 
