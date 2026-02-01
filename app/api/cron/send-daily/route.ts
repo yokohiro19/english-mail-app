@@ -314,7 +314,8 @@ export async function GET(req: Request) {
       attempted++;
       const u = uDoc.data() as any;
       const uid = uDoc.id;
-      const email = u.email as string;
+      const baseEmail = u.email as string;
+      const email = (u.deliveryEmail && u.deliveryEmailVerified === true) ? u.deliveryEmail : baseEmail;
 
       if (!email) {
         skippedNoEmail++;

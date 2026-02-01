@@ -89,6 +89,12 @@ export default function SettingsPage() {
   const [wordCount, setWordCount] = useState(DEFAULT_SETTINGS.wordCount);
   const [sendTime, setSendTime] = useState(DEFAULT_SETTINGS.sendTime);
 
+  // Delivery email
+  const [deliveryEmail, setDeliveryEmail] = useState("");
+  const [deliveryEmailVerified, setDeliveryEmailVerified] = useState(false);
+  const [deliveryEmailSending, setDeliveryEmailSending] = useState(false);
+  const [deliveryEmailMsg, setDeliveryEmailMsg] = useState<string | null>(null);
+
   // Billing
   const [plan, setPlan] = useState<Plan>("free");
   const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
@@ -147,7 +153,11 @@ export default function SettingsPage() {
       setTrialEndsAt((data.trialEndsAt as any) ?? null);
       setCurrentPeriodEnd((data.currentPeriodEnd as any) ?? null);
       setCancelAtPeriodEnd(Boolean(data.cancelAtPeriodEnd));
+      setDeliveryEmail((data as any).deliveryEmail ?? u.email ?? "");
+      setDeliveryEmailVerified(Boolean((data as any).deliveryEmailVerified));
     } else {
+      setDeliveryEmail(u.email ?? "");
+      setDeliveryEmailVerified(false);
       await setDoc(ref, { email: u.email ?? "", ...DEFAULT_SETTINGS, plan: "free", trialUsed: false, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }, { merge: true });
     }
     setLoadingData(false);
@@ -165,7 +175,15 @@ export default function SettingsPage() {
     setMessage(null);
     try {
       const ref = doc(db, "users", user.uid);
-      await setDoc(ref, { email: user.email ?? "", examType, examLevel, wordCount, sendTime, updatedAt: serverTimestamp() }, { merge: true });
+      const isDefaultEmail = deliveryEmail === user.email;
+      await setDoc(ref, {
+        email: user.email ?? "",
+        examType, examLevel, wordCount, sendTime,
+        deliveryEmail: deliveryEmail || user.email,
+        ...(isDefaultEmail ? { deliveryEmailVerified: true } : {}),
+        updatedAt: serverTimestamp(),
+      }, { merge: true });
+      if (isDefaultEmail) setDeliveryEmailVerified(true);
       setMessage("保存しました");
       setMessageType("success");
     } catch (e) {
@@ -176,6 +194,33 @@ export default function SettingsPage() {
       setSaving(false);
     }
   };
+
+  const sendDeliveryVerification = async () => {
+    if (!user || !deliveryEmail) return;
+    setDeliveryEmailSending(true);
+    setDeliveryEmailMsg(null);
+    try {
+      const token = await user.getIdToken();
+      const res = await fetch("/api/verify-delivery-email", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ email: deliveryEmail }),
+      });
+      const json = await res.json();
+      if (json.ok) {
+        setDeliveryEmailMsg("認証メールを送信しました。受信トレイを確認してください。");
+        setDeliveryEmailVerified(false);
+      } else {
+        setDeliveryEmailMsg("送信に失敗しました。");
+      }
+    } catch {
+      setDeliveryEmailMsg("送信に失敗しました。");
+    } finally {
+      setDeliveryEmailSending(false);
+    }
+  };
+
+  const isCustomEmail = user ? deliveryEmail !== user.email : false;
 
   // Study logs
   const fetchLogs = async () => {
@@ -325,6 +370,50 @@ export default function SettingsPage() {
           {/* Delivery Settings */}
           <div className="app-card">
             <h2 className="section-title">配信設定</h2>
+
+            {/* Delivery email */}
+            <div style={{ marginBottom: 20 }}>
+              <label className="form-label">配信先メールアドレス</label>
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <input
+                  className="app-input"
+                  type="email"
+                  value={deliveryEmail}
+                  onChange={(e) => {
+                    setDeliveryEmail(e.target.value);
+                    setDeliveryEmailVerified(false);
+                    setDeliveryEmailMsg(null);
+                  }}
+                  style={{
+                    flex: 1,
+                    color: isCustomEmail && !deliveryEmailVerified ? "#9CA3AF" : "#1d1f42",
+                    fontWeight: isCustomEmail && !deliveryEmailVerified ? 400 : 700,
+                  }}
+                />
+                {isCustomEmail && !deliveryEmailVerified && (
+                  <button
+                    onClick={sendDeliveryVerification}
+                    disabled={deliveryEmailSending}
+                    className="app-btn-primary"
+                    style={{ padding: "10px 20px", fontSize: 13, whiteSpace: "nowrap" }}
+                  >
+                    {deliveryEmailSending ? "送信中..." : "認証"}
+                  </button>
+                )}
+                {deliveryEmailVerified && (
+                  <span style={{ fontSize: 13, color: "#059669", fontWeight: 600, whiteSpace: "nowrap" }}>認証済み</span>
+                )}
+              </div>
+              {isCustomEmail && !deliveryEmailVerified && (
+                <p className="form-helper">認証ボタンを押すと、入力したアドレスに認証メールを送信します</p>
+              )}
+              {deliveryEmailMsg && (
+                <p style={{ fontSize: 13, marginTop: 6, color: deliveryEmailMsg.includes("失敗") ? "#991B1B" : "#059669" }}>
+                  {deliveryEmailMsg}
+                </p>
+              )}
+            </div>
+
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
               <div>
                 <label className="form-label">試験</label>
