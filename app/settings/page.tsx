@@ -545,7 +545,7 @@ export default function SettingsPage() {
                     <option key={n} value={n}>{n}</option>
                   ))}
                 </select>
-                <p className="form-helper">目安：100〜250が読みやすい</p>
+                <p className="form-helper">100〜200がおすすめ</p>
               </div>
             </div>
 
