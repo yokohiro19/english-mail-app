@@ -7,7 +7,7 @@ import {
   reauthenticateWithCredential,
   updatePassword,
   verifyBeforeUpdateEmail,
-  deleteUser,
+  signOut,
   User,
 } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
@@ -175,9 +175,20 @@ export default function AccountPage() {
     setDeleteLoading(true);
     setDeleteMsg(null);
     try {
+      // 再認証（パスワード確認）
       const credential = EmailAuthProvider.credential(user.email, deletePassword);
       await reauthenticateWithCredential(user, credential);
-      await deleteUser(user);
+
+      // サーバー側で Stripe キャンセル + Firestore 論理削除 + Auth 削除
+      const token = await user.getIdToken();
+      const res = await fetch("/api/delete-account", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.ok) throw new Error(json.error ?? "failed");
+
+      await signOut(auth);
       router.replace("/login");
     } catch (err: any) {
       setDeleteMsg({ text: firebaseErrorJa(err), type: "error" });
