@@ -212,7 +212,7 @@ export default function AccountPage() {
               </button>
             </div>
             {nicknameMsg && (
-              <div className={nicknameMsg.type === "success" ? "app-success" : "app-error"} style={{ marginTop: 12, padding: "8px 16px" }}>
+              <div style={{ marginTop: 12, fontSize: 13, color: nicknameMsg.type === "success" ? "#059669" : "#991B1B" }}>
                 {nicknameMsg.text}
               </div>
             )}
