@@ -541,6 +541,13 @@ export default function SettingsPage() {
             )}
           </div>
 
+          {/* Account management link */}
+          <div style={{ textAlign: "center", paddingTop: 8 }}>
+            <a href="/account" className="app-btn-secondary" style={{ padding: "12px 32px", fontSize: 14 }}>
+              アカウント管理
+            </a>
+          </div>
+
         </div>
       </main>
     </div>
