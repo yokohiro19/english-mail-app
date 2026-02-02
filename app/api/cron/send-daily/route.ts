@@ -180,43 +180,55 @@ function buildEmailHtml(payload: {
   readUrl: string;
 }) {
   const wordsHtml = payload.words
-    .map((w) => `<li><b>${escapeHtml(w.word)}</b> — ${escapeHtml(w.meaning)}</li>`)
+    .map(
+      (w) =>
+        `<tr><td style="padding:6px 12px 6px 0;font-weight:700;color:#1d1f42;white-space:nowrap;vertical-align:top">${escapeHtml(w.word)}</td><td style="padding:6px 0;color:#374151">${escapeHtml(w.meaning)}</td></tr>`
+    )
     .join("");
 
-  const readButtonHtml = `
-    <div style="margin-top:24px;">
-      <a href="${payload.readUrl}"
-         style="display:inline-block;background:#111;color:#fff;padding:12px 16px;border-radius:10px;text-decoration:none;">
-        読んだ
-      </a>
-      <div style="color:#666;font-size:12px;margin-top:8px;">
-        ※クリックすると学習ログに記録されます
+  return `
+  <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Inter',sans-serif;line-height:1.7;color:#1d1f42;max-width:600px;margin:0 auto;background:#ffffff">
+    <!-- Header -->
+    <div style="background:#1d1f42;padding:20px 28px;border-radius:12px 12px 0 0">
+      <span style="font-size:20px;font-weight:800;color:#4EFFF4;letter-spacing:0.5px">TapSmart English</span>
+      <span style="font-size:13px;color:rgba(255,255,255,0.5);margin-left:12px">${payload.dateKey}</span>
+    </div>
+
+    <div style="padding:28px">
+      <!-- English -->
+      <div style="margin-bottom:28px">
+        <h3 style="font-size:13px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:1px;margin:0 0 12px">English</h3>
+        <div style="background:#F5F7FA;border-left:4px solid #4EFFF4;padding:16px 20px;border-radius:0 10px 10px 0;white-space:pre-wrap;font-size:15px;line-height:1.8">${escapeHtml(payload.english)}</div>
+      </div>
+
+      <!-- Words -->
+      <div style="margin-bottom:28px">
+        <h3 style="font-size:13px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:1px;margin:0 0 12px">Important Words</h3>
+        <table style="border-collapse:collapse;width:100%">${wordsHtml}</table>
+      </div>
+
+      <!-- Japanese -->
+      <div style="margin-bottom:32px">
+        <h3 style="font-size:13px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:1px;margin:0 0 12px">Japanese Translation</h3>
+        <div style="background:#F5F7FA;border-left:4px solid #2A3B6F;padding:16px 20px;border-radius:0 10px 10px 0;white-space:pre-wrap;font-size:15px;line-height:1.8">${escapeHtml(payload.jp)}</div>
+      </div>
+
+      <!-- Read Button -->
+      <div style="text-align:center;margin:36px 0 16px">
+        <a href="${payload.readUrl}"
+           style="display:inline-block;background:#4EFFF4;color:#1d1f42;font-weight:800;font-size:18px;padding:16px 48px;border-radius:12px;text-decoration:none;letter-spacing:0.5px;box-shadow:0 4px 15px rgba(78,255,244,0.3)">
+          Read ✔
+        </a>
+        <div style="color:#6B7280;font-size:12px;margin-top:10px">
+          タップすると学習ログに記録されます
+        </div>
       </div>
     </div>
-  `;
 
-  return `
-  <div style="font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Arial; line-height:1.6">
-    <h2>Daily English (${payload.dateKey})</h2>
-
-    <h3>English</h3>
-    <pre style="white-space:pre-wrap; background:#f5f5f5; padding:12px; border-radius:8px">${escapeHtml(
-      payload.english
-    )}</pre>
-
-    <h3>Important words</h3>
-    <ul>${wordsHtml}</ul>
-
-    <h3>Japanese translation</h3>
-    <pre style="white-space:pre-wrap; background:#f5f5f5; padding:12px; border-radius:8px">${escapeHtml(
-      payload.jp
-    )}</pre>
-
-    ${readButtonHtml}
-
-    <p style="color:#777; font-size:12px; margin-top:16px">
-      You received this because you subscribed to English Mail App.
-    </p>
+    <!-- Footer -->
+    <div style="background:#F5F7FA;padding:16px 28px;border-radius:0 0 12px 12px;text-align:center">
+      <span style="font-size:12px;color:#9CA3AF">TapSmart English — tapsmart.jp</span>
+    </div>
   </div>
   `;
 }
@@ -421,7 +433,7 @@ export async function GET(req: Request) {
         });
 
         const out = resp.output_parsed!;
-        const subject = `Daily English (${today}) - ${topic.category}`.replace(/[\r\n]/g, "");
+        const subject = `TapSmart English (${today}) - ${topic.category}`.replace(/[\r\n]/g, "");
 
         // ✅ 読んだURL（署名付き）
         const token = signReadToken({ uid, dateKey: today, deliveryId }, 7);

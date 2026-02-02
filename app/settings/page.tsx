@@ -77,6 +77,16 @@ function formatDateOnly(ts: any) {
 export default function SettingsPage() {
   const router = useRouter();
 
+  // already_read バナー
+  const [alreadyReadBanner, setAlreadyReadBanner] = useState(false);
+  useEffect(() => {
+    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("already_read") === "1") {
+      setAlreadyReadBanner(true);
+      const t = setTimeout(() => setAlreadyReadBanner(false), 4000);
+      return () => clearTimeout(t);
+    }
+  }, []);
+
   const [user, setUser] = useState<User | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [loadingData, setLoadingData] = useState(true);
@@ -331,6 +341,18 @@ export default function SettingsPage() {
       <AppHeader />
       <main style={{ maxWidth: 800, margin: "0 auto", padding: "32px 24px" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+
+          {/* Already read banner */}
+          {alreadyReadBanner && (
+            <div style={{
+              background: "#1d1f42", color: "#fff", padding: "14px 20px", borderRadius: 12,
+              fontSize: 14, fontWeight: 600, textAlign: "center",
+              animation: "fadeInOut 4s ease-in-out forwards",
+            }}>
+              この文書は既に読了しています
+              <style>{`@keyframes fadeInOut { 0% { opacity: 0; } 10% { opacity: 1; } 75% { opacity: 1; } 100% { opacity: 0; } }`}</style>
+            </div>
+          )}
 
           {/* Page title */}
           <div>
