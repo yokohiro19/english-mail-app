@@ -66,16 +66,16 @@ export default function Home() {
       <section className="features" id="features">
         <div className="section-header">
           <h2>TapSmart Englishの特徴</h2>
-          <p>自分に最適な難易度と文字数で、毎日英文がメールで届く。<br />無理なく続けられる、新しいビジネス英語学習。</p>
+          <p>自分に最適な難易度と文字数で、AIが生成した英文が毎日メールで届く。<br />無理なく続けられる、新しいビジネス英語学習。</p>
         </div>
         <div className="features-grid">
           <div className="feature-card">
-            <div className="feature-icon">🎯</div>
-            <h3>AIが「楽しめる難易度」でビジネスメールを作成</h3>
+            <img src="/images/feature-ai.png" alt="AI" className="feature-icon-img" />
+            <h3>AIが「楽しめる難易度」でビジネス英語を作成</h3>
             <p>TOEIC・TOEFL・英検の得点目安で設定できるので、自分のレベルに合った英文で無理なく学習できます。</p>
           </div>
           <div className="feature-card">
-            <div className="feature-icon">📧</div>
+            <img src="/images/feature-mail.png" alt="メール" className="feature-icon-img" />
             <h3>いつも使うメールアドレスにお届け</h3>
             <p>
               指定したアドレスで受け取り可能。<br />
@@ -83,7 +83,7 @@ export default function Home() {
             </p>
           </div>
           <div className="feature-card">
-            <div className="feature-icon">✅</div>
+            <img src="/images/feature-tap.png" alt="ワンタップ" className="feature-icon-img" />
             <h3>１日１回、読んで、ワンタップするだけ</h3>
             <p>読んで理解して、ボタンを押すだけで積み重ね。シンプルな操作で学習習慣が自然と身につきます。</p>
           </div>
@@ -97,24 +97,24 @@ export default function Home() {
         </div>
         <div className="function-list">
           <div className="function-item">
-            <div className="function-icon">⚡</div>
+            <img src="/images/strength-tap.png" alt="Tap" className="function-icon-img" />
             <div className="function-content">
-              <h3>簡単な操作</h3>
+              <h3>どこでもできる「Tap」するだけの簡単操作</h3>
               <p>毎日指定した時間に、英文、単語の解説、日本語訳、が記載されたメールが届くので、読んだら「Read ✔」ボタンを押すだけ</p>
             </div>
           </div>
           <div className="function-item">
-            <div className="function-icon">📈</div>
+            <img src="/images/strength-adjust.png" alt="調整" className="function-icon-img" />
             <div className="function-content">
-              <h3>積み重ねを記録</h3>
-              <p>これまでどれだけ読んだか、ダッシュボードで積み重ねを確認</p>
+              <h3>モチベーションに合わせた難易度調整</h3>
+              <p>「ちょっと読むのが大変」と感じたら、文章の難易度を下げるか、単語数を下げて調整、もちろん逆も大歓迎</p>
             </div>
           </div>
           <div className="function-item">
-            <div className="function-icon">🎚️</div>
+            <img src="/images/strength-record.png" alt="記録" className="function-icon-img" />
             <div className="function-content">
-              <h3>モチベーションに合わせた調整</h3>
-              <p>「ちょっと読むのが大変」と感じたら、文章の難易度を下げるか、単語数を下げて調整、もちろん逆も大歓迎</p>
+              <h3>ダッシュボードで積み重ねを確認</h3>
+              <p>これまでどれだけ読んだか、ダッシュボードで積み重ねを確認</p>
             </div>
           </div>
         </div>
@@ -130,28 +130,28 @@ export default function Home() {
             <div className="step-number">1</div>
             <div className="step-content">
               <h3>無料アカウント登録</h3>
-              <p>メールアドレスだけで簡単に登録完了。クレジットカード不要で今すぐ始められます。</p>
+              <p>メールアドレスだけで簡単に登録完了。今すぐ始められます。</p>
             </div>
           </div>
           <div className="step">
             <div className="step-number">2</div>
             <div className="step-content">
               <h3>学習設定をカスタマイズ</h3>
-              <p>難易度(初級・中級・上級)、文字数(100〜1000文字)、配信時間を設定。いつでも変更可能です。</p>
+              <p>難易度、文字数、配信時間、受け取りメールアドレスを設定。</p>
             </div>
           </div>
           <div className="step">
             <div className="step-number">3</div>
             <div className="step-content">
               <h3>毎日メールを受け取る</h3>
-              <p>指定した時間に、ビジネスシーンで使える英文がメールで届きます。スマホでもPCでもOK。</p>
+              <p>指定した時間に、ビジネスシーンで使える英文がメールで届きます。</p>
             </div>
           </div>
           <div className="step">
             <div className="step-number">4</div>
             <div className="step-content">
               <h3>読んで記録を残す</h3>
-              <p>英文を読んだら「読んだ」ボタンをタップ。学習記録が自動で残り、継続の励みになります。</p>
+              <p>英文を読んだら「Read✔️」ボタンをタップ。学習記録が残り、継続の励みになります。</p>
             </div>
           </div>
         </div>
