@@ -238,7 +238,7 @@ function buildReadPage(dateKey: string, appBaseUrl: string, nickname: string) {
 </head>
 <body>
   <div class="header">
-    <a href="${appBaseUrl}" class="header-logo">TapSmart English</a>
+    <a href="${appBaseUrl}" class="header-logo"><span style="color:#ffffff">TapSmart</span> <span style="color:#4EFFF4">English</span></a>
   </div>
   <div class="main">
     <div class="card">
