@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TapSmart English - ビジネス英語、楽しめる難易度で毎日絶対読む",
-  description: "自分に最適な難易度と文字数で、毎日英文がメールで届く。無理なく続けられる、新しいビジネス英語学習。月額500円、初回7日間無料。",
+  title: "TapSmart English - 無理なく続けられる、新しいビジネス英語学習",
+  description: "自分に最適な難易度と文字数で、AIが生成した英文が毎日メールで届く。無理なく続けられる、新しいビジネス英語学習。月額500円、初回7日間無料。",
 };
 
 export default function RootLayout({
