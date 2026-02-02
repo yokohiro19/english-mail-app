@@ -69,6 +69,7 @@
   background: none;
   cursor: pointer;
   font-family: 'Inter', sans-serif;
+  white-space: nowrap;
 }
 
 .app-header-nav a:hover,
@@ -383,5 +384,20 @@
 
   .app-header-logo img {
     height: 30px;
+  }
+
+  .app-header-nav {
+    gap: 2px;
+  }
+
+  .app-header-nav a,
+  .app-header-nav button {
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+
+  .app-header-nav .nav-logout {
+    font-size: 11px;
+    margin-left: 4px;
   }
 }

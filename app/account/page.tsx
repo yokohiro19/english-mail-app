@@ -10,7 +10,7 @@ import {
   deleteUser,
   User,
 } from "firebase/auth";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../../src/lib/firebase";
 import { useRouter } from "next/navigation";
 import "../app.css";
@@ -95,12 +95,25 @@ export default function AccountPage() {
     setNicknameSaving(true);
     setNicknameMsg(null);
     try {
-      const ref = doc(db, "users", user.uid);
-      await setDoc(ref, { nickname, updatedAt: serverTimestamp() }, { merge: true });
+      const token = await user.getIdToken();
+      const res = await fetch("/api/nickname", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ nickname }),
+      });
+      const text = await res.text();
+      let json: any;
+      try {
+        json = JSON.parse(text);
+      } catch {
+        throw new Error(`Server returned non-JSON (${res.status}): ${text.slice(0, 100)}`);
+      }
+      if (!res.ok || !json.ok) throw new Error(json.error ?? `status ${res.status}`);
       setSavedNickname(nickname);
       setNicknameMsg({ text: "保存しました", type: "success" });
-    } catch {
-      setNicknameMsg({ text: "保存に失敗しました。", type: "error" });
+    } catch (err: any) {
+      console.error("[saveNickname]", err);
+      setNicknameMsg({ text: `保存に失敗しました（${err?.message ?? "unknown"}）`, type: "error" });
     } finally {
       setNicknameSaving(false);
     }

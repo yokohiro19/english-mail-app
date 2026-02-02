@@ -117,6 +117,12 @@ export default function SettingsPage() {
   const [billingLoading, setBillingLoading] = useState(false);
   const [billingError, setBillingError] = useState<string | null>(null);
 
+  // Trial mail
+  const [trialMailSentAt, setTrialMailSentAt] = useState<any>(null);
+  const [standardStartedAt, setStandardStartedAt] = useState<any>(null);
+  const [trialSending, setTrialSending] = useState(false);
+  const [trialMsg, setTrialMsg] = useState<{ text: string; type: "success" | "error" } | null>(null);
+
   // Study logs
   const [logsLoading, setLogsLoading] = useState(false);
   const [logs, setLogs] = useState<StudyLogItem[]>([]);
@@ -168,6 +174,8 @@ export default function SettingsPage() {
       setCancelAtPeriodEnd(Boolean(data.cancelAtPeriodEnd));
       setDeliveryEmail((data as any).deliveryEmail ?? u.email ?? "");
       setDeliveryEmailVerified(Boolean((data as any).deliveryEmailVerified));
+      setTrialMailSentAt((data as any).trialMailSentAt ?? null);
+      setStandardStartedAt((data as any).standardStartedAt ?? null);
     } else {
       setDeliveryEmail(u.email ?? "");
       setDeliveryEmailVerified(false);
@@ -324,6 +332,53 @@ export default function SettingsPage() {
     const end = typeof trialEndsAt?.toDate === "function" ? trialEndsAt.toDate() : new Date(trialEndsAt);
     return end.getTime() > Date.now();
   })();
+
+  // Trial mail button logic
+  const isFirstDayOfStandard = plan === "standard" && (() => {
+    if (!standardStartedAt) return false;
+    const d = typeof standardStartedAt?.toDate === "function" ? standardStartedAt.toDate() : new Date(standardStartedAt);
+    if (Number.isNaN(d.getTime())) return false;
+    // JST の日付で比較
+    const jst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
+    const nowJst = new Date(Date.now() + 9 * 60 * 60 * 1000);
+    return jst.getUTCFullYear() === nowJst.getUTCFullYear()
+      && jst.getUTCMonth() === nowJst.getUTCMonth()
+      && jst.getUTCDate() === nowJst.getUTCDate();
+  })();
+
+  const showTrialMailButton = !trialMailSentAt && (plan === "free" || isFirstDayOfStandard);
+  const trialMailButtonText = isFirstDayOfStandard
+    ? "本日は、この設定で今すぐメールを受け取る"
+    : "この設定で今すぐメールを受け取る";
+
+  const sendTrialMail = async () => {
+    if (!user) return;
+    setTrialSending(true);
+    setTrialMsg(null);
+    try {
+      const token = await user.getIdToken();
+      const res = await fetch("/api/send-trial", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const json = await res.json();
+      if (json.ok) {
+        setTrialMsg({ text: "メールを送信しました。受信トレイを確認してください。", type: "success" });
+        setTrialMailSentAt(new Date());
+      } else if (json.error === "already_sent") {
+        setTrialMsg({ text: "お試しメールは既に送信済みです。", type: "error" });
+        setTrialMailSentAt(new Date());
+      } else if (json.error === "already_delivered_today") {
+        setTrialMsg({ text: "本日のメールは既に配信済みです。", type: "error" });
+      } else {
+        setTrialMsg({ text: "送信に失敗しました。しばらくしてからお試しください。", type: "error" });
+      }
+    } catch {
+      setTrialMsg({ text: "送信に失敗しました。しばらくしてからお試しください。", type: "error" });
+    } finally {
+      setTrialSending(false);
+    }
+  };
 
   if (loadingAuth || loadingData) {
     return (
@@ -540,6 +595,39 @@ export default function SettingsPage() {
               </div>
             )}
           </div>
+
+          {/* Trial mail button */}
+          {showTrialMailButton && (
+            <div>
+              <button
+                onClick={sendTrialMail}
+                disabled={trialSending}
+                className="app-btn-primary"
+                style={{
+                  width: "100%",
+                  padding: "16px 24px",
+                  fontSize: 15,
+                  fontWeight: 700,
+                  borderRadius: 12,
+                  opacity: trialSending ? 0.6 : 1,
+                }}
+              >
+                {trialSending ? "送信中..." : trialMailButtonText}
+              </button>
+              {trialMsg && (
+                <div
+                  style={{
+                    marginTop: 12,
+                    fontSize: 13,
+                    color: trialMsg.type === "success" ? "#059669" : "#991B1B",
+                    textAlign: "center",
+                  }}
+                >
+                  {trialMsg.text}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Account management link */}
           <div style={{ textAlign: "center", paddingTop: 8 }}>

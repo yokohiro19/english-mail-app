@@ -355,15 +355,23 @@ async function handleSubscriptionUpsert(event: Stripe.Event) {
 
   const db = getAdminDb();
 
-  await db.collection("users").doc(uid).set(
-    {
-      ...built.patch,
-      stripeCustomerId: customerId ?? null,
-      stripeSubscriptionId: subId,
-      updatedAt: new Date(),
-    },
-    { merge: true }
-  );
+  // standardStartedAt: 初めて standard に変わった日時を記録（1回のみ）
+  const mergePatch: any = {
+    ...built.patch,
+    stripeCustomerId: customerId ?? null,
+    stripeSubscriptionId: subId,
+    updatedAt: new Date(),
+  };
+
+  if (built.patch.plan === "standard") {
+    const existingDoc = await db.collection("users").doc(uid).get();
+    const existing = existingDoc.data() as any;
+    if (!existing?.standardStartedAt) {
+      mergePatch.standardStartedAt = new Date();
+    }
+  }
+
+  await db.collection("users").doc(uid).set(mergePatch, { merge: true });
 
   await safeUpsertOpsStripeEvent({
     event,
@@ -589,15 +597,23 @@ export async function POST(req: Request) {
 
         const db = getAdminDb();
 
-        await db.collection("users").doc(uid).set(
-          {
-            ...patch,
-            stripeCustomerId: customerId,
-            stripeSubscriptionId: subscription?.id ?? subscriptionId,
-            updatedAt: new Date(),
-          },
-          { merge: true }
-        );
+        const checkoutMergePatch: any = {
+          ...patch,
+          stripeCustomerId: customerId,
+          stripeSubscriptionId: subscription?.id ?? subscriptionId,
+          updatedAt: new Date(),
+        };
+
+        // standardStartedAt: 初めて standard に変わった日時を記録（1回のみ）
+        if (patch.plan === "standard") {
+          const existingDoc = await db.collection("users").doc(uid).get();
+          const existing = existingDoc.data() as any;
+          if (!existing?.standardStartedAt) {
+            checkoutMergePatch.standardStartedAt = new Date();
+          }
+        }
+
+        await db.collection("users").doc(uid).set(checkoutMergePatch, { merge: true });
 
         await safeUpsertOpsStripeEvent({
           event,

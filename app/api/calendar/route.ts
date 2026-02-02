@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { getAdminAuth, getAdminDb } from "@/src/lib/firebaseClient";
-import type { Query, QueryDocumentSnapshot } from "firebase-admin/firestore";
 
 export async function GET(req: Request) {
   try {
@@ -14,37 +13,19 @@ export async function GET(req: Request) {
 
     const db = getAdminDb();
 
-    // 上限（十分大きく。1日1件でも10年以上OK）
-    const MAX = 5000;
-    const dateKeys: string[] = [];
-
-    // ※ここが重要：select("dateKey") を外して確実に取る
-    const baseQuery: Query = db
+    // 1回のクエリで全 studyLogs を取得（dateKey のみ select）
+    const snap = await db
       .collection("studyLogs")
       .where("uid", "==", uid)
-      .orderBy("dateKey", "desc");
+      .select("dateKey")
+      .orderBy("dateKey", "desc")
+      .limit(5000)
+      .get();
 
-    let lastDoc: QueryDocumentSnapshot | null = null;
-
-    while (dateKeys.length < MAX) {
-      let q: Query = baseQuery;
-
-      if (lastDoc) q = q.startAfter(lastDoc);
-      q = q.limit(500);
-
-      const snap = await q.get();
-      if (snap.empty) break;
-
-      for (const d of snap.docs) {
-        const data = d.data() as any;
-
-        // dateKey が文字列として入っている前提
-        const k = data?.dateKey;
-        if (typeof k === "string") dateKeys.push(k);
-      }
-
-      lastDoc = snap.docs[snap.docs.length - 1];
-      if (snap.size < 500) break;
+    const dateKeys: string[] = [];
+    for (const d of snap.docs) {
+      const k = (d.data() as any)?.dateKey;
+      if (typeof k === "string") dateKeys.push(k);
     }
 
     // ユニーク化
