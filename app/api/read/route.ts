@@ -168,14 +168,26 @@ function buildReadPage(dateKey: string, appBaseUrl: string) {
     }
     .guide-item {
       background: #F5F7FA;
-      border-radius: 10px;
-      padding: 12px 14px;
+      border-radius: 12px;
+      padding: 14px 16px;
       font-size: 13px;
       line-height: 1.5;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .guide-emoji {
+      font-size: 22px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .guide-text {
+      flex: 1;
     }
     .guide-label {
       color: #6B7280;
       font-weight: 500;
+      margin-bottom: 2px;
     }
     .guide-action {
       color: #1d1f42;
@@ -232,20 +244,32 @@ function buildReadPage(dateKey: string, appBaseUrl: string) {
       <div class="adjust-title">読むのが大変だった人、簡単すぎた人は、<br>難易度を調整しましょう</div>
       <div class="guide-grid">
         <div class="guide-item">
-          <div class="guide-label">読むのが大変だった人</div>
-          <div class="guide-action">単語数を減らす</div>
+          <div class="guide-emoji">😓</div>
+          <div class="guide-text">
+            <div class="guide-label">読むのが大変だった</div>
+            <div class="guide-action">単語数を減らす</div>
+          </div>
         </div>
         <div class="guide-item">
-          <div class="guide-label">言葉が難しかった人</div>
-          <div class="guide-action">難易度を下げる</div>
+          <div class="guide-emoji">🤔</div>
+          <div class="guide-text">
+            <div class="guide-label">言葉が難しかった</div>
+            <div class="guide-action">難易度を下げる</div>
+          </div>
         </div>
         <div class="guide-item">
-          <div class="guide-label">もっと読みたい人</div>
-          <div class="guide-action">単語数を増やす</div>
+          <div class="guide-emoji">📖</div>
+          <div class="guide-text">
+            <div class="guide-label">もっと読みたい</div>
+            <div class="guide-action">単語数を増やす</div>
+          </div>
         </div>
         <div class="guide-item">
-          <div class="guide-label">言葉が簡単だった人</div>
-          <div class="guide-action">難易度を上げる</div>
+          <div class="guide-emoji">😎</div>
+          <div class="guide-text">
+            <div class="guide-label">言葉が簡単だった</div>
+            <div class="guide-action">難易度を上げる</div>
+          </div>
         </div>
       </div>
 
