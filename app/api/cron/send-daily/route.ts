@@ -187,10 +187,10 @@ function buildEmailHtml(payload: {
     .join("");
 
   return `
-  <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Inter',sans-serif;line-height:1.7;color:#1d1f42;max-width:600px;margin:0 auto;background:#ffffff">
+  <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Inter',sans-serif;line-height:1.7;color:#1d1f42;max-width:600px;margin:0 auto;background:#ffffff;border:1px solid #E8EAED;border-radius:12px">
     <!-- Header -->
     <div style="background:#1d1f42;padding:20px 28px;border-radius:12px 12px 0 0">
-      <span style="font-size:20px;font-weight:800;color:#4EFFF4;letter-spacing:0.5px">TapSmart English</span>
+      <span style="font-size:20px;font-weight:800;letter-spacing:0.5px"><span style="color:#ffffff">TapSmart</span> <span style="color:#4EFFF4">English</span></span>
       <span style="font-size:13px;color:rgba(255,255,255,0.5);margin-left:12px">${payload.dateKey}</span>
     </div>
 
