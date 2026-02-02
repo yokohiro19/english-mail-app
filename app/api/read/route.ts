@@ -58,9 +58,13 @@ export async function GET(req: Request) {
       return NextResponse.redirect(settingsUrl.toString(), 302);
     }
 
+    // ニックネーム取得
+    const userSnap = await db.collection("users").doc(uid).get();
+    const userNickname = userSnap.exists ? (userSnap.data() as any)?.nickname ?? "" : "";
+
     // 初回 → 読了確認ページ
     const appBaseUrl = process.env.APP_BASE_URL ?? url.origin;
-    const html = buildReadPage(dateKey, appBaseUrl);
+    const html = buildReadPage(dateKey, appBaseUrl, userNickname);
     return new NextResponse(html, { headers: { "content-type": "text/html; charset=utf-8" } });
   } catch (e: any) {
     console.error(e);
@@ -68,7 +72,11 @@ export async function GET(req: Request) {
   }
 }
 
-function buildReadPage(dateKey: string, appBaseUrl: string) {
+function escapeHtml(s: string) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function buildReadPage(dateKey: string, appBaseUrl: string, nickname: string) {
   return `<!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -234,6 +242,7 @@ function buildReadPage(dateKey: string, appBaseUrl: string) {
   </div>
   <div class="main">
     <div class="card">
+      ${nickname ? `<div style="font-size:14px;color:#6B7280;margin-bottom:16px">${escapeHtml(nickname)}様</div>` : ""}
       <div class="check-icon">✔</div>
       <div class="title">Marked as read.</div>
       <div class="subtitle">See you tomorrow.</div>

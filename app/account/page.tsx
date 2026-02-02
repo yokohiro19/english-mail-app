@@ -38,6 +38,7 @@ export default function AccountPage() {
   const [loadingData, setLoadingData] = useState(true);
 
   // Nickname
+  const [savedNickname, setSavedNickname] = useState("");
   const [nickname, setNickname] = useState("");
   const [nicknameSaving, setNicknameSaving] = useState(false);
   const [nicknameMsg, setNicknameMsg] = useState<{ text: string; type: "success" | "error" } | null>(null);
@@ -77,14 +78,16 @@ export default function AccountPage() {
       const snap = await getDoc(ref);
       if (snap.exists()) {
         const data = snap.data();
-        setNickname(data.nickname ?? "");
+        const nn = data.nickname ?? "";
+        setSavedNickname(nn);
+        setNickname(nn);
       }
       setLoadingData(false);
     };
     load().catch(() => setLoadingData(false));
   }, [user]);
 
-  const displayName = nickname || user?.email || "";
+  const displayName = savedNickname || user?.email || "";
 
   // Save nickname
   const saveNickname = async () => {
@@ -94,6 +97,7 @@ export default function AccountPage() {
     try {
       const ref = doc(db, "users", user.uid);
       await setDoc(ref, { nickname, updatedAt: serverTimestamp() }, { merge: true });
+      setSavedNickname(nickname);
       setNicknameMsg({ text: "保存しました", type: "success" });
     } catch {
       setNicknameMsg({ text: "保存に失敗しました。", type: "error" });
