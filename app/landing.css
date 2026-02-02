@@ -351,9 +351,9 @@
 
 .function-item {
   display: grid;
-  grid-template-columns: 80px 1fr;
+  grid-template-columns: 64px 1fr;
   gap: 30px;
-  align-items: start;
+  align-items: center;
   animation: fadeInUp 0.6s ease both;
   background: var(--white);
   padding: 35px 40px;
