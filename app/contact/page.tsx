@@ -121,7 +121,7 @@ export default function ContactPage() {
               type="submit"
               disabled={sending || !name || !email || !message}
               style={{
-                background: "var(--dark-navy)", color: "var(--primary-cyan)", fontWeight: 700,
+                background: "var(--dark-navy)", color: "#fff", fontWeight: 700,
                 padding: "14px 40px", borderRadius: 12, border: "none", cursor: "pointer",
                 fontSize: 16, fontFamily: "'Inter', sans-serif",
                 opacity: sending || !name || !email || !message ? 0.5 : 1,
