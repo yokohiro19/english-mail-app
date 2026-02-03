@@ -79,7 +79,7 @@ export default function Home() {
             <h3>いつも使うメールアドレスにお届け</h3>
             <p>
               指定したアドレスで受け取り可能。<br />
-              <span style={{ fontSize: "13px", opacity: 0.9, fontWeight: 600 }}>※会社メールでの受け取りは社内規定をご確認ください</span>
+              <span style={{ fontSize: "13px", opacity: 0.8, color: "#374151" }}>※会社メールでの受け取りは社内規定をご確認ください</span>
             </p>
           </div>
           <div className="feature-card">
