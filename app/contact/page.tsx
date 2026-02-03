@@ -116,12 +116,12 @@ export default function ContactPage() {
             />
           </div>
 
-          <div>
+          <div style={{ textAlign: "center" }}>
             <button
               type="submit"
               disabled={sending || !name || !email || !message}
               style={{
-                background: "var(--accent-cyan)", color: "#fff", fontWeight: 700,
+                background: "var(--accent-cyan)", color: "var(--dark-navy)", fontWeight: 700,
                 padding: "14px 40px", borderRadius: 12, border: "none", cursor: "pointer",
                 fontSize: 16, fontFamily: "'Inter', sans-serif",
                 opacity: sending || !name || !email || !message ? 0.5 : 1,
