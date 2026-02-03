@@ -36,6 +36,12 @@ function daysInMonthJst(y: number, m1to12: number) {
   return new Date(Date.UTC(y, m1to12, 0, 0, 0, 0)).getUTCDate();
 }
 
+function daysBetweenKeys(startKey: string, endKey: string): number {
+  const s = new Date(startKey + "T00:00:00Z");
+  const e = new Date(endKey + "T00:00:00Z");
+  return Math.round((e.getTime() - s.getTime()) / (24 * 60 * 60 * 1000)) + 1;
+}
+
 function rateBlock(hit: number, days: number): RateBlock {
   const safeDays = Math.max(1, days);
   const rate = Math.min(1, hit / safeDays);
@@ -65,6 +71,18 @@ export async function GET(req: Request) {
 
     const nowJst = jstNow();
     const todayKey = dateKeyFromJst(nowJst);
+
+    // ユーザーの createdAt を取得（登録日より前を計算から除外するため）
+    const userSnap = await db.collection("users").doc(uid).get();
+    const userData = userSnap.exists ? (userSnap.data() as any) : null;
+    let createdAtKey: string | null = null;
+    if (userData?.createdAt) {
+      const ts = userData.createdAt.toDate
+        ? userData.createdAt.toDate()
+        : new Date(userData.createdAt);
+      const createdJst = new Date(ts.getTime() + 9 * 60 * 60 * 1000);
+      createdAtKey = dateKeyFromJst(createdJst);
+    }
 
     let thisWeek: RateBlock = rateBlock(0, 1);
     let thisMonth: RateBlock = rateBlock(0, 1);
@@ -131,22 +149,27 @@ export async function GET(req: Request) {
       if (typeof log.dateKey === "string") allDateKeys.add(log.dateKey);
     }
 
-    // ---- 今週（月曜始まり） ----
+    // ---- 今週（日曜始まり） ----
     try {
-      const dow = nowJst.getUTCDay();
-      const offsetFromMonday = (dow + 6) % 7;
-      const mondayJst = addDaysUtc(
+      const dow = nowJst.getUTCDay(); // 0=日, 1=月, ..., 6=土
+      const sundayJst = addDaysUtc(
         jstMidnightUtcDate(y, m1to12, nowJst.getUTCDate()),
-        -offsetFromMonday
+        -dow
       );
-      const weekStartKey = dateKeyFromJst(mondayJst);
-      const weekDays = offsetFromMonday + 1;
+      let weekStartKey = dateKeyFromJst(sundayJst);
+
+      // createdAt より前の日を除外
+      if (createdAtKey && createdAtKey > weekStartKey) {
+        weekStartKey = createdAtKey;
+      }
+
+      const weekDays = weekStartKey <= todayKey ? daysBetweenKeys(weekStartKey, todayKey) : 0;
 
       let weekHit = 0;
       for (const k of allDateKeys) {
         if (k >= weekStartKey && k <= todayKey) weekHit++;
       }
-      thisWeek = rateBlock(weekHit, weekDays);
+      thisWeek = rateBlock(weekHit, Math.max(1, weekDays));
     } catch (e: any) {
       console.error("[stats] thisWeek failed:", e);
       partialErrors.push("thisWeek_failed");
@@ -154,14 +177,20 @@ export async function GET(req: Request) {
 
     // ---- 今月（1日始まり） ----
     try {
-      const monthStartKey = dateKeyFromJst(base);
-      const dayOfMonth = nowJst.getUTCDate();
+      let monthStartKey = dateKeyFromJst(base);
+
+      // createdAt より前の日を除外
+      if (createdAtKey && createdAtKey > monthStartKey) {
+        monthStartKey = createdAtKey;
+      }
+
+      const monthDays = monthStartKey <= todayKey ? daysBetweenKeys(monthStartKey, todayKey) : 0;
 
       let monthHit = 0;
       for (const k of allDateKeys) {
         if (k >= monthStartKey && k <= todayKey) monthHit++;
       }
-      thisMonth = rateBlock(monthHit, dayOfMonth);
+      thisMonth = rateBlock(monthHit, Math.max(1, monthDays));
     } catch (e: any) {
       console.error("[stats] thisMonth failed:", e);
       partialErrors.push("thisMonth_failed");
@@ -175,11 +204,27 @@ export async function GET(req: Request) {
         const start = addMonthsJstMidnight(base, -i);
         const sy = start.getUTCFullYear();
         const sm = start.getUTCMonth() + 1;
-        const days = daysInMonthJst(sy, sm);
+        const totalDaysInMonth = daysInMonthJst(sy, sm);
 
-        const startKey = dateKeyFromJst(start);
-        const end = jstMidnightUtcDate(sy, sm, days);
+        let startKey = dateKeyFromJst(start);
+        const end = jstMidnightUtcDate(sy, sm, totalDaysInMonth);
         const endKey = dateKeyFromJst(end);
+
+        // createdAt より前の日を除外
+        if (createdAtKey && createdAtKey > startKey) {
+          startKey = createdAtKey;
+        }
+
+        // 登録前の月はスキップ
+        if (startKey > endKey) {
+          months.push({
+            ym: `${sy}-${String(sm).padStart(2, "0")}`,
+            startKey: dateKeyFromJst(start), endKey, hit: 0, days: totalDaysInMonth, rate: 0, rank: "C",
+          });
+          continue;
+        }
+
+        const days = daysBetweenKeys(startKey, endKey);
 
         let hit = 0;
         for (const k of allDateKeys) {
@@ -189,7 +234,7 @@ export async function GET(req: Request) {
 
         months.push({
           ym: `${sy}-${String(sm).padStart(2, "0")}`,
-          startKey, endKey, hit, days, rate: rb.rate, rank: rb.rank,
+          startKey: dateKeyFromJst(start), endKey, hit, days, rate: rb.rate, rank: rb.rank,
         });
       }
       monthlySummary = months;

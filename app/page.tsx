@@ -72,14 +72,14 @@ export default function Home() {
           <div className="feature-card">
             <img src="/images/feature-ai.png" alt="AI" className="feature-icon-img" />
             <h3>AIが「楽しめる難易度」でビジネス英語を作成</h3>
-            <p>TOEIC・TOEFL・英検の得点目安で設定できるので、自分のレベルに合った英文で無理なく学習できます。</p>
+            <p>TOEIC・TOEFL・英検の得点目安で難易度が設定でき、ランダムのテーマであなた専用のビジネス英語を作成します。</p>
           </div>
           <div className="feature-card">
             <img src="/images/feature-mail.png" alt="メール" className="feature-icon-img" />
             <h3>いつも使うメールアドレスにお届け</h3>
             <p>
               指定したアドレスで受け取り可能。<br />
-              <span style={{ fontSize: "13px", opacity: 0.8 }}>※会社メールでの受け取りは社内規定をご確認ください</span>
+              <strong>※会社メールでの受け取りは社内規定をご確認ください</strong>
             </p>
           </div>
           <div className="feature-card">
