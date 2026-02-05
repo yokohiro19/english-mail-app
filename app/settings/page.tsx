@@ -521,7 +521,7 @@ export default function SettingsPage() {
                   opacity: trialSending ? 0.6 : 1,
                 }}
               >
-                {trialSending ? "送信中..." : <>{trialMailButtonText}<br /><span style={{ fontSize: 12, fontWeight: 400 }}>（初回のみ）</span></>}
+                {trialSending ? "送信中..." : <><span style={{ lineHeight: 1.2 }}>{trialMailButtonText}</span><br /><span style={{ fontSize: 12, fontWeight: 400, lineHeight: 1 }}>（初回のみ）</span></>}
               </button>
               {trialMsg && (
                 <div
