@@ -190,7 +190,7 @@ export default function Home() {
       <footer>
         <div className="footer-content">
           <div className="footer-brand">
-            <h3>TapSmart English</h3>
+            <h3>TapSmart <span style={{ color: "var(--primary-cyan)" }}>English</span></h3>
             <p>ビジネス英語を、自分のペースで。<br />毎日続けられる学習体験を提供します。</p>
           </div>
           <div className="footer-links">
