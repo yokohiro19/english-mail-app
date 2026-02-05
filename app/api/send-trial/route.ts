@@ -99,19 +99,12 @@ export async function POST(req: Request) {
     const readToken = signReadToken({ uid, dateKey: today, deliveryId }, 7);
     const readUrl = `${process.env.APP_BASE_URL}/api/read?t=${encodeURIComponent(readToken)}`;
 
-    // Free プランの場合はアップグレード CTA を表示
-    const userPlan = (u.plan as string) ?? "free";
-    const upgradeUrl = userPlan !== "standard"
-      ? `${process.env.APP_BASE_URL}/settings`
-      : undefined;
-
     const html = buildEmailHtml({
       english: out.english_text,
       words: out.important_words,
       jp: out.japanese_translation,
       dateKey: today,
       readUrl,
-      upgradeUrl,
     });
 
     // Send via Resend
