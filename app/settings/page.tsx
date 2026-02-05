@@ -334,22 +334,9 @@ export default function SettingsPage() {
   })();
 
   // Trial mail button logic
-  const isFirstDayOfStandard = plan === "standard" && (() => {
-    if (!standardStartedAt) return false;
-    const d = typeof standardStartedAt?.toDate === "function" ? standardStartedAt.toDate() : new Date(standardStartedAt);
-    if (Number.isNaN(d.getTime())) return false;
-    // JST の日付で比較
-    const jst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
-    const nowJst = new Date(Date.now() + 9 * 60 * 60 * 1000);
-    return jst.getUTCFullYear() === nowJst.getUTCFullYear()
-      && jst.getUTCMonth() === nowJst.getUTCMonth()
-      && jst.getUTCDate() === nowJst.getUTCDate();
-  })();
-
-  const showTrialMailButton = !trialMailSentAt && (plan === "free" || isFirstDayOfStandard);
-  const trialMailButtonText = isFirstDayOfStandard
-    ? "本日は、この設定で今すぐメールを受け取る"
-    : "この設定で今すぐメールを受け取る";
+  // Freeプランのみ表示（トライアル開始後やactive移行後は表示しない）
+  const showTrialMailButton = !trialMailSentAt && plan === "free";
+  const trialMailButtonText = "この設定で今すぐメールを受け取る";
 
   const sendTrialMail = async () => {
     if (!user) return;
