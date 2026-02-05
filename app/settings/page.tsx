@@ -489,7 +489,7 @@ export default function SettingsPage() {
               <div>
                 <label className="form-label">単語数（words）</label>
                 <select className="app-select" value={wordCount} onChange={(e) => setWordCount(Number(e.target.value))}>
-                  {[50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800].map((n) => (
+                  {[50, 100, 150, 200, 250, 300, 350, 400, 450, 500].map((n) => (
                     <option key={n} value={n}>{n}</option>
                   ))}
                 </select>

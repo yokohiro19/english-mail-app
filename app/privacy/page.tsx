@@ -23,7 +23,7 @@ export default function PrivacyPage() {
         <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 32, fontWeight: 800, marginBottom: 8, color: "var(--dark-navy)" }}>
           プライバシーポリシー
         </h1>
-        <p style={{ fontSize: 13, color: "#9CA3AF", marginBottom: 40 }}>最終更新日: 2026年2月2日</p>
+        <p style={{ fontSize: 13, color: "#9CA3AF", marginBottom: 40 }}>最終更新日: 2026年2月6日</p>
 
         <div style={{ fontSize: 15, lineHeight: 1.9, color: "#374151" }}>
           <p>TapSmart English（以下「本サービス」）を運営する運営者（以下「当社」）は、ユーザーの個人情報の保護を重要と考え、以下のとおりプライバシーポリシー（以下「本ポリシー」）を定めます。</p>
@@ -63,15 +63,7 @@ export default function PrivacyPage() {
           </ul>
 
           <h2 style={h2Style}>4. 外部サービスの利用</h2>
-          <p>本サービスでは、以下の外部サービスを利用しています。各サービスのプライバシーポリシーもあわせてご確認ください。</p>
-          <ul style={ulStyle}>
-            <li><strong>Firebase (Google):</strong> 認証・データベース</li>
-            <li><strong>Stripe:</strong> 決済処理</li>
-            <li><strong>Resend:</strong> メール配信</li>
-            <li><strong>OpenAI:</strong> AI による英文生成</li>
-            <li><strong>Vercel:</strong> ホスティング</li>
-          </ul>
-          <p>これらの外部サービスに対し、サービス提供に必要な範囲で情報が送信されます。</p>
+          <p>本サービスでは、認証、データベース、決済処理、メール配信、AI による英文生成、ホスティング等の目的で外部サービスを利用しています。これらの外部サービスに対し、サービス提供に必要な範囲で情報が送信されます。</p>
 
           <h2 style={h2Style}>5. Cookie の利用</h2>
           <p>本サービスは、ユーザーの認証状態の維持やサービスの改善のためにCookieを使用します。ユーザーはブラウザの設定によりCookieの受け入れを拒否できますが、その場合、本サービスの一部機能が利用できなくなる場合があります。</p>
@@ -95,21 +87,17 @@ export default function PrivacyPage() {
             <li><strong>お問い合わせ:</strong> 上記に関するご請求は、お問い合わせフォームまたは下記連絡先までご連絡ください。</li>
           </ul>
 
-          <h2 style={h2Style}>9. 未成年のユーザー</h2>
-          <p>本サービスは、13歳未満の方を対象としておりません。13歳未満の方が個人情報を提供していることが判明した場合、速やかに当該情報を削除します。</p>
-
-          <h2 style={h2Style}>10. プライバシーポリシーの変更</h2>
+          <h2 style={h2Style}>9. プライバシーポリシーの変更</h2>
           <ol style={olStyle}>
             <li>当社は、必要に応じて本ポリシーを変更できるものとします。</li>
             <li>変更後のプライバシーポリシーは、本サービス上に掲載した時点で効力を生じるものとします。</li>
             <li>重要な変更がある場合は、本サービス上または登録メールアドレスへの通知により周知いたします。</li>
           </ol>
 
-          <h2 style={h2Style}>11. お問い合わせ窓口</h2>
+          <h2 style={h2Style}>10. お問い合わせ窓口</h2>
           <p>本ポリシーに関するお問い合わせは、以下の窓口までお願いいたします。</p>
           <div style={{ marginTop: 12, padding: "16px 20px", background: "#F9FAFB", borderRadius: 12, fontSize: 14 }}>
             <p>TapSmart English サポート</p>
-            <p>メール: support@tapsmart.jp</p>
             <p><a href="/contact" style={{ color: "var(--accent-cyan)" }}>お問い合わせフォーム</a></p>
           </div>
 

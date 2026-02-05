@@ -84,7 +84,7 @@ export default function Home() {
           </div>
           <div className="feature-card">
             <img src="/images/feature-tap.png" alt="ワンタップ" className="feature-icon-img" />
-            <h3>１日１回、読んで、ワンタップするだけ</h3>
+            <h3>１日１回、読んで、タップするだけ</h3>
             <p>読んで理解して、ボタンを押すだけで積み重ね。シンプルな操作で学習習慣が自然と身につきます。</p>
           </div>
         </div>
