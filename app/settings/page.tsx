@@ -29,15 +29,6 @@ type UserSettings = {
   trialEndsAt?: any;
 };
 
-type StudyLogItem = {
-  id: string;
-  uid: string;
-  dateKey: string;
-  deliveryId: string;
-  firstReadAt?: any;
-  readCount?: number;
-};
-
 const DEFAULT_SETTINGS: Omit<UserSettings, "email"> = {
   examType: "TOEIC",
   examLevel: "TOEIC 500",
@@ -122,11 +113,6 @@ export default function SettingsPage() {
   const [standardStartedAt, setStandardStartedAt] = useState<any>(null);
   const [trialSending, setTrialSending] = useState(false);
   const [trialMsg, setTrialMsg] = useState<{ text: string; type: "success" | "error" } | null>(null);
-
-  // Study logs
-  const [logsLoading, setLogsLoading] = useState(false);
-  const [logs, setLogs] = useState<StudyLogItem[]>([]);
-  const [logsError, setLogsError] = useState<string | null>(null);
 
   const levelOptionsByExam: Record<ExamType, string[]> = useMemo(
     () => ({
@@ -242,31 +228,6 @@ export default function SettingsPage() {
   };
 
   const isCustomEmail = user ? deliveryEmail !== user.email : false;
-
-  // Study logs
-  const fetchLogs = async () => {
-    if (!user) return;
-    setLogsLoading(true);
-    setLogsError(null);
-    try {
-      const token = await user.getIdToken();
-      const res = await fetch("/api/logs", { method: "GET", headers: { Authorization: `Bearer ${token}` } });
-      const json = await res.json();
-      if (!res.ok) { setLogs([]); setLogsError("ログ取得に失敗しました。"); return; }
-      setLogs((json?.items ?? []) as StudyLogItem[]);
-    } catch {
-      setLogs([]);
-      setLogsError("ログ取得に失敗しました。");
-    } finally {
-      setLogsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (!user) return;
-    fetchLogs().catch(() => {});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
 
   // Billing actions
   const goCheckout = async () => {
@@ -542,45 +503,6 @@ export default function SettingsPage() {
               </button>
               {message && <div className={messageType === "success" ? "app-success" : "app-error"} style={{ padding: "8px 16px" }}>{message}</div>}
             </div>
-          </div>
-
-          {/* Study Logs */}
-          <div className="app-card">
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-              <h2 className="section-title" style={{ marginBottom: 0 }}>学習ログ</h2>
-              <button onClick={fetchLogs} disabled={logsLoading} className="app-btn-secondary" style={{ padding: "6px 16px", fontSize: 13 }}>
-                {logsLoading ? "更新中..." : "更新"}
-              </button>
-            </div>
-
-            {logsError && <div className="app-error" style={{ marginBottom: 12 }}>{logsError}</div>}
-
-            {logs.length === 0 && !logsError ? (
-              <p style={{ fontSize: 14, color: "#6B7280" }}>
-                まだログがありません（メールの「読んだ」ボタンを押すと記録されます）
-              </p>
-            ) : (
-              <div style={{ overflowX: "auto", borderRadius: 12, border: "1px solid #E8EAED" }}>
-                <table className="app-table">
-                  <thead>
-                    <tr>
-                      <th>日付</th>
-                      <th>読んだ回数</th>
-                      <th>初回閲覧</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {logs.map((l) => (
-                      <tr key={l.id}>
-                        <td style={{ fontFamily: "monospace" }}>{l.dateKey ?? "-"}</td>
-                        <td>{l.readCount ?? 1}</td>
-                        <td>{formatTs(l.firstReadAt)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
           </div>
 
           {/* Trial mail button */}
