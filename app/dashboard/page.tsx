@@ -292,6 +292,20 @@ export default function DashboardPage() {
                 </div>
               </div>
 
+              {/* Calendar */}
+              <CalendarHeatmap
+                studiedSet={calendarSet}
+                cursor={calendarCursor}
+                setCursor={setCalendarCursor}
+                monthSummary={selectedMonthSummary}
+              />
+
+              <div style={{ fontSize: 13, color: "#6B7280" }}>
+                {loadingCalendar && "カレンダー読み込み中..."}
+                {calendarError && <span style={{ color: "#991B1B" }}>{calendarError}</span>}
+                {!loadingCalendar && !calendarError && <span>学習記録日数（全期間）: {calendarCount} 日</span>}
+              </div>
+
               {/* Study logs table */}
               <div className="app-card">
                 <h2 className="section-title">学習ログ</h2>
@@ -309,7 +323,7 @@ export default function DashboardPage() {
                       <tbody>
                         {(stats.items ?? []).map((l: any) => (
                           <tr key={l.id}>
-                            <td style={{ fontFamily: "monospace" }}>{l.dateKey ?? "-"}</td>
+                            <td style={{ fontFamily: "monospace" }}>{(l.dateKey ?? "-").replaceAll("-", "/")}</td>
                             <td>{l.readCount ?? 1}</td>
                           </tr>
                         ))}
@@ -317,20 +331,6 @@ export default function DashboardPage() {
                     </table>
                   </div>
                 )}
-              </div>
-
-              {/* Calendar */}
-              <CalendarHeatmap
-                studiedSet={calendarSet}
-                cursor={calendarCursor}
-                setCursor={setCalendarCursor}
-                monthSummary={selectedMonthSummary}
-              />
-
-              <div style={{ fontSize: 13, color: "#6B7280" }}>
-                {loadingCalendar && "カレンダー読み込み中..."}
-                {calendarError && <span style={{ color: "#991B1B" }}>{calendarError}</span>}
-                {!loadingCalendar && !calendarError && <span>学習記録日数（全期間）: {calendarCount} 日</span>}
               </div>
             </>
           ) : (
