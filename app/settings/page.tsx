@@ -239,7 +239,24 @@ export default function SettingsPage() {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ trialDays: 7, successPath: "/settings?billing=success", cancelPath: "/settings?billing=cancel" }),
+        body: JSON.stringify({
+          trialDays: 7,
+          successPath: "/settings?billing=success",
+          cancelPath: "/settings?billing=cancel",
+          consent: {
+            agreedAt: new Date().toISOString(),
+            termsVersion: "2026-02-06",
+            privacyVersion: "2026-02-06",
+            displayedTerms: [
+              "月額500円（税込）",
+              showFreeTrialLabel ? "初回7日間無料" : null,
+              showFreeTrialLabel ? "無料期間終了後、自動的に有料プランへ移行" : null,
+              "解約しない限り毎月自動更新",
+              "更新日の前日までに解約可能",
+              "決済完了後の返金・日割り計算不可",
+            ].filter(Boolean),
+          },
+        }),
       });
       const json = await res.json().catch(() => ({}));
       if (json?.code === "subscription_exists") { await openPortalInternal("/settings"); return; }
@@ -385,10 +402,16 @@ export default function SettingsPage() {
                   </p>
                 )}
                 {plan === "standard" && currentPeriodEnd && (
-                  <p style={{ fontSize: 13, color: "#6B7280", marginTop: 4 }}>
-                    次回更新: {formatTs(currentPeriodEnd)}
-                    {cancelAtPeriodEnd && "（解約予約中）"}
-                  </p>
+                  cancelAtPeriodEnd ? (
+                    <div style={{ fontSize: 13, marginTop: 8, padding: "10px 14px", background: "#FEF3C7", borderRadius: 8, color: "#92400E" }}>
+                      <p style={{ fontWeight: 600, marginBottom: 2 }}>解約予約中</p>
+                      <p>{formatDateOnly(currentPeriodEnd)}まで利用可能（以降は自動更新されません）</p>
+                    </div>
+                  ) : (
+                    <p style={{ fontSize: 13, color: "#6B7280", marginTop: 4 }}>
+                      次回更新: {formatTs(currentPeriodEnd)}
+                    </p>
+                  )
                 )}
               </div>
               <div>

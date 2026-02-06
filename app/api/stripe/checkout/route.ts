@@ -131,10 +131,18 @@ export async function POST(req: Request) {
     }
 
     // ===== body =====
+    const ConsentSchema = z.object({
+      agreedAt: z.string().optional(),
+      termsVersion: z.string().optional(),
+      privacyVersion: z.string().optional(),
+      displayedTerms: z.array(z.string()).optional(),
+    }).optional();
+
     const CheckoutBodySchema = z.object({
       trialDays: z.number().int().min(0).max(30).optional(),
       successPath: z.string().max(500).optional(),
       cancelPath: z.string().max(500).optional(),
+      consent: ConsentSchema,
     });
 
     const rawBody = await req.json().catch(() => ({}));
@@ -143,6 +151,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: "invalid_request_body" }, { status: 400 });
     }
     const body = parsed.data;
+    const consentData = body.consent;
     const requestedTrialDays = clampTrialDays(body.trialDays, 7);
 
     const successPath = body.successPath ?? "/settings?billing=success";
@@ -222,6 +231,30 @@ export async function POST(req: Request) {
       billing_address_collection: "auto",
       allow_promotion_codes: false,
     });
+
+    // ===== 同意ログを保存（監査用） =====
+    if (consentData) {
+      const db = getAdminDb();
+      const consentLogRef = db.collection("users").doc(uid).collection("consentLogs").doc();
+      await consentLogRef.set({
+        type: "checkout",
+        sessionId: session.id,
+        agreedAt: consentData.agreedAt ? new Date(consentData.agreedAt) : new Date(),
+        termsVersion: consentData.termsVersion ?? null,
+        privacyVersion: consentData.privacyVersion ?? null,
+        displayedTerms: consentData.displayedTerms ?? [],
+        planInfo: {
+          priceId,
+          price: 500,
+          currency: "JPY",
+          trialDays: effectiveTrialDays,
+          autoRenewal: true,
+        },
+        createdAt: new Date(),
+      }).catch((e) => {
+        console.error("[consent log] failed to save:", e);
+      });
+    }
 
     return NextResponse.json({
       ok: true,
