@@ -32,7 +32,7 @@ type UserSettings = {
 const DEFAULT_SETTINGS: Omit<UserSettings, "email"> = {
   examType: "TOEIC",
   examLevel: "TOEIC 500",
-  wordCount: 150,
+  wordCount: 100,
   sendTime: "07:00",
 };
 
@@ -469,17 +469,6 @@ export default function SettingsPage() {
               </div>
 
               <div>
-                <label className="form-label">配信時間（JST）</label>
-                <select className="app-select" value={sendTime} onChange={(e) => setSendTime(e.target.value)}>
-                  {Array.from({ length: 144 }, (_, i) => {
-                    const h = String(Math.floor(i / 6)).padStart(2, "0");
-                    const m = String((i % 6) * 10).padStart(2, "0");
-                    return <option key={`${h}:${m}`} value={`${h}:${m}`}>{h}:{m}</option>;
-                  })}
-                </select>
-              </div>
-
-              <div>
                 <label className="form-label">レベル</label>
                 <select className="app-select" value={examLevel} onChange={(e) => setExamLevel(e.target.value)}>
                   {levelOptionsByExam[examType].map((lv) => (
@@ -496,6 +485,17 @@ export default function SettingsPage() {
                   ))}
                 </select>
                 <p className="form-helper">100〜200がおすすめ</p>
+              </div>
+
+              <div>
+                <label className="form-label">配信時間（JST）</label>
+                <select className="app-select" value={sendTime} onChange={(e) => setSendTime(e.target.value)}>
+                  {Array.from({ length: 144 }, (_, i) => {
+                    const h = String(Math.floor(i / 6)).padStart(2, "0");
+                    const m = String((i % 6) * 10).padStart(2, "0");
+                    return <option key={`${h}:${m}`} value={`${h}:${m}`}>{h}:{m}</option>;
+                  })}
+                </select>
               </div>
             </div>
 
