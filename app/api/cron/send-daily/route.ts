@@ -275,6 +275,7 @@ export async function GET(req: Request) {
           jp: out.japanese_translation,
           dateKey: today,
           readUrl,
+          settingsUrl: `${process.env.APP_BASE_URL}/settings`,
         });
 
         const sendRes = await resend.emails.send({

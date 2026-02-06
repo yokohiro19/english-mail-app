@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
+import { getAdminDb } from "@/src/lib/firebaseClient";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -24,6 +25,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: "メールアドレスの形式が正しくありません。" }, { status: 400 });
     }
 
+    // Save to Firestore for audit/support purposes
+    const db = getAdminDb();
+    const contactLogRef = db.collection("contactLogs").doc();
+    await contactLogRef.set({
+      name,
+      email,
+      message,
+      createdAt: new Date(),
+      status: "pending", // pending -> replied -> resolved
+    });
+
     await resend.emails.send({
       from: process.env.EMAIL_FROM!,
       to: "support@tapsmart.jp",
@@ -33,6 +45,7 @@ export async function POST(req: NextRequest) {
         <h2>お問い合わせ</h2>
         <p><strong>お名前:</strong> ${escapeHtml(name)}</p>
         <p><strong>メールアドレス:</strong> ${escapeHtml(email)}</p>
+        <p><strong>ログID:</strong> ${contactLogRef.id}</p>
         <hr />
         <p style="white-space: pre-wrap;">${escapeHtml(message)}</p>
       `,

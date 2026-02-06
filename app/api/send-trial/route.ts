@@ -105,6 +105,7 @@ export async function POST(req: Request) {
       jp: out.japanese_translation,
       dateKey: today,
       readUrl,
+      settingsUrl: `${process.env.APP_BASE_URL}/settings`,
     });
 
     // Send via Resend

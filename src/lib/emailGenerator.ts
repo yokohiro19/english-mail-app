@@ -108,6 +108,7 @@ export function buildEmailHtml(payload: {
   dateKey: string;
   readUrl: string;
   upgradeUrl?: string;
+  settingsUrl?: string;
 }) {
   const wordsHtml = payload.words
     .map(
@@ -164,7 +165,11 @@ export function buildEmailHtml(payload: {
 
     <!-- Footer -->
     <div style="background:#F5F7FA;padding:16px 28px;border-radius:0 0 12px 12px;text-align:center">
-      <span style="font-size:12px;color:#9CA3AF">TapSmart English — tapsmart.jp</span>
+      <div style="font-size:12px;color:#9CA3AF;margin-bottom:8px">TapSmart English — tapsmart.jp</div>
+      <div style="font-size:11px;color:#9CA3AF">
+        配信を停止するには、設定画面の「一時停止」をご利用ください<br />
+        <a href="${payload.settingsUrl || 'https://www.tapsmart.jp/settings'}" style="color:#6B7280;text-decoration:underline">設定画面を開く</a>
+      </div>
     </div>
   </div>
   `;
