@@ -31,7 +31,7 @@ export default function PrivacyPage() {
 
           <h2 style={h2Style}>1. 事業者情報</h2>
           <p>事業者名：TapSmart English（屋号）<br />所在地：東京都中央区新川<br />連絡先：support@tapsmart.jp</p>
-          <p style={{ fontSize: 13, color: "#6B7280", marginTop: 8 }}>※当社の氏名、番地等の詳細は、特定商取引法に基づく表記ページに記載します。<br />※当社は、法令に基づく請求があった場合、適切かつ遅滞なく対応します。</p>
+          <p style={{ fontSize: 13, color: "#6B7280", marginTop: 8 }}>※当社の運営責任者の氏名については、特定商取引法に基づき、請求があった場合に遅滞なく開示いたします。</p>
 
           <h2 style={h2Style}>2. 取得する情報</h2>
           <p>当社は、本サービスの提供にあたり、以下の情報を取得することがあります。</p>

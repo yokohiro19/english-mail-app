@@ -294,6 +294,9 @@ export default function SettingsPage() {
     return end.getTime() > Date.now();
   })();
 
+  // Consent checkbox for checkout
+  const [consentChecked, setConsentChecked] = useState(false);
+
   // Trial mail button logic
   // 送信済みなら非表示、未送信なら表示（有料プランのみ有効）
   const showTrialMailButton = !trialMailSentAt;
@@ -389,17 +392,82 @@ export default function SettingsPage() {
                 )}
               </div>
               <div>
-                {plan === "standard" ? (
+                {plan === "standard" && (
                   <button onClick={openPortal} disabled={billingLoading} className="app-btn-secondary">
                     {billingLoading ? "起動中..." : "プランを管理"}
-                  </button>
-                ) : (
-                  <button onClick={goCheckout} disabled={billingLoading} className="app-btn-primary">
-                    {billingLoading ? "処理中..." : showFreeTrialLabel ? "7日間無料で試す" : canRestartTrial ? "無料で再開する" : "アップグレード"}
                   </button>
                 )}
               </div>
             </div>
+
+            {/* Upgrade section for free users */}
+            {plan !== "standard" && (
+              <div style={{ marginTop: 20, paddingTop: 20, borderTop: "1px solid #E8EAED" }}>
+                <p style={{ fontFamily: "'Outfit', sans-serif", fontSize: 18, fontWeight: 700, marginBottom: 12 }}>
+                  Standardプランにアップグレード
+                </p>
+
+                {/* Important terms */}
+                <div style={{
+                  background: "#F9FAFB",
+                  borderRadius: 10,
+                  padding: "16px 20px",
+                  marginBottom: 16,
+                  fontSize: 13,
+                  color: "#374151",
+                  lineHeight: 1.8
+                }}>
+                  <p style={{ fontWeight: 600, marginBottom: 8 }}>月額500円（税込）{showFreeTrialLabel && " / 初回7日間無料"}</p>
+                  <ul style={{ margin: 0, paddingLeft: 20 }}>
+                    {showFreeTrialLabel && <li>無料期間終了後、自動的に有料プランへ移行します</li>}
+                    <li>解約しない限り毎月自動更新されます</li>
+                    <li>更新日の前日までにいつでも解約可能です</li>
+                    <li>決済完了後の返金・日割り計算はできません</li>
+                  </ul>
+                </div>
+
+                {/* Consent checkbox */}
+                <label style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 10,
+                  cursor: "pointer",
+                  marginBottom: 16,
+                  fontSize: 13,
+                  color: "#374151"
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={consentChecked}
+                    onChange={(e) => setConsentChecked(e.target.checked)}
+                    style={{ marginTop: 2, width: 16, height: 16, accentColor: "var(--primary-cyan)" }}
+                  />
+                  <span>
+                    上記内容および
+                    <a href="/terms" target="_blank" style={{ color: "var(--primary-cyan)", textDecoration: "underline" }}>利用規約</a>
+                    ・
+                    <a href="/privacy" target="_blank" style={{ color: "var(--primary-cyan)", textDecoration: "underline" }}>プライバシーポリシー</a>
+                    に同意します
+                  </span>
+                </label>
+
+                {/* Checkout button */}
+                <button
+                  onClick={goCheckout}
+                  disabled={billingLoading || !consentChecked}
+                  className="app-btn-primary"
+                  style={{
+                    width: "100%",
+                    padding: "14px 24px",
+                    fontSize: 15,
+                    opacity: consentChecked ? 1 : 0.5
+                  }}
+                >
+                  {billingLoading ? "処理中..." : showFreeTrialLabel ? "7日間無料で試す" : canRestartTrial ? "無料で再開する" : "アップグレード"}
+                </button>
+              </div>
+            )}
+
             {billingError && <div className="app-error" style={{ marginTop: 16 }}>{billingError}</div>}
           </div>
 
