@@ -101,7 +101,7 @@ async function safeWriteOpsCronRun(params: {
   targetHHMM: string;
   attempted: number;
   sent: number;
-  skipped: { noEmail: number; alreadySent: number; billing: number; disabled: number; unverified: number };
+  skipped: { noEmail: number; alreadySent: number; billing: number; disabled: number; unverified: number; paused: number };
   billingSkipReasons: Record<string, number>;
   errorsCount: number;
   durationMs: number;
@@ -172,6 +172,7 @@ export async function GET(req: Request) {
     let skippedBilling = 0;
     let skippedDisabled = 0;
     let skippedUnverified = 0;
+    let skippedPaused = 0;
 
     const billingSkipReasons: Record<string, number> = {};
 
@@ -192,6 +193,12 @@ export async function GET(req: Request) {
 
       if (u.disabled === true) {
         skippedDisabled++;
+        continue;
+      }
+
+      // ===== Delivery Pause Guard =====
+      if (u.deliveryPaused === true) {
+        skippedPaused++;
         continue;
       }
 
@@ -326,6 +333,7 @@ export async function GET(req: Request) {
         billing: skippedBilling,
         disabled: skippedDisabled,
         unverified: skippedUnverified,
+        paused: skippedPaused,
       },
       billingSkipReasons,
       errorsCount: errors.length,
@@ -346,6 +354,7 @@ export async function GET(req: Request) {
         billing: skippedBilling,
         disabled: skippedDisabled,
         unverified: skippedUnverified,
+        paused: skippedPaused,
       },
       billingSkipReasons,
       billingSkips: billingSkipsSample,

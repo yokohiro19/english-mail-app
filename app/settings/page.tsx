@@ -114,6 +114,11 @@ export default function SettingsPage() {
   const [trialSending, setTrialSending] = useState(false);
   const [trialMsg, setTrialMsg] = useState<{ text: string; type: "success" | "error" } | null>(null);
 
+  // Delivery pause
+  const [deliveryPaused, setDeliveryPaused] = useState(false);
+  const [pauseLoading, setPauseLoading] = useState(false);
+  const [pauseMsg, setPauseMsg] = useState<{ text: string; type: "success" | "error" } | null>(null);
+
   const levelOptionsByExam: Record<ExamType, string[]> = useMemo(
     () => ({
       TOEIC: ["TOEIC 990", "TOEIC 900", "TOEIC 800", "TOEIC 700", "TOEIC 600", "TOEIC 500", "TOEIC 400"],
@@ -162,6 +167,7 @@ export default function SettingsPage() {
       setDeliveryEmailVerified(Boolean((data as any).deliveryEmailVerified));
       setTrialMailSentAt((data as any).trialMailSentAt ?? null);
       setStandardStartedAt((data as any).standardStartedAt ?? null);
+      setDeliveryPaused(Boolean((data as any).deliveryPaused));
     } else {
       setDeliveryEmail(u.email ?? "");
       setDeliveryEmailVerified(false);
@@ -320,6 +326,32 @@ export default function SettingsPage() {
   const isTrialMailEnabled = plan === "standard" || subscriptionStatus === "trialing" || subscriptionStatus === "active";
   const trialMailButtonText = "この設定で今すぐメールを受け取る";
   const [trialDisabledMsg, setTrialDisabledMsg] = useState(false);
+
+  const toggleDeliveryPause = async () => {
+    if (!user) return;
+    setPauseLoading(true);
+    setPauseMsg(null);
+    try {
+      const token = await user.getIdToken();
+      const newPaused = !deliveryPaused;
+      const res = await fetch("/api/delivery-pause", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ paused: newPaused }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.ok) {
+        setPauseMsg({ text: "更新に失敗しました", type: "error" });
+        return;
+      }
+      setDeliveryPaused(newPaused);
+      setPauseMsg({ text: newPaused ? "配信を一時停止しました" : "配信を再開しました", type: "success" });
+    } catch {
+      setPauseMsg({ text: "更新に失敗しました", type: "error" });
+    } finally {
+      setPauseLoading(false);
+    }
+  };
 
   const sendTrialMail = async () => {
     if (!user) return;
@@ -492,6 +524,37 @@ export default function SettingsPage() {
             )}
 
             {billingError && <div className="app-error" style={{ marginTop: 16 }}>{billingError}</div>}
+
+            {/* Delivery pause toggle - only for active subscribers */}
+            {plan === "standard" && (subscriptionStatus === "active" || subscriptionStatus === "trialing") && (
+              <div style={{ marginTop: 20, paddingTop: 20, borderTop: "1px solid #E8EAED" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+                  <div>
+                    <p style={{ fontWeight: 600, fontSize: 14, color: deliveryPaused ? "#92400E" : "var(--dark-navy)" }}>
+                      {deliveryPaused ? "配信を一時停止中" : "配信中"}
+                    </p>
+                    <p style={{ fontSize: 13, color: "#6B7280", marginTop: 2 }}>
+                      {deliveryPaused
+                        ? "再開するまでメールは届きません。停止中は達成率の計算から除外されます。"
+                        : "毎日指定した時間にメールが届きます"}
+                    </p>
+                  </div>
+                  <button
+                    onClick={toggleDeliveryPause}
+                    disabled={pauseLoading}
+                    className={deliveryPaused ? "app-btn-primary" : "app-btn-secondary"}
+                    style={{ padding: "8px 20px", fontSize: 13, whiteSpace: "nowrap" }}
+                  >
+                    {pauseLoading ? "処理中..." : deliveryPaused ? "配信を再開" : "一時停止"}
+                  </button>
+                </div>
+                {pauseMsg && (
+                  <p style={{ marginTop: 8, fontSize: 13, color: pauseMsg.type === "success" ? "#059669" : "#991B1B" }}>
+                    {pauseMsg.text}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Delivery Settings */}

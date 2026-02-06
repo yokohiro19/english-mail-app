@@ -32,8 +32,10 @@ type Stats = {
   items?: any[];
 };
 
+type PausedPeriod = { start: string; end: string };
+
 type CalendarResp =
-  | { ok: true; count: number; dateKeys: string[] }
+  | { ok: true; count: number; dateKeys: string[]; pausedPeriods?: PausedPeriod[]; currentlyPaused?: boolean; pausedAt?: string | null }
   | { ok: false; error: string };
 
 function pct(v: number) {
@@ -72,6 +74,7 @@ export default function DashboardPage() {
 
   const [loadingCalendar, setLoadingCalendar] = useState(false);
   const [calendarSet, setCalendarSet] = useState<Set<string>>(new Set());
+  const [pausedSet, setPausedSet] = useState<Set<string>>(new Set());
   const [calendarCount, setCalendarCount] = useState<number>(0);
   const [calendarError, setCalendarError] = useState<string | null>(null);
 
@@ -139,6 +142,7 @@ export default function DashboardPage() {
       if (!res.ok) {
         setCalendarError("カレンダーの取得に失敗しました。");
         setCalendarSet(new Set());
+        setPausedSet(new Set());
         setCalendarCount(0);
         return;
       }
@@ -148,6 +152,7 @@ export default function DashboardPage() {
       if (!json.ok) {
         setCalendarError("カレンダーの取得に失敗しました。");
         setCalendarSet(new Set());
+        setPausedSet(new Set());
         setCalendarCount(0);
         return;
       }
@@ -158,7 +163,31 @@ export default function DashboardPage() {
         if (k) set.add(k);
       }
 
+      // Build paused dates set
+      const paused = new Set<string>();
+      const periods = json.pausedPeriods ?? [];
+      for (const p of periods) {
+        const start = new Date(p.start + "T00:00:00Z");
+        const end = new Date(p.end + "T00:00:00Z");
+        for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
+          const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+          paused.add(key);
+        }
+      }
+      // Currently paused
+      if (json.currentlyPaused && json.pausedAt) {
+        const start = new Date(json.pausedAt + "T00:00:00Z");
+        const today = new Date();
+        const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+        const end = new Date(todayKey + "T00:00:00Z");
+        for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
+          const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+          paused.add(key);
+        }
+      }
+
       setCalendarSet(set);
+      setPausedSet(paused);
       setCalendarCount(set.size);
     } finally {
       setLoadingCalendar(false);
@@ -303,6 +332,7 @@ export default function DashboardPage() {
               {/* Calendar */}
               <CalendarHeatmap
                 studiedSet={calendarSet}
+                pausedSet={pausedSet}
                 cursor={calendarCursor}
                 setCursor={setCalendarCursor}
                 monthSummary={selectedMonthSummary}
@@ -368,11 +398,13 @@ function addMonths(d: Date, n: number) {
 
 function CalendarHeatmap({
   studiedSet,
+  pausedSet,
   cursor,
   setCursor,
   monthSummary,
 }: {
   studiedSet: Set<string>;
+  pausedSet: Set<string>;
   cursor: Date;
   setCursor: Dispatch<SetStateAction<Date>>;
   monthSummary: MonthlyItem | null;
@@ -383,13 +415,13 @@ function CalendarHeatmap({
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const leading = first.getDay();
 
-  const cells: Array<{ key: string; day: number; studied: boolean } | null> = [];
+  const cells: Array<{ key: string; day: number; studied: boolean; paused: boolean } | null> = [];
   for (let i = 0; i < leading; i++) cells.push(null);
 
   for (let day = 1; day <= daysInMonth; day++) {
     const date = new Date(year, month, day);
     const key = ymdJst(date);
-    cells.push({ key, day, studied: studiedSet.has(key) });
+    cells.push({ key, day, studied: studiedSet.has(key), paused: pausedSet.has(key) });
   }
 
   while (cells.length < 42) cells.push(null);
@@ -441,23 +473,37 @@ function CalendarHeatmap({
                 height: 40,
                 borderRadius: 8,
                 border: "1px solid #E8EAED",
-                background: "#fff",
+                background: c.paused ? "#F9FAFB" : "#fff",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
               }}
-              title={c.key}
+              title={c.paused ? `${c.key}（配信停止中）` : c.key}
             >
               <div style={{ position: "absolute", left: 4, top: 3, fontSize: 10, color: "#6B7280" }}>{c.day}</div>
               {c.studied && <div className="calendar-dot" />}
+              {c.paused && !c.studied && (
+                <div style={{
+                  height: 20,
+                  width: 20,
+                  borderRadius: "50%",
+                  background: "#D1D5DB",
+                }} />
+              )}
             </div>
           );
         })}
       </div>
 
-      <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "#6B7280" }}>
-        <span className="calendar-dot" style={{ height: 12, width: 12 }} />
-        <span>学習記録あり</span>
+      <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 16, fontSize: 12, color: "#6B7280" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <span className="calendar-dot" style={{ height: 12, width: 12 }} />
+          <span>学習記録あり</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <span style={{ height: 12, width: 12, borderRadius: "50%", background: "#D1D5DB", display: "inline-block" }} />
+          <span>配信停止中</span>
+        </div>
       </div>
     </div>
   );

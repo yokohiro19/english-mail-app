@@ -84,6 +84,44 @@ export async function GET(req: Request) {
       createdAtKey = dateKeyFromJst(createdJst);
     }
 
+    // 一時停止期間を取得
+    const pausedPeriods = (userData?.pausedPeriods ?? []) as Array<{ start: string; end: string }>;
+    const currentlyPaused = Boolean(userData?.deliveryPaused);
+    const pausedAt = userData?.pausedAt as string | null;
+
+    // 指定期間内の一時停止日数を計算するヘルパー
+    function countPausedDaysInRange(rangeStart: string, rangeEnd: string): number {
+      let pausedDays = 0;
+
+      for (const period of pausedPeriods) {
+        const pStart = period.start > rangeStart ? period.start : rangeStart;
+        const pEnd = period.end < rangeEnd ? period.end : rangeEnd;
+        if (pStart <= pEnd) {
+          pausedDays += daysBetweenKeys(pStart, pEnd);
+        }
+      }
+
+      // 現在一時停止中の場合
+      if (currentlyPaused && pausedAt) {
+        const pStart = pausedAt > rangeStart ? pausedAt : rangeStart;
+        const pEnd = rangeEnd;
+        if (pStart <= pEnd) {
+          pausedDays += daysBetweenKeys(pStart, pEnd);
+        }
+      }
+
+      return pausedDays;
+    }
+
+    // 指定日が一時停止中かどうかを判定
+    function isDatePaused(dateKey: string): boolean {
+      for (const period of pausedPeriods) {
+        if (dateKey >= period.start && dateKey <= period.end) return true;
+      }
+      if (currentlyPaused && pausedAt && dateKey >= pausedAt) return true;
+      return false;
+    }
+
     let thisWeek: RateBlock = rateBlock(0, 1);
     let thisMonth: RateBlock = rateBlock(0, 1);
     let monthlySummary: Array<{
@@ -163,11 +201,13 @@ export async function GET(req: Request) {
         weekStartKey = createdAtKey;
       }
 
-      const weekDays = weekStartKey <= todayKey ? daysBetweenKeys(weekStartKey, todayKey) : 0;
+      const totalWeekDays = weekStartKey <= todayKey ? daysBetweenKeys(weekStartKey, todayKey) : 0;
+      const pausedWeekDays = countPausedDaysInRange(weekStartKey, todayKey);
+      const weekDays = Math.max(0, totalWeekDays - pausedWeekDays);
 
       let weekHit = 0;
       for (const k of allDateKeys) {
-        if (k >= weekStartKey && k <= todayKey) weekHit++;
+        if (k >= weekStartKey && k <= todayKey && !isDatePaused(k)) weekHit++;
       }
       thisWeek = rateBlock(weekHit, Math.max(1, weekDays));
     } catch (e: any) {
@@ -184,11 +224,13 @@ export async function GET(req: Request) {
         monthStartKey = createdAtKey;
       }
 
-      const monthDays = monthStartKey <= todayKey ? daysBetweenKeys(monthStartKey, todayKey) : 0;
+      const totalMonthDays = monthStartKey <= todayKey ? daysBetweenKeys(monthStartKey, todayKey) : 0;
+      const pausedMonthDays = countPausedDaysInRange(monthStartKey, todayKey);
+      const monthDays = Math.max(0, totalMonthDays - pausedMonthDays);
 
       let monthHit = 0;
       for (const k of allDateKeys) {
-        if (k >= monthStartKey && k <= todayKey) monthHit++;
+        if (k >= monthStartKey && k <= todayKey && !isDatePaused(k)) monthHit++;
       }
       thisMonth = rateBlock(monthHit, Math.max(1, monthDays));
     } catch (e: any) {
@@ -224,13 +266,15 @@ export async function GET(req: Request) {
           continue;
         }
 
-        const days = daysBetweenKeys(startKey, endKey);
+        const totalDays = daysBetweenKeys(startKey, endKey);
+        const pausedDays = countPausedDaysInRange(startKey, endKey);
+        const days = Math.max(0, totalDays - pausedDays);
 
         let hit = 0;
         for (const k of allDateKeys) {
-          if (k >= startKey && k <= endKey) hit++;
+          if (k >= startKey && k <= endKey && !isDatePaused(k)) hit++;
         }
-        const rb = rateBlock(hit, days);
+        const rb = rateBlock(hit, Math.max(1, days));
 
         months.push({
           ym: `${sy}-${String(sm).padStart(2, "0")}`,

@@ -302,9 +302,15 @@ export default function AccountPage() {
           {/* Delete account */}
           <div className="app-card" style={{ borderColor: "#FECACA" }}>
             <h2 className="section-title" style={{ color: "#991B1B" }}>アカウントの削除</h2>
-            <p style={{ fontSize: 14, color: "#6B7280", marginBottom: 16 }}>
-              アカウントを削除すると、すべてのデータが失われます。この操作は取り消せません。
-            </p>
+            <div style={{ fontSize: 14, color: "#6B7280", marginBottom: 16 }}>
+              <p style={{ marginBottom: 8 }}>アカウントを削除すると、以下の処理が行われます：</p>
+              <ul style={{ paddingLeft: 20, lineHeight: 1.8 }}>
+                <li>有料プランは即時キャンセルされます（残り期間の利用不可）</li>
+                <li>すべての学習データ・設定が削除されます</li>
+                <li>メールアドレス等の個人情報が消去されます</li>
+              </ul>
+              <p style={{ marginTop: 8, fontWeight: 600, color: "#991B1B" }}>この操作は取り消せません。</p>
+            </div>
 
             {!deleteConfirm ? (
               <button onClick={() => setDeleteConfirm(true)} className="app-btn-secondary" style={{ borderColor: "#FECACA", color: "#991B1B" }}>
