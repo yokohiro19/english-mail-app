@@ -243,7 +243,15 @@ export default function DashboardPage() {
 
           {err && <div className="app-error">エラーが発生しました。しばらくしてから再度お試しください。</div>}
 
-          {stats?.ok ? (
+          {/* Loading state */}
+          {(loadingStats || loadingCalendar) && (
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "60px 20px", gap: 16 }}>
+              <div className="loading-spinner" />
+              <p style={{ fontSize: 14, color: "#6B7280" }}>あなたの学習記録を読み込んでいます...</p>
+            </div>
+          )}
+
+          {!loadingStats && !loadingCalendar && stats?.ok ? (
             <>
               {/* Stats cards */}
               <div className="stats-grid">

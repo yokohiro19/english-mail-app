@@ -295,9 +295,11 @@ export default function SettingsPage() {
   })();
 
   // Trial mail button logic
-  // Freeプランのみ表示（トライアル開始後やactive移行後は表示しない）
-  const showTrialMailButton = !trialMailSentAt && plan === "free";
+  // 送信済みなら非表示、未送信なら表示（有料プランのみ有効）
+  const showTrialMailButton = !trialMailSentAt;
+  const isTrialMailEnabled = plan === "standard" || subscriptionStatus === "trialing" || subscriptionStatus === "active";
   const trialMailButtonText = "この設定で今すぐメールを受け取る";
+  const [trialDisabledMsg, setTrialDisabledMsg] = useState(false);
 
   const sendTrialMail = async () => {
     if (!user) return;
@@ -509,20 +511,42 @@ export default function SettingsPage() {
           {showTrialMailButton && (
             <div>
               <button
-                onClick={sendTrialMail}
+                onClick={() => {
+                  if (!isTrialMailEnabled) {
+                    setTrialDisabledMsg(true);
+                    setTimeout(() => setTrialDisabledMsg(false), 3000);
+                    return;
+                  }
+                  sendTrialMail();
+                }}
                 disabled={trialSending}
-                className="app-btn-primary"
+                className={isTrialMailEnabled ? "app-btn-primary" : "app-btn-secondary"}
                 style={{
                   width: "100%",
                   padding: "16px 24px",
                   fontSize: 15,
                   fontWeight: 700,
                   borderRadius: 12,
-                  opacity: trialSending ? 0.6 : 1,
+                  opacity: trialSending ? 0.6 : isTrialMailEnabled ? 1 : 0.5,
+                  background: isTrialMailEnabled ? undefined : "#9CA3AF",
+                  color: isTrialMailEnabled ? undefined : "#fff",
+                  cursor: isTrialMailEnabled ? "pointer" : "default",
                 }}
               >
-                {trialSending ? "送信中..." : <><span style={{ lineHeight: 1.2 }}>{trialMailButtonText}</span><br /><span style={{ fontSize: 12, fontWeight: 400, lineHeight: 1 }}>（初回のみ）</span></>}
+                {trialSending ? "送信中..." : <><span style={{ lineHeight: 1.2 }}>{trialMailButtonText}</span><br /><span style={{ fontSize: 12, fontWeight: 400, lineHeight: 1 }}>（初回の1回のみ）</span></>}
               </button>
+              {trialDisabledMsg && (
+                <div
+                  style={{
+                    marginTop: 12,
+                    fontSize: 13,
+                    color: "#991B1B",
+                    textAlign: "center",
+                  }}
+                >
+                  この機能を使うには、プランをアップデートしてください
+                </div>
+              )}
               {trialMsg && (
                 <div
                   style={{
