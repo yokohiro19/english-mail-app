@@ -92,6 +92,12 @@ export default function SettingsPage() {
   const [wordCount, setWordCount] = useState(DEFAULT_SETTINGS.wordCount);
   const [sendTime, setSendTime] = useState(DEFAULT_SETTINGS.sendTime);
 
+  // Track saved values to detect unsaved changes
+  const [savedExamType, setSavedExamType] = useState<ExamType>(DEFAULT_SETTINGS.examType);
+  const [savedExamLevel, setSavedExamLevel] = useState(DEFAULT_SETTINGS.examLevel);
+  const [savedWordCount, setSavedWordCount] = useState(DEFAULT_SETTINGS.wordCount);
+  const [savedSendTime, setSavedSendTime] = useState(DEFAULT_SETTINGS.sendTime);
+
   // Delivery email
   const [deliveryEmail, setDeliveryEmail] = useState("");
   const [deliveryEmailVerified, setDeliveryEmailVerified] = useState(false);
@@ -153,10 +159,17 @@ export default function SettingsPage() {
       const data = snap.data() as Partial<UserSettings> & { nickname?: string };
       setNickname(data.nickname ?? "");
       const loadedExamType = (data.examType as ExamType) ?? DEFAULT_SETTINGS.examType;
+      const loadedExamLevel = data.examLevel ?? defaultLevelByExam[loadedExamType] ?? DEFAULT_SETTINGS.examLevel;
+      const loadedWordCount = typeof data.wordCount === "number" ? data.wordCount : safeNumber(data.wordCount, DEFAULT_SETTINGS.wordCount);
+      const loadedSendTime = data.sendTime ?? DEFAULT_SETTINGS.sendTime;
       setExamType(loadedExamType);
-      setExamLevel(data.examLevel ?? defaultLevelByExam[loadedExamType] ?? DEFAULT_SETTINGS.examLevel);
-      setWordCount(typeof data.wordCount === "number" ? data.wordCount : safeNumber(data.wordCount, DEFAULT_SETTINGS.wordCount));
-      setSendTime(data.sendTime ?? DEFAULT_SETTINGS.sendTime);
+      setExamLevel(loadedExamLevel);
+      setWordCount(loadedWordCount);
+      setSendTime(loadedSendTime);
+      setSavedExamType(loadedExamType);
+      setSavedExamLevel(loadedExamLevel);
+      setSavedWordCount(loadedWordCount);
+      setSavedSendTime(loadedSendTime);
       setPlan((data.plan as Plan) ?? "free");
       setSubscriptionStatus((data.subscriptionStatus as any) ?? null);
       setTrialUsed(Boolean(data.trialUsed));
@@ -197,6 +210,10 @@ export default function SettingsPage() {
         updatedAt: serverTimestamp(),
       }, { merge: true });
       if (isDefaultEmail) setDeliveryEmailVerified(true);
+      setSavedExamType(examType);
+      setSavedExamLevel(examLevel);
+      setSavedWordCount(wordCount);
+      setSavedSendTime(sendTime);
       setMessage("保存しました");
       setMessageType("success");
     } catch (e) {
@@ -324,8 +341,12 @@ export default function SettingsPage() {
   // 送信済みなら非表示、未送信なら表示（有料プランのみ有効）
   const showTrialMailButton = !trialMailSentAt;
   const isTrialMailEnabled = plan === "standard" || subscriptionStatus === "trialing" || subscriptionStatus === "active";
-  const trialMailButtonText = "この設定で今すぐメールを受け取る";
+  const trialMailButtonText = "この設定で、本日分のメールを今すぐ受け取る";
   const [trialDisabledMsg, setTrialDisabledMsg] = useState(false);
+
+  // Check for unsaved changes
+  const hasUnsavedChanges = examType !== savedExamType || examLevel !== savedExamLevel || wordCount !== savedWordCount || sendTime !== savedSendTime;
+  const [unsavedWarningMsg, setUnsavedWarningMsg] = useState(false);
 
   const toggleDeliveryPause = async () => {
     if (!user) return;
@@ -692,6 +713,11 @@ export default function SettingsPage() {
                     setTimeout(() => setTrialDisabledMsg(false), 3000);
                     return;
                   }
+                  if (hasUnsavedChanges) {
+                    setUnsavedWarningMsg(true);
+                    setTimeout(() => setUnsavedWarningMsg(false), 3000);
+                    return;
+                  }
                   sendTrialMail();
                 }}
                 disabled={trialSending}
@@ -720,6 +746,18 @@ export default function SettingsPage() {
                   }}
                 >
                   この機能を使うには、プランをアップデートしてください
+                </div>
+              )}
+              {unsavedWarningMsg && (
+                <div
+                  style={{
+                    marginTop: 12,
+                    fontSize: 13,
+                    color: "#92400E",
+                    textAlign: "center",
+                  }}
+                >
+                  設定に未保存の変更があります。先に「保存」ボタンを押してください。
                 </div>
               )}
               {trialMsg && (
