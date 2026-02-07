@@ -529,11 +529,20 @@ export default function SettingsPage() {
             {plan === "standard" && (subscriptionStatus === "active" || subscriptionStatus === "trialing") && (
               <div style={{ marginTop: 20, paddingTop: 20, borderTop: "1px solid #E8EAED" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
-                  <div>
-                    <p style={{ fontWeight: 600, fontSize: 14, color: deliveryPaused ? "#92400E" : "var(--dark-navy)" }}>
-                      {deliveryPaused ? "配信を一時停止中" : "配信中"}
-                    </p>
-                    <p style={{ fontSize: 13, color: "#6B7280", marginTop: 2 }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                    <span style={{
+                      display: "inline-block",
+                      padding: "6px 14px",
+                      borderRadius: 999,
+                      fontSize: 13,
+                      fontWeight: 600,
+                      background: deliveryPaused ? "#FEF3C7" : "#D1FAE5",
+                      color: deliveryPaused ? "#92400E" : "#065F46",
+                      whiteSpace: "nowrap",
+                    }}>
+                      {deliveryPaused ? "⏸ 一時停止中" : "✓ 配信中"}
+                    </span>
+                    <p style={{ fontSize: 13, color: "#6B7280", marginTop: 4 }}>
                       {deliveryPaused
                         ? "再開するまでメールは届きません。停止中は達成率の計算から除外されます。"
                         : "毎日指定した時間にメールが届きます"}
@@ -542,8 +551,15 @@ export default function SettingsPage() {
                   <button
                     onClick={toggleDeliveryPause}
                     disabled={pauseLoading}
-                    className={deliveryPaused ? "app-btn-primary" : "app-btn-secondary"}
-                    style={{ padding: "8px 20px", fontSize: 13, whiteSpace: "nowrap" }}
+                    className="app-btn-secondary"
+                    style={{
+                      padding: "8px 20px",
+                      fontSize: 13,
+                      whiteSpace: "nowrap",
+                      background: deliveryPaused ? "var(--primary-cyan)" : "#E5E7EB",
+                      color: deliveryPaused ? "var(--dark-navy)" : "#374151",
+                      border: "none",
+                    }}
                   >
                     {pauseLoading ? "処理中..." : deliveryPaused ? "配信を再開" : "一時停止"}
                   </button>
@@ -653,7 +669,12 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <div style={{ marginTop: 20, display: "flex", alignItems: "center", gap: 12 }}>
+            <p style={{ marginTop: 20, fontSize: 12, color: "#9CA3AF", lineHeight: 1.7 }}>
+              ※ 英文のテーマはビジネス関連のトピックからランダムに選出されます。<br />
+              　 同じようなテーマが続く場合がありますが、あらかじめご了承ください。
+            </p>
+
+            <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 12 }}>
               <button onClick={onSave} disabled={saving} className="app-btn-primary">
                 {saving ? "保存中..." : "保存"}
               </button>
