@@ -63,7 +63,7 @@ export default function Home() {
         </div>
       </section>
 
-      <div style={{ background: "#FEF3C7", color: "#92400E", textAlign: "center", padding: "14px 16px", fontSize: 14, fontWeight: 600 }}>※本サービスは準備中です。まだ支払いはできません。</div>
+      <div style={{ background: "#FEF3C7", color: "#92400E", textAlign: "center", padding: "24px 16px", fontSize: 42, fontWeight: 600 }}>※本サービスは準備中です。まだ支払いはできません。</div>
 
       <section className="features" id="features">
         <div className="section-header">
