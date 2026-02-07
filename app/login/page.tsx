@@ -34,7 +34,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.push("/dashboard");
+      router.push("/settings");
     } catch (err: any) {
       setError(firebaseErrorJa(err));
     } finally {

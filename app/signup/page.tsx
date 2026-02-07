@@ -34,7 +34,7 @@ export default function SignupPage() {
     try {
       const cred = await createUserWithEmailAndPassword(auth, email, password);
       await sendEmailVerification(cred.user).catch(() => {});
-      router.push("/dashboard");
+      router.push("/settings");
     } catch (err: any) {
       setError(firebaseErrorJa(err));
     } finally {
