@@ -182,6 +182,7 @@ export default function Home() {
               style={{ fontSize: "20px", padding: "18px 50px", width: "100%", textAlign: "center", display: "block" }}
             >
               無料で始める →
+              <span className="price-note">月額500円（初回7日間無料）</span>
             </a>
           </div>
         </div>
