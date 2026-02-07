@@ -144,6 +144,7 @@ export default function SettingsPage() {
       setUser(u);
       setLoadingAuth(false);
       if (!u) { router.replace("/login"); return; }
+      if (!u.emailVerified) { router.replace("/verify-email"); return; }
     });
     return () => unsub();
   }, [router]);

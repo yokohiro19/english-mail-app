@@ -88,6 +88,7 @@ export default function DashboardPage() {
       setUser(u);
       setLoadingAuth(false);
       if (!u) { router.replace("/login"); return; }
+      if (!u.emailVerified) { router.replace("/verify-email"); return; }
       setEmailVerified(u.emailVerified);
     });
     return () => unsub();
