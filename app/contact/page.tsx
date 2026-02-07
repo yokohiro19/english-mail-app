@@ -48,7 +48,7 @@ export default function ContactPage() {
             <a href="/#features">特徴</a>
             <a href="/#strengths">強み</a>
             <a href="/#how">使い方</a>
-            <a href="/signup" className="nav-cta">無料で始める</a>
+            <a href="/login" className="nav-cta">ログイン</a>
           </div>
         </nav>
       </header>
