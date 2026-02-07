@@ -160,31 +160,10 @@ export default function Home() {
       <section className="cta-section" id="cta">
         <div className="cta-content">
           <h2>今日から<span className="cta-highlight">毎日の英語習慣</span>を始めよう</h2>
-          <div style={{
-            background: "rgba(255, 255, 255, 0.95)",
-            backdropFilter: "blur(10px)",
-            padding: "45px 70px",
-            borderRadius: "20px",
-            margin: "30px auto",
-            maxWidth: "520px",
-            border: "2px solid rgba(255, 255, 255, 0.8)",
-            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.15)",
-          }}>
-            <p style={{ fontSize: "28px", fontWeight: 700, marginBottom: "8px", color: "var(--dark-navy)" }}>
-              月額500円（初回7日間無料）
-            </p>
-            <p style={{ fontSize: "16px", color: "var(--dark-navy)", opacity: 0.7, marginBottom: "30px" }}>
-              いつでもキャンセル可能
-            </p>
-            <a
-              href="/signup"
-              className="btn-primary"
-              style={{ fontSize: "20px", padding: "18px 50px", width: "100%", textAlign: "center", display: "block" }}
-            >
-              無料で始める →
-              <span className="price-note">月額500円（初回7日間無料）</span>
-            </a>
-          </div>
+          <a href="/signup" className="btn-primary" style={{ fontSize: "20px", padding: "18px 50px" }}>
+            無料で始める →
+            <span className="price-note">月額500円（初回7日間無料）</span>
+          </a>
         </div>
       </section>
 
