@@ -263,7 +263,7 @@ export async function GET(req: Request) {
 
         const topic = await pickRandomTopic(db);
         const out = await generateEmailContent(cefr, wordCount, topic);
-        const subject = `TapSmart English (${today}) - ${topic.category}`.replace(/[\r\n]/g, "");
+        const subject = `TapSmart English - ${today.replaceAll("-", "/")}`;
 
         // ✅ 読んだURL（署名付き）
         const token = signReadToken({ uid, dateKey: today, deliveryId }, 7);

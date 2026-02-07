@@ -93,7 +93,7 @@ export async function POST(req: Request) {
     const topic = await pickRandomTopic(db);
     const out = await generateEmailContent(cefr, wordCount, topic);
 
-    const subject = `TapSmart English (${today}) - ${topic.category}`.replace(/[\r\n]/g, "");
+    const subject = `TapSmart English - ${today.replaceAll("-", "/")}`;
 
     // Build read URL
     const readToken = signReadToken({ uid, dateKey: today, deliveryId }, 7);
