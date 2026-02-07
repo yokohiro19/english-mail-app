@@ -185,13 +185,13 @@ export default function SettingsPage() {
       // New user - use defaults
       setDeliveryEmail(u.email ?? "");
       setDeliveryEmailVerified(false);
-      // Try to create user doc, but don't fail if it errors
-      try {
-        await setDoc(ref, { email: u.email ?? "", ...DEFAULT_SETTINGS, plan: "free", trialUsed: false, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }, { merge: true });
-      } catch (createErr) {
-        console.error("Failed to create user doc:", createErr);
-        // Continue with defaults - don't show error to user
-      }
+      // Create user doc with only client-writable fields (plan/trialUsed are server-only)
+      await setDoc(ref, {
+        email: u.email ?? "",
+        ...DEFAULT_SETTINGS,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      }, { merge: true });
     }
     setLoadingData(false);
   };
