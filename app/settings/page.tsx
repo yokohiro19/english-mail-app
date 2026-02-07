@@ -182,9 +182,16 @@ export default function SettingsPage() {
       setStandardStartedAt((data as any).standardStartedAt ?? null);
       setDeliveryPaused(Boolean((data as any).deliveryPaused));
     } else {
+      // New user - use defaults
       setDeliveryEmail(u.email ?? "");
       setDeliveryEmailVerified(false);
-      await setDoc(ref, { email: u.email ?? "", ...DEFAULT_SETTINGS, plan: "free", trialUsed: false, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }, { merge: true });
+      // Try to create user doc, but don't fail if it errors
+      try {
+        await setDoc(ref, { email: u.email ?? "", ...DEFAULT_SETTINGS, plan: "free", trialUsed: false, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }, { merge: true });
+      } catch (createErr) {
+        console.error("Failed to create user doc:", createErr);
+        // Continue with defaults - don't show error to user
+      }
     }
     setLoadingData(false);
   };
