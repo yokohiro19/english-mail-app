@@ -38,7 +38,6 @@ export default function Home() {
       </header>
 
       <section className="hero">
-        <div style={{ background: "#FEF3C7", color: "#92400E", textAlign: "center", padding: "10px 16px", fontSize: 13, fontWeight: 600, borderRadius: 8, marginBottom: 24 }}>※本サービスは準備中です。まだ支払いはできません。</div>
         <div className="hero-content">
           <div className="hero-text">
             <h2>
@@ -63,6 +62,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <div style={{ background: "#FEF3C7", color: "#92400E", textAlign: "center", padding: "14px 16px", fontSize: 14, fontWeight: 600 }}>※本サービスは準備中です。まだ支払いはできません。</div>
 
       <section className="features" id="features">
         <div className="section-header">
