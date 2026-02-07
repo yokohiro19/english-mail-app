@@ -23,6 +23,7 @@ export default function Home() {
 
   return (
     <div className="landing">
+      <div style={{ background: "#FEF3C7", color: "#92400E", textAlign: "center", padding: "12px 16px", fontSize: 14, fontWeight: 600 }}>※本サービスは準備中です。まだ支払いはできません。</div>
       <header>
         <nav>
           <a href="#" className="logo">
