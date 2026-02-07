@@ -36,8 +36,9 @@ export async function POST(req: NextRequest) {
       status: "pending", // pending -> replied -> resolved
     });
 
+    const contactFrom = process.env.EMAIL_CONTACT_FROM || process.env.EMAIL_FROM!;
     await resend.emails.send({
-      from: process.env.EMAIL_FROM!,
+      from: contactFrom,
       to: "support@tapsmart.jp",
       replyTo: email,
       subject: `【お問い合わせ】${name}様より`,
