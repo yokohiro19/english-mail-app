@@ -117,6 +117,7 @@ export default function SettingsPage() {
 
   // Trial mail
   const [trialMailSentAt, setTrialMailSentAt] = useState<any>(null);
+  const [firstDeliveryAt, setFirstDeliveryAt] = useState<any>(null);
   const [standardStartedAt, setStandardStartedAt] = useState<any>(null);
   const [trialSending, setTrialSending] = useState(false);
   const [trialMsg, setTrialMsg] = useState<{ text: string; type: "success" | "error" } | null>(null);
@@ -192,6 +193,7 @@ export default function SettingsPage() {
       setSavedDeliveryEmail(loadedDeliveryEmail);
       setDeliveryEmailVerified(Boolean((data as any).deliveryEmailVerified));
       setTrialMailSentAt((data as any).trialMailSentAt ?? null);
+      setFirstDeliveryAt((data as any).firstDeliveryAt ?? null);
       setStandardStartedAt((data as any).standardStartedAt ?? null);
       setDeliveryPaused(Boolean((data as any).deliveryPaused));
     } else {
@@ -359,8 +361,8 @@ export default function SettingsPage() {
   const [consentChecked, setConsentChecked] = useState(false);
 
   // Trial mail button logic
-  // 送信済みなら非表示、未送信なら表示（有料プランのみ有効）
-  const showTrialMailButton = !trialMailSentAt;
+  // 送信済み or 配信実績ありなら非表示
+  const showTrialMailButton = !trialMailSentAt && !firstDeliveryAt;
   const isTrialMailEnabled = plan === "standard" || subscriptionStatus === "trialing" || subscriptionStatus === "active";
   const trialMailButtonText = "この設定で、本日分のメールを今すぐ受け取る";
   const [trialDisabledMsg, setTrialDisabledMsg] = useState(false);

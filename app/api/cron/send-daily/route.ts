@@ -293,11 +293,12 @@ export async function GET(req: Request) {
           headers: { "Idempotency-Key": deliveryId },
         });
 
-        // ✅ “予約済み” を “sent” に更新（reservedAtなどを保持）
+        // ✅ "予約済み" を "sent" に更新（reservedAtなどを保持）
+        const now = new Date();
         await deliveryRef.set(
           {
             status: "sent",
-            sentAt: new Date(),
+            sentAt: now,
             topicId: topic.id,
             cefr,
             emailProvider: "resend",
@@ -305,6 +306,11 @@ export async function GET(req: Request) {
           },
           { merge: true }
         );
+
+        // 初回配信フラグ（未設定の場合のみ）
+        if (!u.firstDeliveryAt) {
+          await db.collection("users").doc(uid).set({ firstDeliveryAt: now }, { merge: true });
+        }
 
         sent++;
       } catch (err: any) {
