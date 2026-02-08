@@ -703,7 +703,7 @@ export default function SettingsPage() {
                     <option key={n} value={n}>{n}</option>
                   ))}
                 </select>
-                <p className="form-helper">100〜200がおすすめ</p>
+                <p className="form-helper">手軽な継続には100〜200がおすすめ</p>
               </div>
 
               <div>
