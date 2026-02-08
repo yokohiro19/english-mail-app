@@ -23,8 +23,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: "invalid_email" }, { status: 400 });
     }
 
-    const verifyToken = crypto.randomBytes(32).toString("hex");
     const db = getAdminDb();
+
+    // ログインアドレスと同じなら認証メール不要で即確定
+    if (email === decoded.email) {
+      await db.collection("users").doc(uid).set({
+        deliveryEmail: email,
+        deliveryEmailVerified: true,
+        deliveryEmailToken: null,
+        deliveryEmailTokenAt: null,
+      }, { merge: true });
+      return NextResponse.json({ ok: true, autoVerified: true });
+    }
+
+    const verifyToken = crypto.randomBytes(32).toString("hex");
 
     await db.collection("users").doc(uid).set({
       deliveryEmail: email,

@@ -222,26 +222,16 @@ export default function SettingsPage() {
     setMessage(null);
     try {
       const ref = doc(db, "users", user.uid);
-      // 未認証のカスタムメールは保存しない（DB上のdeliveryEmailVerifiedと不整合になるため）
-      const safeDeliveryEmail = (isCustomEmail && !deliveryEmailVerified)
-        ? (savedDeliveryEmail || user.email || "")
-        : (deliveryEmail || user.email || "");
       await setDoc(ref, {
         email: user.email ?? "",
         examType, examLevel, wordCount, sendTime,
-        deliveryEmail: safeDeliveryEmail,
         updatedAt: serverTimestamp(),
       }, { merge: true });
       setSavedExamType(examType);
       setSavedExamLevel(examLevel);
       setSavedWordCount(wordCount);
       setSavedSendTime(sendTime);
-      setSavedDeliveryEmail(safeDeliveryEmail);
-      if (isCustomEmail && !deliveryEmailVerified) {
-        setMessage("保存しました（配信先メールは認証後に反映されます）");
-      } else {
-        setMessage("保存しました");
-      }
+      setMessage("保存しました");
       setMessageType("success");
     } catch (e) {
       console.error(e);
@@ -264,7 +254,11 @@ export default function SettingsPage() {
         body: JSON.stringify({ email: deliveryEmail }),
       });
       const json = await res.json();
-      if (json.ok) {
+      if (json.ok && json.autoVerified) {
+        setDeliveryEmailMsg("ログインアドレスに戻しました。");
+        setDeliveryEmailVerified(true);
+        setSavedDeliveryEmail(deliveryEmail);
+      } else if (json.ok) {
         setDeliveryEmailMsg("認証メールを送信しました。受信トレイを確認してください。");
         setDeliveryEmailVerified(false);
       } else {
@@ -372,7 +366,7 @@ export default function SettingsPage() {
   const [trialDisabledMsg, setTrialDisabledMsg] = useState(false);
 
   // Check for unsaved changes
-  const hasUnsavedChanges = examType !== savedExamType || examLevel !== savedExamLevel || wordCount !== savedWordCount || sendTime !== savedSendTime || deliveryEmail !== savedDeliveryEmail;
+  const hasUnsavedChanges = examType !== savedExamType || examLevel !== savedExamLevel || wordCount !== savedWordCount || sendTime !== savedSendTime;
   const [unsavedWarningMsg, setUnsavedWarningMsg] = useState(false);
 
   const toggleDeliveryPause = async () => {
@@ -640,25 +634,25 @@ export default function SettingsPage() {
                   }}
                   style={{
                     flex: 1,
-                    color: isCustomEmail && !deliveryEmailVerified ? "#9CA3AF" : "#1d1f42",
-                    fontWeight: isCustomEmail && !deliveryEmailVerified ? 400 : 700,
+                    color: !deliveryEmailVerified && deliveryEmail !== savedDeliveryEmail ? "#9CA3AF" : "#1d1f42",
+                    fontWeight: !deliveryEmailVerified && deliveryEmail !== savedDeliveryEmail ? 400 : 700,
                   }}
                 />
-                {isCustomEmail && !deliveryEmailVerified && (
+                {!deliveryEmailVerified && deliveryEmail !== savedDeliveryEmail && (
                   <button
                     onClick={sendDeliveryVerification}
                     disabled={deliveryEmailSending}
                     className="app-btn-primary"
                     style={{ padding: "10px 20px", fontSize: 13, whiteSpace: "nowrap" }}
                   >
-                    {deliveryEmailSending ? "送信中..." : "認証"}
+                    {deliveryEmailSending ? "送信中..." : isCustomEmail ? "認証" : "戻す"}
                   </button>
                 )}
                 {deliveryEmailVerified && (
                   <span style={{ fontSize: 13, color: "#059669", fontWeight: 600, whiteSpace: "nowrap" }}>認証済み</span>
                 )}
               </div>
-              {isCustomEmail && !deliveryEmailVerified && (
+              {!deliveryEmailVerified && deliveryEmail !== savedDeliveryEmail && isCustomEmail && (
                 <p className="form-helper">認証ボタンを押すと、入力したアドレスに認証メールを送信します</p>
               )}
               {deliveryEmailMsg && (
