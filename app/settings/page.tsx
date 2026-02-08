@@ -720,7 +720,7 @@ export default function SettingsPage() {
 
             <p style={{ marginTop: 20, fontSize: 12, color: "#9CA3AF", lineHeight: 1.7 }}>
               ※ 英文のテーマはビジネス関連のトピックからランダムに選出されます。<br />
-              　 同じようなテーマが続く場合がありますが、あらかじめご了承ください。
+              　 同じようなテーマが連続で届く場合もありますので、あらかじめご了承ください。
             </p>
 
             <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 12 }}>
