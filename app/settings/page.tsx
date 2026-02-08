@@ -222,19 +222,26 @@ export default function SettingsPage() {
     setMessage(null);
     try {
       const ref = doc(db, "users", user.uid);
-      const isDefaultEmail = deliveryEmail === user.email;
+      // 未認証のカスタムメールは保存しない（DB上のdeliveryEmailVerifiedと不整合になるため）
+      const safeDeliveryEmail = (isCustomEmail && !deliveryEmailVerified)
+        ? (savedDeliveryEmail || user.email)
+        : (deliveryEmail || user.email);
       await setDoc(ref, {
         email: user.email ?? "",
         examType, examLevel, wordCount, sendTime,
-        deliveryEmail: deliveryEmail || user.email,
+        deliveryEmail: safeDeliveryEmail,
         updatedAt: serverTimestamp(),
       }, { merge: true });
       setSavedExamType(examType);
       setSavedExamLevel(examLevel);
       setSavedWordCount(wordCount);
       setSavedSendTime(sendTime);
-      setSavedDeliveryEmail(deliveryEmail);
-      setMessage("保存しました");
+      setSavedDeliveryEmail(safeDeliveryEmail);
+      if (isCustomEmail && !deliveryEmailVerified) {
+        setMessage("保存しました（配信先メールは認証後に反映されます）");
+      } else {
+        setMessage("保存しました");
+      }
       setMessageType("success");
     } catch (e) {
       console.error(e);
