@@ -227,10 +227,8 @@ export default function SettingsPage() {
         email: user.email ?? "",
         examType, examLevel, wordCount, sendTime,
         deliveryEmail: deliveryEmail || user.email,
-        ...(isDefaultEmail ? { deliveryEmailVerified: true } : {}),
         updatedAt: serverTimestamp(),
       }, { merge: true });
-      if (isDefaultEmail) setDeliveryEmailVerified(true);
       setSavedExamType(examType);
       setSavedExamLevel(examLevel);
       setSavedWordCount(wordCount);
