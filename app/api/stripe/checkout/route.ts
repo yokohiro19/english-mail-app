@@ -39,6 +39,10 @@ async function ensureUserDoc(params: { uid: string; email: string | null }) {
     subscriptionStatus: "unknown",
     cancelAtPeriodEnd: false,
     trialUsed: false,
+    examType: "TOEIC",
+    examLevel: "TOEIC 600",
+    wordCount: 100,
+    sendTime: "08:00",
     createdAt: now,
     updatedAt: now,
   };

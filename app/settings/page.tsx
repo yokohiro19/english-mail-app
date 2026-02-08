@@ -31,9 +31,9 @@ type UserSettings = {
 
 const DEFAULT_SETTINGS: Omit<UserSettings, "email"> = {
   examType: "TOEIC",
-  examLevel: "TOEIC 500",
+  examLevel: "TOEIC 600",
   wordCount: 100,
-  sendTime: "07:00",
+  sendTime: "08:00",
 };
 
 function safeNumber(v: any, fallback: number) {
@@ -171,6 +171,15 @@ export default function SettingsPage() {
       setSavedExamLevel(loadedExamLevel);
       setSavedWordCount(loadedWordCount);
       setSavedSendTime(loadedSendTime);
+      // sendTime等がFirestoreに未設定の場合、デフォルト値を補完書き込み
+      const missing: Record<string, any> = {};
+      if (!data.sendTime) missing.sendTime = DEFAULT_SETTINGS.sendTime;
+      if (!data.examType) missing.examType = DEFAULT_SETTINGS.examType;
+      if (!data.examLevel) missing.examLevel = DEFAULT_SETTINGS.examLevel;
+      if (data.wordCount == null) missing.wordCount = DEFAULT_SETTINGS.wordCount;
+      if (Object.keys(missing).length > 0) {
+        await setDoc(ref, { ...missing, updatedAt: serverTimestamp() }, { merge: true });
+      }
       setPlan((data.plan as Plan) ?? "free");
       setSubscriptionStatus((data.subscriptionStatus as any) ?? null);
       setTrialUsed(Boolean(data.trialUsed));
