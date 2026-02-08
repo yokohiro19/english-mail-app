@@ -224,8 +224,8 @@ export default function SettingsPage() {
       const ref = doc(db, "users", user.uid);
       // 未認証のカスタムメールは保存しない（DB上のdeliveryEmailVerifiedと不整合になるため）
       const safeDeliveryEmail = (isCustomEmail && !deliveryEmailVerified)
-        ? (savedDeliveryEmail || user.email)
-        : (deliveryEmail || user.email);
+        ? (savedDeliveryEmail || user.email || "")
+        : (deliveryEmail || user.email || "");
       await setDoc(ref, {
         email: user.email ?? "",
         examType, examLevel, wordCount, sendTime,
