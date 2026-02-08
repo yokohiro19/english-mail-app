@@ -469,9 +469,14 @@ export default function SettingsPage() {
                 <p style={{ fontFamily: "'Outfit', sans-serif", fontSize: 28, fontWeight: 800 }}>
                   {plan === "standard" ? "Standard" : "Free"}
                   <span style={{ fontSize: 14, fontWeight: 400, color: "#6B7280", marginLeft: 8 }}>
-                    {plan === "standard" ? "（月額500円）" : "（無料、メール受け取り不可）"}
+                    {subscriptionStatus === "trialing" ? "（トライアル中）" : plan === "standard" ? "（月額500円）" : "（無料、メール受け取り不可）"}
                   </span>
                 </p>
+                {subscriptionStatus === "trialing" && trialEndsAt && (
+                  <p style={{ fontSize: 12, color: "#92400E", marginTop: 4 }}>
+                    ※トライアルは{formatDateOnly(trialEndsAt)}に終了します
+                  </p>
+                )}
                 {canRestartTrial && (
                   <p style={{ fontSize: 13, color: "#059669", marginTop: 4 }}>
                     トライアル期間内のため、無料で再開できます
