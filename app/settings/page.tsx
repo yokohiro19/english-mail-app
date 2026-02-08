@@ -100,6 +100,7 @@ export default function SettingsPage() {
 
   // Delivery email
   const [deliveryEmail, setDeliveryEmail] = useState("");
+  const [savedDeliveryEmail, setSavedDeliveryEmail] = useState("");
   const [deliveryEmailVerified, setDeliveryEmailVerified] = useState(false);
   const [deliveryEmailSending, setDeliveryEmailSending] = useState(false);
   const [deliveryEmailMsg, setDeliveryEmailMsg] = useState<string | null>(null);
@@ -186,7 +187,9 @@ export default function SettingsPage() {
       setTrialEndsAt((data.trialEndsAt as any) ?? null);
       setCurrentPeriodEnd((data.currentPeriodEnd as any) ?? null);
       setCancelAtPeriodEnd(Boolean(data.cancelAtPeriodEnd));
-      setDeliveryEmail((data as any).deliveryEmail ?? u.email ?? "");
+      const loadedDeliveryEmail = (data as any).deliveryEmail ?? u.email ?? "";
+      setDeliveryEmail(loadedDeliveryEmail);
+      setSavedDeliveryEmail(loadedDeliveryEmail);
       setDeliveryEmailVerified(Boolean((data as any).deliveryEmailVerified));
       setTrialMailSentAt((data as any).trialMailSentAt ?? null);
       setStandardStartedAt((data as any).standardStartedAt ?? null);
@@ -194,6 +197,7 @@ export default function SettingsPage() {
     } else {
       // New user - use defaults
       setDeliveryEmail(u.email ?? "");
+      setSavedDeliveryEmail(u.email ?? "");
       setDeliveryEmailVerified(false);
       // Create user doc with only client-writable fields (plan/trialUsed are server-only)
       await setDoc(ref, {
@@ -231,6 +235,7 @@ export default function SettingsPage() {
       setSavedExamLevel(examLevel);
       setSavedWordCount(wordCount);
       setSavedSendTime(sendTime);
+      setSavedDeliveryEmail(deliveryEmail);
       setMessage("保存しました");
       setMessageType("success");
     } catch (e) {
@@ -362,7 +367,7 @@ export default function SettingsPage() {
   const [trialDisabledMsg, setTrialDisabledMsg] = useState(false);
 
   // Check for unsaved changes
-  const hasUnsavedChanges = examType !== savedExamType || examLevel !== savedExamLevel || wordCount !== savedWordCount || sendTime !== savedSendTime;
+  const hasUnsavedChanges = examType !== savedExamType || examLevel !== savedExamLevel || wordCount !== savedWordCount || sendTime !== savedSendTime || deliveryEmail !== savedDeliveryEmail;
   const [unsavedWarningMsg, setUnsavedWarningMsg] = useState(false);
 
   const toggleDeliveryPause = async () => {

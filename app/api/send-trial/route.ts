@@ -52,6 +52,13 @@ export async function POST(req: Request) {
 
     const u = userSnap.data() as any;
 
+    // Guard: plan/subscription check
+    const plan = u.plan ?? "free";
+    const status = u.subscriptionStatus ?? "";
+    if (plan !== "standard" && status !== "trialing" && status !== "active") {
+      return NextResponse.json({ ok: false, error: "not_eligible" }, { status: 403 });
+    }
+
     // Guard: already sent trial mail
     if (u.trialMailSentAt) {
       return NextResponse.json({ ok: false, error: "already_sent" }, { status: 400 });
