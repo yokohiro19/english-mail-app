@@ -78,8 +78,10 @@ function canSendByBilling(plan: Plan, status: SubscriptionStatus, trialEndsAt?: 
   if (plan !== "standard") return { ok: false, reason: `plan_${plan}` };
   if (status === "active") return { ok: true, reason: "status_active" };
   if (status === "trialing") {
-    if (trialEndsAt && trialEndsAt.getTime() < Date.now()) {
-      return { ok: false, reason: "trial_expired" };
+    if (trialEndsAt) {
+      const ts = trialEndsAt.getTime();
+      if (Number.isNaN(ts)) return { ok: false, reason: "trial_invalid_date" };
+      if (ts < Date.now()) return { ok: false, reason: "trial_expired" };
     }
     return { ok: true, reason: "status_trialing" };
   }
@@ -210,9 +212,14 @@ export async function GET(req: Request) {
           skippedUnverified++;
           continue;
         }
-      } catch {
-        skippedUnverified++;
-        continue;
+      } catch (authErr: any) {
+        // auth/user-not-found は確実に未認証なのでスキップ
+        if (authErr?.code === "auth/user-not-found") {
+          skippedUnverified++;
+          continue;
+        }
+        // その他のエラー（Firebase障害等）はログに残してスキップせず配信を試みる
+        console.warn(`[emailVerified] Firebase Auth error for ${uid}, proceeding:`, authErr?.message ?? authErr);
       }
 
       // ===== Billing Guard =====
