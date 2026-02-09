@@ -125,7 +125,7 @@ export default function Home() {
       <section className="how-it-works" id="how">
         <div className="section-header">
           <h2>使い方は簡単4ステップ</h2>
-          <p>登録から学習開始まで、わずか3分</p>
+          <p style={{ fontWeight: 700 }}>登録から学習開始まで、わずか3分</p>
         </div>
         <div className="steps">
           <div className="step">
