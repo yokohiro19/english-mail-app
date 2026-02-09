@@ -7,8 +7,25 @@ export const runtime = "nodejs";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
+function normalizeUrl(raw?: string | null) {
+  return raw ? raw.replace(/\/$/, "") : null;
+}
+
+function isLocalhostUrl(url: string) {
+  return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(url);
+}
+
 function getAppUrl(req: Request) {
-  if (process.env.APP_BASE_URL) return process.env.APP_BASE_URL.replace(/\/$/, "");
+  const appBaseUrl = normalizeUrl(process.env.APP_BASE_URL);
+  const vercelUrl = normalizeUrl(
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null
+  );
+
+  if (appBaseUrl && !(process.env.VERCEL && isLocalhostUrl(appBaseUrl))) {
+    return appBaseUrl;
+  }
+  if (process.env.VERCEL && vercelUrl) return vercelUrl;
+
   const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
   const proto = req.headers.get("x-forwarded-proto") ?? "http";
   if (!host) throw new Error("missing_host");
