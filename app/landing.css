@@ -339,6 +339,35 @@
 .function-details {
   padding: 100px 40px;
   background: linear-gradient(170deg, #F0F2F1 0%, #EAEDEC 50%, #F0F2F1 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.function-details::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(78, 255, 244, 0.08) 0%, transparent 60%);
+  animation: rotate 25s linear infinite;
+}
+
+.function-details::after {
+  content: '';
+  position: absolute;
+  bottom: -40%;
+  right: -40%;
+  width: 180%;
+  height: 180%;
+  background: radial-gradient(circle, rgba(29, 31, 66, 0.04) 0%, transparent 55%);
+  animation: rotate 30s linear infinite reverse;
+}
+
+.function-details .section-header {
+  position: relative;
+  z-index: 1;
 }
 
 .function-details .section-header h2 {
@@ -351,6 +380,8 @@
 
 .function-list {
   max-width: 1000px;
+  position: relative;
+  z-index: 1;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
