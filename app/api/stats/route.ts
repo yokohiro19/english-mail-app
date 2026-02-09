@@ -250,7 +250,9 @@ export async function GET(req: Request) {
 
         let startKey = dateKeyFromJst(start);
         const end = jstMidnightUtcDate(sy, sm, totalDaysInMonth);
-        const endKey = dateKeyFromJst(end);
+        // 当月以降は今日までに制限（未来の日を分母に含めない）
+        const rawEndKey = dateKeyFromJst(end);
+        const endKey = rawEndKey > todayKey ? todayKey : rawEndKey;
 
         // createdAt より前の日を除外
         if (createdAtKey && createdAtKey > startKey) {
