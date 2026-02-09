@@ -18,7 +18,25 @@ export default function Home() {
       }
     };
     document.addEventListener("click", handleClick);
-    return () => document.removeEventListener("click", handleClick);
+
+    // Intersection Observer: 強みカードのスクロールアニメーション
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.15 }
+    );
+    document.querySelectorAll(".function-item").forEach((el) => observer.observe(el));
+
+    return () => {
+      document.removeEventListener("click", handleClick);
+      observer.disconnect();
+    };
   }, []);
 
   return (

@@ -338,7 +338,7 @@
 /* Function Details Section */
 .function-details {
   padding: 100px 40px;
-  background: linear-gradient(170deg, #EDF5F4 0%, #E4F0EF 50%, #EDF5F4 100%);
+  background: linear-gradient(170deg, #F0F2F1 0%, #EAEDEC 50%, #F0F2F1 100%);
 }
 
 .function-details .section-header h2 {
@@ -362,7 +362,6 @@
   grid-template-columns: 64px 1fr;
   gap: 28px;
   align-items: center;
-  animation: fadeInUp 0.6s ease both;
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(8px);
   padding: 32px 36px;
@@ -370,17 +369,27 @@
   border: 1px solid rgba(255, 255, 255, 0.6);
   box-shadow: 0 2px 16px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
+  opacity: 0;
+  transform: translateX(-40px);
 }
+
+.function-item.visible {
+  animation: slideInLeft 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.function-item:nth-child(1).visible { animation-delay: 0s; }
+.function-item:nth-child(2).visible { animation-delay: 0.15s; }
+.function-item:nth-child(3).visible { animation-delay: 0.3s; }
 
 .function-item:hover {
   background: rgba(255, 255, 255, 0.95);
-  transform: translateY(-2px);
+  transform: translateY(-3px);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
-.function-item:nth-child(1) { animation-delay: 0.1s; }
-.function-item:nth-child(2) { animation-delay: 0.2s; }
-.function-item:nth-child(3) { animation-delay: 0.3s; }
+.function-item:hover .function-icon-img {
+  transform: scale(1.1);
+}
 
 .function-icon {
   width: 80px;
@@ -400,6 +409,7 @@
   border-radius: 16px;
   object-fit: cover;
   flex-shrink: 0;
+  transition: transform 0.3s ease;
 }
 
 .function-content h3 {
@@ -618,6 +628,17 @@
 }
 
 /* Animations */
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 @keyframes fadeInUp {
   from {
     opacity: 0;
