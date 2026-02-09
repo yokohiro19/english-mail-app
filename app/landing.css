@@ -338,15 +338,15 @@
 /* Function Details Section */
 .function-details {
   padding: 100px 40px;
-  background: #aaabbc;
+  background: #bafff9;
 }
 
 .function-details .section-header h2 {
-  color: var(--white);
+  color: var(--dark-navy);
 }
 
 .function-details .section-header p {
-  color: rgba(255, 255, 255, 0.7);
+  color: #374151;
 }
 
 .function-list {
