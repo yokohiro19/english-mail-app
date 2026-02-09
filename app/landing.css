@@ -338,7 +338,15 @@
 /* Function Details Section */
 .function-details {
   padding: 100px 40px;
-  background: #FAFBFC;
+  background: #aaabbc;
+}
+
+.function-details .section-header h2 {
+  color: var(--white);
+}
+
+.function-details .section-header p {
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .function-list {
@@ -355,17 +363,17 @@
   gap: 30px;
   align-items: center;
   animation: fadeInUp 0.6s ease both;
-  background: var(--white);
+  background: rgba(255, 255, 255, 0.95);
   padding: 35px 40px;
-  border-radius: 12px;
-  border: 1px solid #E8EAED;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border-radius: 16px;
+  border: none;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
 }
 
 .function-item:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  border-color: #D1D5DB;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
 }
 
 .function-item:nth-child(1) { animation-delay: 0.1s; }
