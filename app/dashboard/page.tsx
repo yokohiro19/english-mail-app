@@ -286,10 +286,10 @@ export default function DashboardPage() {
               {/* Stats cards */}
               <div className="stats-grid">
                 <div className="stat-card">
-                  <div className="stat-label">学習ログ合計</div>
+                  <div className="stat-label">読んだメール数</div>
                   <div>
                     <span className="stat-value">{stats.totalStudyLogs ?? 0}</span>
-                    <span className="stat-unit">回</span>
+                    <span className="stat-unit">通</span>
                   </div>
                 </div>
 
@@ -355,7 +355,7 @@ export default function DashboardPage() {
                     <table className="app-table">
                       <thead>
                         <tr>
-                          <th>日付</th>
+                          <th>日付（合計{(stats.items ?? []).length}日）</th>
                           <th>読んだ回数</th>
                         </tr>
                       </thead>
