@@ -356,7 +356,7 @@ export default function DashboardPage() {
                       <thead>
                         <tr>
                           <th>日付（合計{(stats.items ?? []).length}日）</th>
-                          <th>読んだ回数</th>
+                          <th>読んだ数</th>
                         </tr>
                       </thead>
                       <tbody>

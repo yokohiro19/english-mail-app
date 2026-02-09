@@ -150,18 +150,18 @@ export async function GET(req: Request) {
       return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
     };
 
-    // ---- 合計学習ログ数（aggregate count） ----
+    // ---- 合計読んだメール数（全studyLogの readCount を合算） ----
     const fetchTotal = async () => {
-      const totalQuery = db.collection("studyLogs").where("uid", "==", uid);
-      // @ts-ignore
-      if (typeof (totalQuery as any).count === "function") {
-        // @ts-ignore
-        const agg = await (totalQuery as any).count().get();
-        // @ts-ignore
-        return Number(agg.data().count ?? 0);
+      const snap = await db
+        .collection("studyLogs")
+        .where("uid", "==", uid)
+        .select("readCount")
+        .get();
+      let sum = 0;
+      for (const d of snap.docs) {
+        sum += Number((d.data() as any).readCount ?? 1);
       }
-      const snap = await totalQuery.get();
-      return snap.size;
+      return sum;
     };
 
     // ---- 並列実行 ----

@@ -3,6 +3,17 @@ import { getAdminDb } from "@/src/lib/firebaseClient";
 import { verifyReadToken } from "@/src/lib/readToken";
 import { FieldValue } from "firebase-admin/firestore";
 
+// ---- JST helpers ----
+function jstNow() {
+  return new Date(Date.now() + 9 * 60 * 60 * 1000);
+}
+function dateKeyFromJst(d: Date) {
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(d.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 export async function GET(req: Request) {
   try {
     const url = new URL(req.url);
@@ -10,53 +21,63 @@ export async function GET(req: Request) {
     if (!token) return NextResponse.json({ ok: false, error: "missing_token" }, { status: 400 });
 
     const payload = verifyReadToken(token);
-    const { uid, dateKey, deliveryId } = payload;
+    const { uid, dateKey: deliveryDateKey, deliveryId } = payload;
 
     const db = getAdminDb();
 
     // deliveries 参照（存在確認 + topicId/cefrを引っ張る）
     const deliveryRef = db.collection("deliveries").doc(deliveryId);
-    const deliverySnap = await deliveryRef.get();
-    if (!deliverySnap.exists) {
+
+    // Step 1: delivery の readAt でデデュプ（同じメールは1回だけ記録）
+    const isFirstRead = await db.runTransaction(async (tx) => {
+      const snap = await tx.get(deliveryRef);
+      if (!snap.exists) return null; // delivery not found
+      const data = snap.data() as any;
+      if (data.readAt) return false; // already read
+      tx.update(deliveryRef, { readAt: FieldValue.serverTimestamp() });
+      return true;
+    });
+
+    if (isFirstRead === null) {
       return NextResponse.json({ ok: false, error: "delivery_not_found" }, { status: 404 });
     }
 
-    const delivery = deliverySnap.data() as any;
-
-    const logId = `${uid}_${dateKey}`;
-    const logRef = db.collection("studyLogs").doc(logId);
-
-    // 初回か2回目以降かを判定しながらログを記録
-    let isFirstRead = false;
-    await db.runTransaction(async (tx) => {
-      const snap = await tx.get(logRef);
-      if (!snap.exists) {
-        isFirstRead = true;
-        tx.set(logRef, {
-          uid,
-          dateKey,
-          deliveryId,
-          topicId: delivery.topicId ?? null,
-          cefr: delivery.cefr ?? null,
-          firstReadAt: FieldValue.serverTimestamp(),
-          lastReadAt: FieldValue.serverTimestamp(),
-          readCount: 1,
-          userAgent: req.headers.get("user-agent") ?? null,
-        });
-      } else {
-        isFirstRead = false;
-        tx.update(logRef, {
-          lastReadAt: FieldValue.serverTimestamp(),
-          readCount: FieldValue.increment(1),
-        });
-      }
-    });
-
-    // 2回目以降 → 設定画面にリダイレクト（バナー表示付き）
-    if (!isFirstRead) {
+    // 既読 → 設定画面にリダイレクト（バナー表示付き）
+    if (isFirstRead === false) {
       const settingsUrl = new URL("/settings?already_read=1", url.origin);
       return NextResponse.redirect(settingsUrl.toString(), 302);
     }
+
+    // Step 2: 「読んだ日」= 今日（JST）の studyLog を作成/更新
+    const readDateKey = dateKeyFromJst(jstNow());
+    const logId = `${uid}_${readDateKey}`;
+    const logRef = db.collection("studyLogs").doc(logId);
+
+    const delivery = (await deliveryRef.get()).data() as any;
+
+    await db.runTransaction(async (tx) => {
+      const snap = await tx.get(logRef);
+      if (!snap.exists) {
+        tx.set(logRef, {
+          uid,
+          dateKey: readDateKey,
+          emailDateKeys: [deliveryDateKey],
+          readCount: 1,
+          deliveryId,
+          topicId: delivery?.topicId ?? null,
+          cefr: delivery?.cefr ?? null,
+          firstReadAt: FieldValue.serverTimestamp(),
+          lastReadAt: FieldValue.serverTimestamp(),
+          userAgent: req.headers.get("user-agent") ?? null,
+        });
+      } else {
+        tx.update(logRef, {
+          emailDateKeys: FieldValue.arrayUnion(deliveryDateKey),
+          readCount: FieldValue.increment(1),
+          lastReadAt: FieldValue.serverTimestamp(),
+        });
+      }
+    });
 
     // ニックネーム取得
     const userSnap = await db.collection("users").doc(uid).get();
@@ -64,7 +85,7 @@ export async function GET(req: Request) {
 
     // 初回 → 読了確認ページ
     const appBaseUrl = process.env.APP_BASE_URL ?? url.origin;
-    const html = buildReadPage(dateKey, appBaseUrl, userNickname);
+    const html = buildReadPage(deliveryDateKey, appBaseUrl, userNickname);
     return new NextResponse(html, { headers: { "content-type": "text/html; charset=utf-8" } });
   } catch (e: any) {
     console.error(e);
