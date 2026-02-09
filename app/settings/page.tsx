@@ -719,7 +719,7 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <p style={{ marginTop: 20, fontSize: 13, color: "#6B7280", lineHeight: 1.7, fontWeight: 600 }}>
+            <p style={{ marginTop: 20, fontSize: 13, color: "#1d1f42", lineHeight: 1.7, fontWeight: 600 }}>
               英文のテーマはビジネス関連のトピックからランダムに選出されます。<br />
               同じようなテーマが連続で届く場合もありますので、あらかじめご了承ください。
             </p>
