@@ -475,7 +475,7 @@ function CalendarHeatmap({
         {cells.map((c, idx) => {
           if (!c) return <div key={idx} style={{ height: 40, borderRadius: 8 }} />;
 
-          const bg = c.isToday ? "#e8e9f7" : c.paused ? "#F9FAFB" : "#fff";
+          const bg = c.isToday ? "#e6e6e9" : c.paused ? "#F9FAFB" : "#fff";
 
           return (
             <div
