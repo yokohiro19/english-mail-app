@@ -71,6 +71,7 @@ export default function DashboardPage() {
 
   const [loadingStats, setLoadingStats] = useState(false);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [createdAtKey, setCreatedAtKey] = useState<string | null>(null);
 
   const [loadingCalendar, setLoadingCalendar] = useState(false);
   const [calendarSet, setCalendarSet] = useState<Set<string>>(new Set());
@@ -202,7 +203,14 @@ export default function DashboardPage() {
     const loadNickname = async () => {
       const ref = doc(db, "users", user.uid);
       const snap = await getDoc(ref);
-      if (snap.exists()) setNickname(snap.data().nickname ?? "");
+      if (snap.exists()) {
+        setNickname(snap.data().nickname ?? "");
+        const ca = snap.data().createdAt;
+        if (ca) {
+          const d = ca.toDate ? ca.toDate() : new Date(ca);
+          setCreatedAtKey(ymdJst(d));
+        }
+      }
     };
     loadNickname().catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -337,6 +345,8 @@ export default function DashboardPage() {
                 cursor={calendarCursor}
                 setCursor={setCalendarCursor}
                 monthSummary={selectedMonthSummary}
+                createdAtKey={createdAtKey}
+                todayKey={stats.todayKey ?? ymdJst(new Date())}
               />
 
               {/* Study logs table */}
@@ -397,12 +407,16 @@ function CalendarHeatmap({
   cursor,
   setCursor,
   monthSummary,
+  createdAtKey,
+  todayKey,
 }: {
   studiedSet: Set<string>;
   pausedSet: Set<string>;
   cursor: Date;
   setCursor: Dispatch<SetStateAction<Date>>;
   monthSummary: MonthlyItem | null;
+  createdAtKey: string | null;
+  todayKey: string;
 }) {
   const year = cursor.getFullYear();
   const month = cursor.getMonth();
@@ -410,13 +424,14 @@ function CalendarHeatmap({
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const leading = first.getDay();
 
-  const cells: Array<{ key: string; day: number; studied: boolean; paused: boolean } | null> = [];
+  const cells: Array<{ key: string; day: number; studied: boolean; paused: boolean; beforeReg: boolean; isToday: boolean } | null> = [];
   for (let i = 0; i < leading; i++) cells.push(null);
 
   for (let day = 1; day <= daysInMonth; day++) {
     const date = new Date(year, month, day);
     const key = ymdJst(date);
-    cells.push({ key, day, studied: studiedSet.has(key), paused: pausedSet.has(key) });
+    const beforeReg = createdAtKey ? key < createdAtKey : false;
+    cells.push({ key, day, studied: studiedSet.has(key), paused: pausedSet.has(key), beforeReg, isToday: key === todayKey });
   }
 
   while (cells.length < 42) cells.push(null);
@@ -460,6 +475,8 @@ function CalendarHeatmap({
         {cells.map((c, idx) => {
           if (!c) return <div key={idx} style={{ height: 40, borderRadius: 8 }} />;
 
+          const bg = c.isToday ? "#aaabbc" : c.paused ? "#F9FAFB" : "#fff";
+
           return (
             <div
               key={c.key}
@@ -468,22 +485,28 @@ function CalendarHeatmap({
                 height: 40,
                 borderRadius: 8,
                 border: "1px solid #E8EAED",
-                background: c.paused ? "#F9FAFB" : "#fff",
+                background: bg,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
               }}
-              title={c.paused ? `${c.key}（配信停止中）` : c.key}
+              title={c.beforeReg ? `${c.key}（登録前）` : c.paused ? `${c.key}（配信停止中）` : c.key}
             >
-              <div style={{ position: "absolute", left: 4, top: 3, fontSize: 10, color: "#6B7280" }}>{c.day}</div>
-              {c.studied && <div className="calendar-dot" />}
-              {c.paused && !c.studied && (
-                <div style={{
-                  height: 20,
-                  width: 20,
-                  borderRadius: "50%",
-                  background: "#D1D5DB",
-                }} />
+              <div style={{ position: "absolute", left: 4, top: 3, fontSize: 10, color: c.isToday ? "#fff" : "#6B7280" }}>{c.day}</div>
+              {c.beforeReg ? (
+                <div style={{ fontSize: 14, color: "#9CA3AF" }}>ー</div>
+              ) : (
+                <>
+                  {c.studied && <div className="calendar-dot" />}
+                  {c.paused && !c.studied && (
+                    <div style={{
+                      height: 20,
+                      width: 20,
+                      borderRadius: "50%",
+                      background: "#D1D5DB",
+                    }} />
+                  )}
+                </>
               )}
             </div>
           );
