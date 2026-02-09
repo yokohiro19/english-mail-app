@@ -370,12 +370,21 @@
   z-index: 1;
 }
 
+.strengths-brand {
+  color: var(--primary-blue);
+}
+
 .function-details .section-header h2 {
   color: var(--dark-navy);
+  letter-spacing: -0.5px;
 }
 
 .function-details .section-header p {
-  color: #4B5563;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--dark-navy);
+  opacity: 0.6;
+  letter-spacing: 2px;
 }
 
 .function-list {
