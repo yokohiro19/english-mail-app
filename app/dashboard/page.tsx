@@ -342,7 +342,7 @@ export default function DashboardPage() {
               <div style={{ fontSize: 13, color: "#6B7280" }}>
                 {loadingCalendar && "カレンダー読み込み中..."}
                 {calendarError && <span style={{ color: "#991B1B" }}>{calendarError}</span>}
-                {!loadingCalendar && !calendarError && <span>学習記録日数（全期間）: {calendarCount} 日</span>}
+                {!loadingCalendar && !calendarError && <span>学習記録日数（全期間）: 合計 {calendarCount}日</span>}
               </div>
 
               {/* Study logs table */}
