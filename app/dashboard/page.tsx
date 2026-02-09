@@ -475,7 +475,7 @@ function CalendarHeatmap({
         {cells.map((c, idx) => {
           if (!c) return <div key={idx} style={{ height: 40, borderRadius: 8 }} />;
 
-          const bg = c.isToday ? "#aaabbc" : c.paused ? "#F9FAFB" : "#fff";
+          const bg = c.isToday ? "#e8e9f7" : c.paused ? "#F9FAFB" : "#fff";
 
           return (
             <div
@@ -492,7 +492,7 @@ function CalendarHeatmap({
               }}
               title={c.beforeReg ? `${c.key}（登録前）` : c.paused ? `${c.key}（配信停止中）` : c.key}
             >
-              <div style={{ position: "absolute", left: 4, top: 3, fontSize: 10, color: c.isToday ? "#fff" : "#6B7280" }}>{c.day}</div>
+              <div style={{ position: "absolute", left: 4, top: 3, fontSize: 10, color: "#6B7280" }}>{c.day}</div>
               {c.beforeReg ? (
                 <div style={{ fontSize: 14, color: "#9CA3AF" }}>ー</div>
               ) : (
