@@ -94,7 +94,7 @@ export default function Home() {
 
       <section className="function-details" id="strengths">
         <div className="section-header strengths-header">
-          <h2><span className="strengths-brand">TapSmart English</span>の強み</h2>
+          <h2><span className="strengths-brand">TapSmart Englishの強み</span></h2>
           <p>継続することを徹底サポート</p>
         </div>
         <div className="function-list">
