@@ -703,7 +703,7 @@ export default function SettingsPage() {
                     <option key={n} value={n}>{n}</option>
                   ))}
                 </select>
-                <p className="form-helper">手軽な継続には100〜200がおすすめ</p>
+                <p className="form-helper">※ 手軽な継続には100〜200がおすすめ</p>
               </div>
 
               <div>
@@ -715,13 +715,13 @@ export default function SettingsPage() {
                     return <option key={`${h}:${m}`} value={`${h}:${m}`}>{h}:{m}</option>;
                   })}
                 </select>
-                <p className="form-helper">一日一回まで、指定した時間に配信が行われます</p>
+                <p className="form-helper">※ 一日一回まで、指定した時間に配信が行われます</p>
               </div>
             </div>
 
-            <p style={{ marginTop: 20, fontSize: 12, color: "#9CA3AF", lineHeight: 1.7 }}>
-              ※ 英文のテーマはビジネス関連のトピックからランダムに選出されます。<br />
-              　 同じようなテーマが連続で届く場合もありますので、あらかじめご了承ください。
+            <p style={{ marginTop: 20, fontSize: 13, color: "#6B7280", lineHeight: 1.7 }}>
+              英文のテーマはビジネス関連のトピックからランダムに選出されます。<br />
+              同じようなテーマが連続で届く場合もありますので、あらかじめご了承ください。
             </p>
 
             <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 12 }}>
