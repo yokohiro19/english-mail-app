@@ -719,17 +719,17 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <p style={{ marginTop: 20, fontSize: 13, color: "#1d1f42", lineHeight: 1.7, fontWeight: 600 }}>
-              英文のテーマはビジネス関連のトピックからランダムに選出されます。<br />
-              同じようなテーマが連続で届く場合もありますので、あらかじめご了承ください。
-            </p>
-
-            <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ marginTop: 20, display: "flex", alignItems: "center", gap: 12 }}>
               <button onClick={onSave} disabled={saving} className="app-btn-primary">
                 {saving ? "保存中..." : "保存"}
               </button>
               {message && <div className={messageType === "success" ? "app-success" : "app-error"} style={{ padding: "8px 16px" }}>{message}</div>}
             </div>
+
+            <p style={{ marginTop: 16, fontSize: 13, color: "#1d1f42", lineHeight: 1.7, fontWeight: 600 }}>
+              英文のテーマはビジネス関連のトピックからランダムに選出されます。<br />
+              同じようなテーマが連続で届く場合もありますので、あらかじめご了承ください。
+            </p>
           </div>
 
           {/* Trial mail button */}
