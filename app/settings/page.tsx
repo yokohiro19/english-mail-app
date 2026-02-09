@@ -715,6 +715,7 @@ export default function SettingsPage() {
                     return <option key={`${h}:${m}`} value={`${h}:${m}`}>{h}:{m}</option>;
                   })}
                 </select>
+                <p className="form-helper">一日一回まで、指定した時間に配信が行われます</p>
               </div>
             </div>
 
