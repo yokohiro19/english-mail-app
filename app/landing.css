@@ -346,22 +346,24 @@
 .function-details::before {
   content: '';
   position: absolute;
-  top: -20%;
-  left: -10%;
-  width: 60%;
-  height: 80%;
-  background: radial-gradient(circle, rgba(78, 255, 244, 0.08) 0%, transparent 70%);
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(78, 255, 244, 0.08) 0%, transparent 60%);
+  animation: rotate 25s linear infinite;
   pointer-events: none;
 }
 
 .function-details::after {
   content: '';
   position: absolute;
-  bottom: -15%;
-  right: -5%;
-  width: 55%;
-  height: 75%;
-  background: radial-gradient(circle, rgba(29, 31, 66, 0.04) 0%, transparent 65%);
+  bottom: -40%;
+  right: -40%;
+  width: 180%;
+  height: 180%;
+  background: radial-gradient(circle, rgba(29, 31, 66, 0.04) 0%, transparent 55%);
+  animation: rotate 30s linear infinite reverse;
   pointer-events: none;
 }
 
