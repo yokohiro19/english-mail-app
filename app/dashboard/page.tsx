@@ -286,10 +286,10 @@ export default function DashboardPage() {
               {/* Stats cards */}
               <div className="stats-grid">
                 <div className="stat-card">
-                  <div className="stat-label">読んだメール数</div>
+                  <div className="stat-label">これまでの学習日数</div>
                   <div>
-                    <span className="stat-value">{stats.totalStudyLogs ?? 0}</span>
-                    <span className="stat-unit">通</span>
+                    <span className="stat-value">{calendarCount}</span>
+                    <span className="stat-unit">日</span>
                   </div>
                 </div>
 
@@ -339,12 +339,6 @@ export default function DashboardPage() {
                 monthSummary={selectedMonthSummary}
               />
 
-              <div style={{ fontSize: 13, color: "#6B7280" }}>
-                {loadingCalendar && "カレンダー読み込み中..."}
-                {calendarError && <span style={{ color: "#991B1B" }}>{calendarError}</span>}
-                {!loadingCalendar && !calendarError && <span>学習記録日数（全期間）: 合計 {calendarCount}日</span>}
-              </div>
-
               {/* Study logs table */}
               <div className="app-card">
                 <h2 className="section-title">学習ログ</h2>
@@ -355,8 +349,8 @@ export default function DashboardPage() {
                     <table className="app-table">
                       <thead>
                         <tr>
-                          <th>日付（合計{(stats.items ?? []).length}日）</th>
-                          <th>読んだ数</th>
+                          <th>日付</th>
+                          <th>読んだメール数（合計 {stats.totalStudyLogs ?? 0}通）</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -503,7 +497,7 @@ function CalendarHeatmap({
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <span style={{ height: 12, width: 12, borderRadius: "50%", background: "#D1D5DB", display: "inline-block" }} />
-          <span>配信停止中</span>
+          <span>配信停止日</span>
         </div>
       </div>
     </div>
