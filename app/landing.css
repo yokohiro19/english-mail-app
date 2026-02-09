@@ -338,7 +338,7 @@
 /* Function Details Section */
 .function-details {
   padding: 100px 40px;
-  background: #bafff9;
+  background: linear-gradient(170deg, #E0FFFC 0%, #d0faf5 50%, #E0FFFC 100%);
 }
 
 .function-details .section-header h2 {
@@ -346,7 +346,7 @@
 }
 
 .function-details .section-header p {
-  color: #374151;
+  color: #4B5563;
 }
 
 .function-list {
@@ -354,26 +354,28 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 35px;
+  gap: 28px;
 }
 
 .function-item {
   display: grid;
   grid-template-columns: 64px 1fr;
-  gap: 30px;
+  gap: 28px;
   align-items: center;
   animation: fadeInUp 0.6s ease both;
-  background: rgba(255, 255, 255, 0.95);
-  padding: 35px 40px;
-  border-radius: 16px;
-  border: none;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  padding: 32px 36px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
 }
 
 .function-item:hover {
+  background: rgba(255, 255, 255, 0.95);
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
 .function-item:nth-child(1) { animation-delay: 0.1s; }
@@ -395,21 +397,21 @@
 .function-icon-img {
   width: 64px;
   height: 64px;
-  border-radius: 14px;
+  border-radius: 16px;
   object-fit: cover;
   flex-shrink: 0;
 }
 
 .function-content h3 {
   font-family: 'Outfit', sans-serif;
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 700;
   color: var(--dark-navy);
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .function-content p {
-  font-size: 17px;
+  font-size: 16px;
   line-height: 1.8;
   color: #4B5563;
 }
