@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 
 // 暗号化された個人情報（encode() で生成した文字列）
 const E = {
-  seller: "WZW7KZZq77f8R7nxxpJWJ8qJvJxLLnRJKnvnvfx3nnWn3pxfnm73mKJWRLLnm3Lq",
-  rep: "WZW7KZZq77f8R7nxxpJWJ8qJvJxLLnRJKnvnvfx3nnWn3pxfnm73mKJWRLLnm3Lq",
-  address: "LvfmvRRW8vqK",
-  phone: "LvfmvRRW8vqK",
-  email: "LvfmvRRW8vqK",
+  seller: "WZW7KZZq77f8R7nxxpJWJ8qJvJxLLnRJ",
+  rep: "LR8fvpRRZ87pJRK3vJpp77ZJWx8xRp8K8vZnZLxKZnK3nnmJf3x37n",
+  address: "L3Zx3JvxKfnvqWZK7WLmvx38K8Zx78vZfpvnv8WfnL7mv8x7L77LmpfKRnLLmxLmLf83n3vxnL7mnqxWv87L37m3WKJKpxWWLfZJL3fJp383WW3RRnJqv8m8np",
+  phone: "pnRpxZ3fnW7WnvxWLmxfmp8RKnLqmvnxL3Z73qRqJ8qRJRR7LxpW73ZWWfZZmW",
+  email: "73qpKZJ77WZZRm3Kp7Zm8xWvv8xxLLmWKmW3KZ",
 };
 
 export default function TokushohoContent() {
@@ -58,8 +58,8 @@ export default function TokushohoContent() {
 
       <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
         <tbody>
-          <Row label="販売事業者" value={v("seller")} />
-          <Row label="代表者" value={v("rep")} />
+          <Row label="屋号" value={v("seller")} />
+          <Row label="責任者" value={v("rep")} />
           <Row label="所在地" value={v("address")} />
           <Row label="電話番号" value={v("phone")} />
           <Row label="メールアドレス" value={v("email")} />
