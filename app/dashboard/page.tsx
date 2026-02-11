@@ -359,15 +359,15 @@ export default function DashboardPage() {
                     <table className="app-table">
                       <thead>
                         <tr>
-                          <th>日付</th>
-                          <th>読んだメール数（合計 {stats.totalStudyLogs ?? 0}通）</th>
+                          <th style={{ textAlign: "center" }}>日付</th>
+                          <th style={{ textAlign: "center" }}>読んだメール数（合計 {stats.totalStudyLogs ?? 0}通）</th>
                         </tr>
                       </thead>
                       <tbody>
                         {(stats.items ?? []).map((l: any) => (
                           <tr key={l.id}>
-                            <td style={{ fontFamily: "monospace" }}>{(l.dateKey ?? "-").replaceAll("-", "/")}</td>
-                            <td>{l.readCount ?? 1}</td>
+                            <td style={{ fontFamily: "monospace", textAlign: "center" }}>{(l.dateKey ?? "-").replaceAll("-", "/")}</td>
+                            <td style={{ textAlign: "center" }}>{l.readCount ?? 1}</td>
                           </tr>
                         ))}
                       </tbody>
