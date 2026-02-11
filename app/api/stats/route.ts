@@ -118,11 +118,16 @@ export async function GET(req: Request) {
         }
       }
 
+      // 学習記録がある日は停止日としてカウントしない
+      for (const dk of allDateKeys) {
+        pausedDateSet.delete(dk);
+      }
       return pausedDateSet.size;
     }
 
-    // 指定日が一時停止中かどうかを判定
+    // 指定日が一時停止中かどうかを判定（学習した日は停止扱いしない）
     function isDatePaused(dateKey: string): boolean {
+      if (allDateKeys.has(dateKey)) return false;
       for (const period of pausedPeriods) {
         if (dateKey >= period.start && dateKey <= period.end) return true;
       }
@@ -215,7 +220,7 @@ export async function GET(req: Request) {
 
       let weekHit = 0;
       for (const k of allDateKeys) {
-        if (k >= weekStartKey && k <= todayKey && !isDatePaused(k)) weekHit++;
+        if (k >= weekStartKey && k <= todayKey) weekHit++;
       }
       thisWeek = rateBlock(weekHit, Math.max(1, weekDays));
     } catch (e: any) {
@@ -238,7 +243,7 @@ export async function GET(req: Request) {
 
       let monthHit = 0;
       for (const k of allDateKeys) {
-        if (k >= monthStartKey && k <= todayKey && !isDatePaused(k)) monthHit++;
+        if (k >= monthStartKey && k <= todayKey) monthHit++;
       }
       thisMonth = rateBlock(monthHit, Math.max(1, monthDays));
     } catch (e: any) {
@@ -282,7 +287,7 @@ export async function GET(req: Request) {
 
         let hit = 0;
         for (const k of allDateKeys) {
-          if (k >= startKey && k <= endKey && !isDatePaused(k)) hit++;
+          if (k >= startKey && k <= endKey) hit++;
         }
         const rb = rateBlock(hit, Math.max(1, days));
 
