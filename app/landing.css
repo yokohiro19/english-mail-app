@@ -404,19 +404,20 @@
   grid-template-columns: 64px 1fr;
   gap: 28px;
   align-items: center;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(8px);
+  background: linear-gradient(135deg, rgba(237, 242, 241, 0.9) 0%, rgba(227, 237, 235, 0.85) 100%);
+  backdrop-filter: blur(10px);
   padding: 32px 36px;
   border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(78, 255, 244, 0.12);
+  box-shadow: 0 2px 16px rgba(29, 31, 66, 0.06);
   transition: all 0.3s ease;
 }
 
 .function-item:hover {
-  background: rgba(255, 255, 255, 0.95);
+  background: linear-gradient(135deg, rgba(232, 240, 238, 0.95) 0%, rgba(220, 234, 231, 0.95) 100%);
   transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 28px rgba(29, 31, 66, 0.1);
+  border-color: rgba(78, 255, 244, 0.25);
 }
 
 .function-icon {
