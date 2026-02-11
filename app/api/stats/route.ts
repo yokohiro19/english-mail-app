@@ -122,12 +122,17 @@ export async function GET(req: Request) {
       for (const dk of allDateKeys) {
         pausedDateSet.delete(dk);
       }
+      // 配信停止が解除されている場合、今日は停止日としてカウントしない
+      if (!currentlyPaused) {
+        pausedDateSet.delete(todayKey);
+      }
       return pausedDateSet.size;
     }
 
     // 指定日が一時停止中かどうかを判定（学習した日は停止扱いしない）
     function isDatePaused(dateKey: string): boolean {
       if (allDateKeys.has(dateKey)) return false;
+      if (!currentlyPaused && dateKey === todayKey) return false;
       for (const period of pausedPeriods) {
         if (dateKey >= period.start && dateKey <= period.end) return true;
       }
