@@ -125,7 +125,7 @@ function buildDeliveryVerifyHtml(link: string): string {
               以下のボタンをクリックして、<br />配信先メールアドレスを認証してください。
             </p>
             <table width="100%" cellpadding="0" cellspacing="0">
-              <tr><td align="center" style="padding:8px 0 28px;">
+              <tr><td align="center" style="padding:8px 0 28px;text-align:center;">
                 <a href="${link}"
                    style="display:inline-block;padding:14px 40px;background:#2A3B6F;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;border-radius:10px;">
                   認証する
