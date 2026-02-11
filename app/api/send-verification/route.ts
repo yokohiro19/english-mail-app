@@ -38,9 +38,10 @@ export async function POST(req: Request) {
 
     const html = buildVerificationHtml(link);
 
-    console.log("[send-verification] sending via Resend to", email, "from", process.env.EMAIL_FROM);
+    const verifyFrom = "TapSmart English メールアドレス認証 <noreply@tapsmart.jp>";
+    console.log("[send-verification] sending via Resend to", email, "from", verifyFrom);
     const sendResult = await resend.emails.send({
-      from: process.env.EMAIL_FROM!,
+      from: verifyFrom,
       to: email,
       subject: "【TapSmart English】メールアドレスの確認",
       html,
