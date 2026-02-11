@@ -474,7 +474,14 @@ export default function SettingsPage() {
                 </p>
                 {subscriptionStatus === "trialing" && trialEndsAt && (
                   <p style={{ fontSize: 12, color: "#92400E", marginTop: 4 }}>
-                    ※トライアルは{formatDateOnly(trialEndsAt)}に終了します
+                    ※トライアルは{(() => {
+                      try {
+                        const d = typeof trialEndsAt?.toDate === "function" ? trialEndsAt.toDate() : trialEndsAt instanceof Date ? trialEndsAt : new Date(trialEndsAt);
+                        if (Number.isNaN(d.getTime())) return "";
+                        const prev = new Date(d.getTime() - 24 * 60 * 60 * 1000);
+                        return prev.toLocaleDateString("ja-JP") + " 23:59";
+                      } catch { return ""; }
+                    })()}に終了します
                   </p>
                 )}
                 {canRestartTrial && (
