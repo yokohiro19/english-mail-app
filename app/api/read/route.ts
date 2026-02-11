@@ -282,8 +282,9 @@ function buildReadPage(dateKey: string, appBaseUrl: string, nickname: string) {
       <div class="title">Marked as read.</div>
       <div class="subtitle">See you tomorrow.</div>
       <div class="date">${dateKey.replaceAll("-", "/")}</div>
+      <a href="${appBaseUrl}/dashboard" class="btn-dashboard">ダッシュボードで学習成果を確認する</a>
 
-      <div class="divider"></div>
+      <div class="divider" style="margin-top:28px"></div>
 
       <div class="adjust-title">読むのが大変だった人、簡単すぎた人は、<br>難易度を調整しましょう</div>
       <div class="guide-grid">
@@ -318,7 +319,6 @@ function buildReadPage(dateKey: string, appBaseUrl: string, nickname: string) {
       </div>
 
       <a href="${appBaseUrl}/settings" class="btn-settings">設定を変更する</a>
-      <a href="${appBaseUrl}/dashboard" class="btn-dashboard">ダッシュボードで学習成果を確認する</a>
     </div>
   </div>
   <div class="footer">TapSmart English — tapsmart.jp</div>
