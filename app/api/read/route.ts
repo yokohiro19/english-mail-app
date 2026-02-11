@@ -243,6 +243,20 @@ function buildReadPage(dateKey: string, appBaseUrl: string, nickname: string) {
       transition: opacity 0.2s;
     }
     .btn-settings:hover { opacity: 0.85; }
+    .btn-dashboard {
+      display: inline-block;
+      margin-top: 12px;
+      background: transparent;
+      color: #1d1f42;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 12px 36px;
+      border-radius: 12px;
+      text-decoration: none;
+      border: 1px solid #D1D5DB;
+      transition: all 0.2s;
+    }
+    .btn-dashboard:hover { background: #F5F7FA; border-color: #9CA3AF; }
     .footer {
       text-align: center;
       padding: 16px 24px;
@@ -267,7 +281,7 @@ function buildReadPage(dateKey: string, appBaseUrl: string, nickname: string) {
       <div class="check-icon">✔</div>
       <div class="title">Marked as read.</div>
       <div class="subtitle">See you tomorrow.</div>
-      <div class="date">${dateKey}</div>
+      <div class="date">${dateKey.replaceAll("-", "/")}</div>
 
       <div class="divider"></div>
 
@@ -304,6 +318,7 @@ function buildReadPage(dateKey: string, appBaseUrl: string, nickname: string) {
       </div>
 
       <a href="${appBaseUrl}/settings" class="btn-settings">設定を変更する</a>
+      <a href="${appBaseUrl}/dashboard" class="btn-dashboard">ダッシュボードで学習成果を確認する</a>
     </div>
   </div>
   <div class="footer">TapSmart English — tapsmart.jp</div>
