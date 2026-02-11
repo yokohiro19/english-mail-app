@@ -1,18 +1,32 @@
 "use client";
 
-import { decode } from "./cipher";
+import { useEffect, useState } from "react";
 
-// 暗号化された個人情報（encode() で生成した文字列をここに入れる）
-// 現在は○○のプレースホルダー
+// 暗号化された個人情報（encode() で生成した文字列）
 const E = {
   seller: "WZW7KZZq77f8R7nxxpJWJ8qJvJxLLnRJKnvnvfx3nnWn3pxfnm73mKJWRLLnm3Lq",
   rep: "WZW7KZZq77f8R7nxxpJWJ8qJvJxLLnRJKnvnvfx3nnWn3pxfnm73mKJWRLLnm3Lq",
-  address: "LvfmvRRW8vqK",    // ○○
-  phone: "LvfmvRRW8vqK",      // ○○
-  email: "LvfmvRRW8vqK",      // ○○
+  address: "LvfmvRRW8vqK",
+  phone: "LvfmvRRW8vqK",
+  email: "LvfmvRRW8vqK",
 };
 
 export default function TokushohoContent() {
+  const [d, setD] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    fetch("/api/legal-decode", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ values: E }),
+    })
+      .then((r) => r.json())
+      .then((j) => { if (j.decoded) setD(j.decoded); })
+      .catch(() => {});
+  }, []);
+
+  const v = (key: string) => d[key] || "読み込み中…";
+
   return (
     <div
       data-nosnippet=""
@@ -33,11 +47,11 @@ export default function TokushohoContent() {
 
       <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
         <tbody>
-          <Row label="販売事業者" value={decode(E.seller)} />
-          <Row label="代表者" value={decode(E.rep)} />
-          <Row label="所在地" value={decode(E.address)} />
-          <Row label="電話番号" value={decode(E.phone)} />
-          <Row label="メールアドレス" value={decode(E.email)} />
+          <Row label="販売事業者" value={v("seller")} />
+          <Row label="代表者" value={v("rep")} />
+          <Row label="所在地" value={v("address")} />
+          <Row label="電話番号" value={v("phone")} />
+          <Row label="メールアドレス" value={v("email")} />
           <Row label="販売URL" value="https://tapsmart-english.com" />
           <Row label="販売価格" value="月額500円（税込）" />
           <Row label="商品代金以外の必要料金" value="なし（インターネット接続料金はお客様のご負担となります）" />
