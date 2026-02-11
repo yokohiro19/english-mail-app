@@ -29,8 +29,13 @@ export async function POST(req: Request) {
     }
 
     console.log("[send-verification] generating link for", email);
-    const link = await adminAuth.generateEmailVerificationLink(email);
+    const firebaseLink = await adminAuth.generateEmailVerificationLink(email);
     console.log("[send-verification] link generated ok");
+
+    // FirebaseのURLからoobCodeを抽出し、自前の認証ページURLに差し替え
+    const oobCode = new URL(firebaseLink).searchParams.get("oobCode");
+    const baseUrl = process.env.APP_BASE_URL || "https://english-mail-app.vercel.app";
+    const link = `${baseUrl}/auth/verify?oobCode=${encodeURIComponent(oobCode!)}`;
 
     const html = buildVerificationHtml(link);
 
