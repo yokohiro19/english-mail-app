@@ -221,6 +221,16 @@ export default function DashboardPage() {
       }
     };
     loadNickname().catch(() => {});
+
+    // ページがフォアグラウンドに戻ったら再取得（配信停止の切替をリアルタイム反映）
+    const onVisible = () => {
+      if (document.visibilityState === "visible") {
+        fetchStats().catch(() => {});
+        fetchCalendar().catch(() => {});
+      }
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
