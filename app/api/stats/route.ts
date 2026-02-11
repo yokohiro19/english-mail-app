@@ -89,15 +89,19 @@ export async function GET(req: Request) {
     const currentlyPaused = Boolean(userData?.deliveryPaused);
     const pausedAt = userData?.pausedAt as string | null;
 
-    // 指定期間内の一時停止日数を計算するヘルパー
+    // 指定期間内の一時停止日数を計算するヘルパー（Setで重複排除）
     function countPausedDaysInRange(rangeStart: string, rangeEnd: string): number {
-      let pausedDays = 0;
+      const pausedDateSet = new Set<string>();
 
       for (const period of pausedPeriods) {
         const pStart = period.start > rangeStart ? period.start : rangeStart;
         const pEnd = period.end < rangeEnd ? period.end : rangeEnd;
         if (pStart <= pEnd) {
-          pausedDays += daysBetweenKeys(pStart, pEnd);
+          const s = new Date(pStart + "T00:00:00Z");
+          const e = new Date(pEnd + "T00:00:00Z");
+          for (let d = new Date(s); d <= e; d.setUTCDate(d.getUTCDate() + 1)) {
+            pausedDateSet.add(dateKeyFromJst(d));
+          }
         }
       }
 
@@ -106,11 +110,15 @@ export async function GET(req: Request) {
         const pStart = pausedAt > rangeStart ? pausedAt : rangeStart;
         const pEnd = rangeEnd;
         if (pStart <= pEnd) {
-          pausedDays += daysBetweenKeys(pStart, pEnd);
+          const s = new Date(pStart + "T00:00:00Z");
+          const e = new Date(pEnd + "T00:00:00Z");
+          for (let d = new Date(s); d <= e; d.setUTCDate(d.getUTCDate() + 1)) {
+            pausedDateSet.add(dateKeyFromJst(d));
+          }
         }
       }
 
-      return pausedDays;
+      return pausedDateSet.size;
     }
 
     // 指定日が一時停止中かどうかを判定
