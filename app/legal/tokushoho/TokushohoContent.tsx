@@ -25,7 +25,16 @@ export default function TokushohoContent() {
       .catch(() => {});
   }, []);
 
-  const v = (key: string) => d[key] || "読み込み中…";
+  // 1文字ずつ<span>に分離 + ゼロ幅文字で検索を妨害
+  const scatter = (text: string) =>
+    [...text].map((ch, i) => (
+      <span key={i} aria-hidden="true">
+        {ch}
+        {i < text.length - 1 && <span style={{ fontSize: 0 }}>{"\u200B\u200C\u200D"}</span>}
+      </span>
+    ));
+
+  const v = (key: string) => d[key] ? scatter(d[key]) : "読み込み中…";
 
   return (
     <div
