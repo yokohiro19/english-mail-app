@@ -53,12 +53,17 @@ export async function POST(req: Request) {
         { merge: true }
       );
     } else if (!paused && wasPaused) {
-      // Resume: record the paused period
+      // Resume: record the paused period (dedup)
       const pausedAt = userData.pausedAt as string | null;
       const pausedPeriods = (userData.pausedPeriods ?? []) as Array<{ start: string; end: string }>;
 
       if (pausedAt) {
-        pausedPeriods.push({ start: pausedAt, end: todayKey });
+        const alreadyExists = pausedPeriods.some(
+          (p) => p.start === pausedAt && p.end === todayKey
+        );
+        if (!alreadyExists) {
+          pausedPeriods.push({ start: pausedAt, end: todayKey });
+        }
       }
 
       await userRef.set(
