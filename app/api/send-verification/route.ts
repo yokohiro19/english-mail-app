@@ -28,23 +28,29 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: "no_email" }, { status: 400 });
     }
 
+    const continueUrl = process.env.APP_BASE_URL || process.env.NEXT_PUBLIC_APP_BASE_URL || "https://english-mail-app.vercel.app";
+    console.log("[send-verification] generating link for", email, "continueUrl:", continueUrl);
+
     const link = await adminAuth.generateEmailVerificationLink(email, {
-      url: `${process.env.NEXT_PUBLIC_APP_BASE_URL || process.env.APP_BASE_URL}/verify-email`,
+      url: `${continueUrl}/verify-email`,
     });
+    console.log("[send-verification] link generated ok");
 
     const html = buildVerificationHtml(link);
 
-    await resend.emails.send({
+    console.log("[send-verification] sending via Resend to", email, "from", process.env.EMAIL_FROM);
+    const sendResult = await resend.emails.send({
       from: process.env.EMAIL_FROM!,
       to: email,
       subject: "【TapSmart English】メールアドレスの確認",
       html,
     });
+    console.log("[send-verification] send result:", JSON.stringify(sendResult));
 
     return NextResponse.json({ ok: true });
   } catch (e: any) {
-    console.error("[send-verification]", e);
-    return NextResponse.json({ ok: false, error: "failed" }, { status: 500 });
+    console.error("[send-verification] error:", e?.message, e?.code, JSON.stringify(e));
+    return NextResponse.json({ ok: false, error: e?.message || "failed" }, { status: 500 });
   }
 }
 

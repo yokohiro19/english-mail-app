@@ -41,10 +41,11 @@ export default function VerifyEmailPage() {
         method: "POST",
         headers: { Authorization: `Bearer ${idToken}` },
       });
+      const json = await res.json().catch(() => ({}));
       if (res.ok) {
         setMessage({ text: "認証メールを再送信しました。受信トレイを確認してください。", type: "success" });
       } else {
-        setMessage({ text: "送信に失敗しました。しばらくしてから再度お試しください。", type: "error" });
+        setMessage({ text: `送信に失敗しました: ${json.error || res.status}`, type: "error" });
       }
     } catch {
       setMessage({ text: "送信に失敗しました。", type: "error" });
