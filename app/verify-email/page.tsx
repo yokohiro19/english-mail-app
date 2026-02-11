@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { onAuthStateChanged, sendEmailVerification, User } from "firebase/auth";
+import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "../../src/lib/firebase";
 import { useRouter } from "next/navigation";
 import "../app.css";
@@ -36,14 +36,18 @@ export default function VerifyEmailPage() {
     setSending(true);
     setMessage(null);
     try {
-      await sendEmailVerification(user);
-      setMessage({ text: "認証メールを再送信しました。受信トレイを確認してください。", type: "success" });
-    } catch (err: any) {
-      if (err?.code === "auth/too-many-requests") {
-        setMessage({ text: "しばらく時間をおいてから再度お試しください。", type: "error" });
+      const idToken = await user.getIdToken();
+      const res = await fetch("/api/send-verification", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${idToken}` },
+      });
+      if (res.ok) {
+        setMessage({ text: "認証メールを再送信しました。受信トレイを確認してください。", type: "success" });
       } else {
-        setMessage({ text: "送信に失敗しました。", type: "error" });
+        setMessage({ text: "送信に失敗しました。しばらくしてから再度お試しください。", type: "error" });
       }
+    } catch {
+      setMessage({ text: "送信に失敗しました。", type: "error" });
     } finally {
       setSending(false);
     }

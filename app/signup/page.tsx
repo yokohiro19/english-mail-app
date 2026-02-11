@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createUserWithEmailAndPassword, sendEmailVerification, onAuthStateChanged } from "firebase/auth";
+import { createUserWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
 import { auth } from "../../src/lib/firebase";
 import { useRouter } from "next/navigation";
 import "../app.css";
@@ -56,7 +56,11 @@ export default function SignupPage() {
     setLoading(true);
     try {
       const cred = await createUserWithEmailAndPassword(auth, email, password);
-      await sendEmailVerification(cred.user).catch(() => {});
+      const idToken = await cred.user.getIdToken();
+      await fetch("/api/send-verification", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${idToken}` },
+      }).catch(() => {});
       router.push("/verify-email");
     } catch (err: any) {
       setError(firebaseErrorJa(err));

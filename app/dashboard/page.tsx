@@ -1,7 +1,7 @@
 "use client";
 
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
-import { onAuthStateChanged, sendEmailVerification, User } from "firebase/auth";
+import { onAuthStateChanged, User } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "@/src/lib/firebase";
 import { useRouter } from "next/navigation";
@@ -100,8 +100,16 @@ export default function DashboardPage() {
     setSendingVerify(true);
     setVerifyMsg(null);
     try {
-      await sendEmailVerification(user);
-      setVerifyMsg("認証メールを送信しました。受信トレイを確認してください。");
+      const idToken = await user.getIdToken();
+      const res = await fetch("/api/send-verification", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${idToken}` },
+      });
+      if (res.ok) {
+        setVerifyMsg("認証メールを送信しました。受信トレイを確認してください。");
+      } else {
+        setVerifyMsg("送信に失敗しました。しばらくしてから再度お試しください。");
+      }
     } catch {
       setVerifyMsg("送信に失敗しました。しばらくしてから再度お試しください。");
     } finally {
