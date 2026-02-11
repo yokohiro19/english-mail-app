@@ -28,12 +28,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: "no_email" }, { status: 400 });
     }
 
-    const continueUrl = process.env.APP_BASE_URL || process.env.NEXT_PUBLIC_APP_BASE_URL || "https://english-mail-app.vercel.app";
-    console.log("[send-verification] generating link for", email, "continueUrl:", continueUrl);
-
-    const link = await adminAuth.generateEmailVerificationLink(email, {
-      url: `${continueUrl}/verify-email`,
-    });
+    console.log("[send-verification] generating link for", email);
+    const link = await adminAuth.generateEmailVerificationLink(email);
     console.log("[send-verification] link generated ok");
 
     const html = buildVerificationHtml(link);
