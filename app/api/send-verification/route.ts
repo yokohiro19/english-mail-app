@@ -87,10 +87,10 @@ function buildVerificationHtml(link: string): string {
             </p>
 
             <!-- CTA Button -->
-            <table width="100%" cellpadding="0" cellspacing="0">
-              <tr><td align="center" style="padding:8px 0 28px;text-align:center;">
+            <table cellpadding="0" cellspacing="0" style="margin:0 auto;padding:8px 0 28px;">
+              <tr><td align="center" style="background:#2A3B6F;border-radius:10px;">
                 <a href="${link}"
-                   style="display:inline-block;padding:14px 40px;background:#2A3B6F;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;border-radius:10px;">
+                   style="display:block;padding:14px 40px;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;">
                   メールアドレスを確認する
                 </a>
               </td></tr>
