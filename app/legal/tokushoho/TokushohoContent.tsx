@@ -12,7 +12,7 @@ const E = {
 };
 
 export default function TokushohoContent() {
-  const [d, setD] = useState<Record<string, string>>({});
+  const [d, setD] = useState<Record<string, string> | null>(null);
 
   useEffect(() => {
     fetch("/api/legal-decode", {
@@ -34,7 +34,9 @@ export default function TokushohoContent() {
       </span>
     ));
 
-  const v = (key: string) => d[key] ? scatter(d[key]) : "読み込み中…";
+  const v = (key: string) => d?.[key] ? scatter(d[key]) : "";
+
+  if (!d) return null;
 
   return (
     <div
