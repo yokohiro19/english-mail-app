@@ -2,14 +2,11 @@
 
 import { useEffect, useState } from "react";
 
-// 暗号化された個人情報（encode() で生成した文字列）
+// 暗号化された個人情報（販売業者・所在地・電話番号のみ暗号化）
 const E = {
-  seller: "WZW7KZZq77f8R7nxxpJWJ8qJvJxLLnRJ",
   rep: "LR8fvpRRZ87pJRK3vJpp77ZJWx8xRp8K8vZnZLxKZnK3nnmJf3x37n",
   address: "L3Zx3JvxKfnvqWZK7WLmvx38K8Zx78vZfpvnv8WfnL7mv8x7L77LmpfKRnLLmxLmLf83n3vxnL7mnqxWv87L37m3WKJKpxWWLfZJL3fJp383WW3RRnJqv8m8np",
-  phone: "pnRpxZ3fnW7WnvxWLmxfmp8RKnLqmvnxL3Z73qRqJ8qRJRR7LxpW73ZWWfZZmW",
-  email: "73qpKZJ77WZZRm3Kp7Zm8xWvv8xxLLmWKmW3KZ",
-  url: "x7qKKnJ7xJnpWffvpqf78mRR3mxxL3mKxKW7KJJppqfpRW",
+  phone: "pnRpxZ3fnW7WnvxWLmxfmp8RKnLqmvnxL3Z73qRqJ8qRJRR7LxpW73ZWWfZZmW8LZpZLZLx88vKv3LmffWqJ7q37KpJq7pvvJWvpLKWqn3WLvRZp7pLf3xmLWx87RRWRp8R3xZv7nW7Wn3",
 };
 
 export default function TokushohoContent() {
@@ -59,19 +56,30 @@ export default function TokushohoContent() {
 
       <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
         <tbody>
-          <Row label="屋号" value={v("seller")} />
-          <Row label="責任者" value={v("rep")} />
+          <Row label="屋号" value="TapSmart English" />
+          <Row label="販売業者（責任者）" value={v("rep")} />
           <Row label="所在地" value={v("address")} />
           <Row label="電話番号" value={v("phone")} />
-          <Row label="メールアドレス" value={v("email")} />
-          <Row label="販売URL" value={v("url")} />
+          <Row label="メールアドレス" value="support@tapsmart.jp" />
           <Row label="販売価格" value="月額500円（税込）" />
           <Row label="商品代金以外の必要料金" value="なし（インターネット接続料金はお客様のご負担となります）" />
           <Row label="支払方法" value="クレジットカード（Stripe経由）" />
-          <Row label="支払時期" value="初回登録時（7日間無料トライアル後に課金開始）" />
-          <Row label="商品の引渡時期" value="お申し込み完了後、翌日よりメール配信を開始" />
-          <Row label="返品・キャンセルについて" value="デジタルコンテンツの性質上、返品・返金はお受けできません。サブスクリプションはいつでも解約可能で、解約後は次回更新日以降の課金は発生しません。" />
-          <Row label="解約方法" value="設定画面よりいつでも解約可能" />
+          <Row label="支払時期" value={<>
+            本サービスは月額制のサブスクリプションサービスです。<br />
+            初回登録日から7日間は無料トライアル期間となり、無料期間終了日の翌日に初回課金が行われます。<br />
+            以降は、初回課金日を基準日として、毎月同日に自動課金されます。<br />
+            支払処理は、Stripe社の決済システムを利用して行われます。
+          </>} />
+          <Row label="商品の引渡時期" value="お申し込み完了直後よりサービス利用可能" />
+          <Row label="返品・キャンセルについて" value={<>
+            本サービスはデジタルコンテンツおよびオンラインサービスという性質上、契約成立後の返品・返金には応じておりません。<br />
+            ただし、初回登録後7日間の無料トライアル期間中に解約された場合、料金は発生いたしません。<br />
+            サブスクリプションはいつでも解約可能です。<br />
+            解約手続きは、ログイン後の設定画面より行うことができます。<br />
+            解約手続き完了後は、次回更新日以降の課金は発生しません。<br />
+            なお、解約後も次回更新日までは引き続きサービスをご利用いただけます。
+          </>} />
+          <Row label="解約方法" value="ログイン後の設定画面より、いつでも解約可能です" />
           <Row label="動作環境" value="インターネットに接続可能な環境、メール受信が可能な端末" />
         </tbody>
       </table>
