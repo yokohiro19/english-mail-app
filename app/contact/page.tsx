@@ -164,6 +164,7 @@ export default function ContactPage() {
               <li><a href="/contact">お問い合わせ</a></li>
               <li><a href="/terms">利用規約</a></li>
               <li><a href="/privacy">プライバシーポリシー</a></li>
+              <li><a href="/legal/tokushoho">特定商取引法に基づく表記</a></li>
             </ul>
           </div>
         </div>

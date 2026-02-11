@@ -30,8 +30,7 @@ export default function PrivacyPage() {
           <p>本サービスは主として日本国内のユーザーを対象として提供されており、個人情報の取扱いは日本の法令を前提としています。</p>
 
           <h2 style={h2Style}>1. 事業者情報</h2>
-          <p>事業者名：TapSmart English（屋号）<br />所在地：東京都中央区新川<br />連絡先：support@tapsmart.jp</p>
-          <p style={{ fontSize: 13, color: "#6B7280", marginTop: 8 }}>※当社の運営責任者の氏名については、特定商取引法に基づき、請求があった場合に遅滞なく開示いたします。</p>
+          <p>本サービスの運営者に関する情報（事業者名、所在地、連絡先等）については、「<a href="/legal/tokushoho" style={{ color: "#2A3B6F" }}>特定商取引法に基づく表記</a>」ページをご参照ください。</p>
 
           <h2 style={h2Style}>2. 取得する情報</h2>
           <p>当社は、本サービスの提供にあたり、以下の情報を取得することがあります。</p>
@@ -120,6 +119,7 @@ export default function PrivacyPage() {
               <li><a href="/contact">お問い合わせ</a></li>
               <li><a href="/terms">利用規約</a></li>
               <li><a href="/privacy">プライバシーポリシー</a></li>
+              <li><a href="/legal/tokushoho">特定商取引法に基づく表記</a></li>
             </ul>
           </div>
         </div>
