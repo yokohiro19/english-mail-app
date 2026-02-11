@@ -9,6 +9,7 @@ const E = {
   address: "L3Zx3JvxKfnvqWZK7WLmvx38K8Zx78vZfpvnv8WfnL7mv8x7L77LmpfKRnLLmxLmLf83n3vxnL7mnqxWv87L37m3WKJKpxWWLfZJL3fJp383WW3RRnJqv8m8np",
   phone: "pnRpxZ3fnW7WnvxWLmxfmp8RKnLqmvnxL3Z73qRqJ8qRJRR7LxpW73ZWWfZZmW",
   email: "73qpKZJ77WZZRm3Kp7Zm8xWvv8xxLLmWKmW3KZ",
+  url: "x7qKKnJ7xJnpWffvpqf78mRR3mxxL3mKxKW7KJJppqfpRW",
 };
 
 export default function TokushohoContent() {
@@ -63,7 +64,7 @@ export default function TokushohoContent() {
           <Row label="所在地" value={v("address")} />
           <Row label="電話番号" value={v("phone")} />
           <Row label="メールアドレス" value={v("email")} />
-          <Row label="販売URL" value="https://tapsmart-english.com" />
+          <Row label="販売URL" value={v("url")} />
           <Row label="販売価格" value="月額500円（税込）" />
           <Row label="商品代金以外の必要料金" value="なし（インターネット接続料金はお客様のご負担となります）" />
           <Row label="支払方法" value="クレジットカード（Stripe経由）" />
