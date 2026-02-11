@@ -185,15 +185,20 @@ export default function DashboardPage() {
         }
       }
       // Currently paused
+      const today = new Date();
+      const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
       if (json.currentlyPaused && json.pausedAt) {
         const start = new Date(json.pausedAt + "T00:00:00Z");
-        const today = new Date();
-        const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
         const end = new Date(todayKey + "T00:00:00Z");
         for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
           const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
           paused.add(key);
         }
+      }
+
+      // 今日は currentlyPaused の状態をリアルタイムに反映
+      if (!json.currentlyPaused) {
+        paused.delete(todayKey);
       }
 
       setCalendarSet(set);

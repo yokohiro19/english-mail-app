@@ -4,6 +4,15 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        source: "/legal/:path*",
+        headers: [
+          {
+            key: "X-Robots-Tag",
+            value: "noindex, nofollow, noarchive, nosnippet",
+          },
+        ],
+      },
+      {
         source: "/(.*)",
         headers: [
           {
