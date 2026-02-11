@@ -82,7 +82,7 @@ export default function TokushohoContent() {
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <tr>
       <th
