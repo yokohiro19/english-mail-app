@@ -73,7 +73,7 @@ export default function Home() {
           <div className="feature-card">
             <img src="/images/feature-ai.png" alt="AI" className="feature-icon-img" />
             <h3>AIが「楽しめる難易度」でビジネス英語を作成</h3>
-            <p>TOEIC・TOEFL・英検の得点目安で難易度が設定でき、ランダムのテーマであなた専用のビジネス英語を作成します。</p>
+            <p>今の自分のレベル感にあった難易度が設定でき、ランダムのテーマであなた専用のビジネス英語を作成します。</p>
           </div>
           <div className="feature-card">
             <img src="/images/feature-mail.png" alt="メール" className="feature-icon-img" />

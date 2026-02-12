@@ -635,7 +635,6 @@ export default function SettingsPage() {
                       Level {lv.value} : {lv.name}
                     </span>
                     <span style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>{lv.tagline}</span>
-                    <span style={{ fontSize: 11, color: "#9CA3AF" }}>{lv.ref}</span>
                   </button>
                 ))}
               </div>
