@@ -4,6 +4,15 @@ export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
+    // 自サイトからのリクエストのみ許可
+    const origin = req.headers.get("origin") || "";
+    const referer = req.headers.get("referer") || "";
+    const allowed = ["https://www.tapsmart.jp", "https://tapsmart.jp", "http://localhost:3000"];
+    const isAllowed = allowed.some((h) => origin === h || referer.startsWith(h + "/"));
+    if (!isAllowed) {
+      return NextResponse.json({ error: "forbidden" }, { status: 403 });
+    }
+
     const keyHex = process.env.CIPHER_KEY;
     const alphabet = process.env.CIPHER_ALPHABET;
     if (!keyHex || !alphabet) {
