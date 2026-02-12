@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 
 // 暗号化された個人情報（販売業者・所在地・電話番号のみ暗号化）
 const E = {
-  rep: "LR8fvpRRZ87pJRK3vJpp77ZJWx8xRp8K8vZnZLxKZnK3nnmJf3x37n",
+  rep: "LJJLnmRKfZ78JppJ3fpqq3Jq",
   address: "L3Zx3JvxKfnvqWZK7WLmvx38K8Zx78vZfpvnv8WfnL7mv8x7L77LmpfKRnLLmxLmLf83n3vxnL7mnqxWv87L37m3WKJKpxWWLfZJL3fJp383WW3RRnJqv8m8np",
-  phone: "pnRpxZ3fnW7WnvxWLmxfmp8RKnLqmvnxL3Z73qRqJ8qRJRR7LxpW73ZWWfZZmW8LZpZLZLx88vKv3LmffWqJ7q37KpJq7pvvJWvpLKWqn3WLvRZp7pLf3xmLWx87RRWRp8R3xZv7nW7Wn3",
+  phone: "pnRpxZ3fK3nmqKZKxLLR3Lm78KL8KRLJLfZJ33RpfmWmJpmZ3mpJxRZvWfZZRx8qZx8WZv7RZnn8qWZ87pLR88mn8Kpvf3WmLR8fvK",
 };
 
 export default function TokushohoContent() {
@@ -75,11 +75,11 @@ export default function TokushohoContent() {
             本サービスはデジタルコンテンツおよびオンラインサービスという性質上、契約成立後の返品・返金には応じておりません。<br />
             ただし、初回登録後7日間の無料トライアル期間中に解約された場合、料金は発生いたしません。<br />
             サブスクリプションはいつでも解約可能です。<br />
-            解約手続きは、ログイン後の「学習プラン」画面より行うことができます。<br />
+            解約手続きは、ログイン後の「プランの確認・解約」画面より行うことができます。<br />
             解約手続き完了後は、次回更新日以降の課金は発生しません。<br />
             なお、解約後も次回更新日までは引き続きサービスをご利用いただけます。
           </>} />
-          <Row label="解約方法" value="ログイン後の「学習プラン画面」より、いつでも解約可能です" />
+          <Row label="解約方法" value="ログイン後の「プランの確認・解約」画面より、いつでも解約可能です" />
           <Row label="動作環境" value="インターネットに接続可能な環境、メール受信が可能な端末" />
         </tbody>
       </table>
