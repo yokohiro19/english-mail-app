@@ -582,54 +582,55 @@ export default function SettingsPage() {
             )}
 
             {billingError && <div className="app-error" style={{ marginTop: 16 }}>{billingError}</div>}
-
-            {/* Delivery pause toggle - only for active subscribers */}
-            {plan === "standard" && (subscriptionStatus === "active" || subscriptionStatus === "trialing") && (
-              <div style={{ marginTop: 20, paddingTop: 20, borderTop: "1px solid #E8EAED" }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
-                  <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-                    <span style={{
-                      display: "inline-block",
-                      padding: "6px 14px",
-                      borderRadius: 999,
-                      fontSize: 13,
-                      fontWeight: 600,
-                      background: deliveryPaused ? "#FEF3C7" : "#D1FAE5",
-                      color: deliveryPaused ? "#92400E" : "#065F46",
-                      whiteSpace: "nowrap",
-                    }}>
-                      {deliveryPaused ? "⏸ 一時停止中" : "✓ 配信中"}
-                    </span>
-                    <p style={{ fontSize: 13, color: "#6B7280", marginTop: 4 }}>
-                      {deliveryPaused
-                        ? "再開するまでメールは届きません。停止中は達成率の計算から除外されます。"
-                        : "毎日指定した時間にメールが届きます"}
-                    </p>
-                  </div>
-                  <button
-                    onClick={toggleDeliveryPause}
-                    disabled={pauseLoading}
-                    className="app-btn-secondary"
-                    style={{
-                      padding: "8px 20px",
-                      fontSize: 13,
-                      whiteSpace: "nowrap",
-                      background: deliveryPaused ? "var(--primary-cyan)" : "#E5E7EB",
-                      color: deliveryPaused ? "var(--dark-navy)" : "#374151",
-                      border: "none",
-                    }}
-                  >
-                    {pauseLoading ? "処理中..." : deliveryPaused ? "配信を再開" : "一時停止"}
-                  </button>
-                </div>
-                {pauseMsg && (
-                  <p style={{ marginTop: 8, fontSize: 13, color: pauseMsg.type === "success" ? "#059669" : "#991B1B" }}>
-                    {pauseMsg.text}
-                  </p>
-                )}
-              </div>
-            )}
           </div>
+
+          {/* Delivery pause toggle - only for active subscribers */}
+          {plan === "standard" && (subscriptionStatus === "active" || subscriptionStatus === "trialing") && (
+            <div className="app-card">
+              <h2 className="section-title">配信設定</h2>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                  <span style={{
+                    display: "inline-block",
+                    padding: "6px 14px",
+                    borderRadius: 999,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    background: deliveryPaused ? "#FEF3C7" : "#D1FAE5",
+                    color: deliveryPaused ? "#92400E" : "#065F46",
+                    whiteSpace: "nowrap",
+                  }}>
+                    {deliveryPaused ? "⏸ 一時停止中" : "✓ 配信中"}
+                  </span>
+                  <p style={{ fontSize: 13, color: "#6B7280", marginTop: 4 }}>
+                    {deliveryPaused
+                      ? "再開するまでメールは届きません。停止中は達成率の計算から除外されます。"
+                      : "毎日指定した時間にメールが届きます"}
+                  </p>
+                </div>
+                <button
+                  onClick={toggleDeliveryPause}
+                  disabled={pauseLoading}
+                  className="app-btn-secondary"
+                  style={{
+                    padding: "8px 20px",
+                    fontSize: 13,
+                    whiteSpace: "nowrap",
+                    background: deliveryPaused ? "var(--primary-cyan)" : "#E5E7EB",
+                    color: deliveryPaused ? "var(--dark-navy)" : "#374151",
+                    border: "none",
+                  }}
+                >
+                  {pauseLoading ? "処理中..." : deliveryPaused ? "配信を再開" : "一時停止"}
+                </button>
+              </div>
+              {pauseMsg && (
+                <p style={{ marginTop: 8, fontSize: 13, color: pauseMsg.type === "success" ? "#059669" : "#991B1B" }}>
+                  {pauseMsg.text}
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Delivery Settings */}
           <div className="app-card">
