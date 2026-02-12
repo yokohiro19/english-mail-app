@@ -207,7 +207,7 @@ export default function BillingPage() {
           )}
 
           <div>
-            <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 28, fontWeight: 800, marginBottom: 4 }}>プラン設定</h1>
+            <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 28, fontWeight: 800, marginBottom: 4 }}>プランの確認・解約</h1>
           </div>
 
           <div className="app-card">

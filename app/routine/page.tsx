@@ -79,6 +79,11 @@ export default function SettingsPage() {
   // Billing
   const [plan, setPlan] = useState<Plan>("free");
   const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
+  const [trialUsed, setTrialUsed] = useState<boolean>(false);
+  const [trialEndsAt, setTrialEndsAt] = useState<any>(null);
+  const [billingLoading, setBillingLoading] = useState(false);
+  const [billingError, setBillingError] = useState<string | null>(null);
+  const [consentChecked, setConsentChecked] = useState(false);
 
   // Trial mail
   const [trialMailSentAt, setTrialMailSentAt] = useState<any>(null);
@@ -149,6 +154,8 @@ export default function SettingsPage() {
       }
       setPlan((data.plan as Plan) ?? "free");
       setSubscriptionStatus((data.subscriptionStatus as any) ?? null);
+      setTrialUsed(Boolean((data as any).trialUsed));
+      setTrialEndsAt((data as any).trialEndsAt ?? null);
       const loadedDeliveryEmail = (data as any).deliveryEmail ?? u.email ?? "";
       setDeliveryEmail(loadedDeliveryEmail);
       setSavedDeliveryEmail(loadedDeliveryEmail);
@@ -243,6 +250,63 @@ export default function SettingsPage() {
   const trialMailButtonText = "この設定で、本日分のメールを今すぐ受け取る";
   const [trialDisabledMsg, setTrialDisabledMsg] = useState(false);
 
+  // Billing logic
+  const showFreeTrialLabel = plan === "free" && trialUsed === false;
+  const canRestartTrial = plan === "free" && trialUsed === true && (() => {
+    if (!trialEndsAt) return false;
+    const end = typeof trialEndsAt?.toDate === "function" ? trialEndsAt.toDate() : new Date(trialEndsAt);
+    return end.getTime() > Date.now();
+  })();
+
+  const goCheckout = async () => {
+    if (!user) return;
+    setBillingLoading(true);
+    setBillingError(null);
+    try {
+      const token = await user.getIdToken();
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          trialDays: 7,
+          successPath: "/billing?billing=success",
+          cancelPath: "/billing?billing=cancel",
+          consent: {
+            agreedAt: new Date().toISOString(),
+            termsVersion: "2026-02-06",
+            privacyVersion: "2026-02-06",
+            displayedTerms: [
+              "月額500円（税込）",
+              showFreeTrialLabel ? "初回7日間無料" : null,
+              showFreeTrialLabel ? "無料期間終了後、自動的に有料プランへ移行" : null,
+              "解約しない限り毎月自動更新",
+              "更新日の前日までに解約可能",
+              "決済完了後の返金・日割り計算不可",
+            ].filter(Boolean),
+          },
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (json?.code === "subscription_exists") {
+        const token2 = await user.getIdToken();
+        const res2 = await fetch("/api/stripe/portal", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token2}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ returnPath: "/billing" }),
+        });
+        const json2 = await res2.json();
+        if (res2.ok && json2?.ok && json2?.url) window.location.href = json2.url;
+        return;
+      }
+      if (!res.ok || !json?.ok || !json?.url) { setBillingError("課金処理に失敗しました。"); return; }
+      window.location.href = json.url;
+    } catch {
+      setBillingError("課金処理に失敗しました。");
+    } finally {
+      setBillingLoading(false);
+    }
+  };
+
   // Check for unsaved changes
   const hasUnsavedChanges = examType !== savedExamType || examLevel !== savedExamLevel || wordCount !== savedWordCount || sendTime !== savedSendTime;
   const [unsavedWarningMsg, setUnsavedWarningMsg] = useState(false);
@@ -336,6 +400,92 @@ export default function SettingsPage() {
             <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 28, fontWeight: 800, marginBottom: 4 }}>学習プラン</h1>
             <p style={{ fontSize: 14, color: "#6B7280" }}>{nickname || user?.email || ""}様</p>
           </div>
+
+          {/* Billing card for free users */}
+          {plan !== "standard" && (
+            <div className="app-card">
+              <div>
+                <p style={{ fontSize: 12, color: "#6B7280" }}>現在のプラン</p>
+                <p style={{ fontFamily: "'Outfit', sans-serif", fontSize: 28, fontWeight: 800 }}>
+                  Free
+                  <span style={{ fontSize: 14, fontWeight: 400, color: "#6B7280", marginLeft: 8 }}>
+                    （無料、メール受け取り不可）
+                  </span>
+                </p>
+                {canRestartTrial && (
+                  <p style={{ fontSize: 13, color: "#059669", marginTop: 4 }}>
+                    トライアル期間内のため、無料で再開できます
+                  </p>
+                )}
+              </div>
+
+              <div style={{ marginTop: 20, paddingTop: 20, borderTop: "1px solid #E8EAED" }}>
+                <p style={{ fontFamily: "'Outfit', sans-serif", fontSize: 18, fontWeight: 700, marginBottom: 12 }}>
+                  Standardプランにアップグレード
+                </p>
+
+                <div style={{
+                  background: "#F9FAFB",
+                  borderRadius: 10,
+                  padding: "16px 20px",
+                  marginBottom: 16,
+                  fontSize: 13,
+                  color: "#374151",
+                  lineHeight: 1.8
+                }}>
+                  <p style={{ fontWeight: 600, marginBottom: 8 }}>月額500円（税込）{showFreeTrialLabel && " / 初回7日間無料"}</p>
+                  <ul style={{ margin: 0, paddingLeft: 20 }}>
+                    {showFreeTrialLabel && <li>無料期間終了後、自動的に有料プランへ移行します</li>}
+                    <li>解約しない限り毎月自動更新されます</li>
+                    <li>更新日の前日までにいつでも解約可能です</li>
+                    <li>決済完了後の返金・日割り計算はできません</li>
+                  </ul>
+                </div>
+
+                <label style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 10,
+                  cursor: "pointer",
+                  marginBottom: 16,
+                  fontSize: 13,
+                  color: "#374151"
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={consentChecked}
+                    onChange={(e) => setConsentChecked(e.target.checked)}
+                    style={{ marginTop: 2, width: 16, height: 16, accentColor: "var(--primary-cyan)" }}
+                  />
+                  <span>
+                    上記内容および
+                    <a href="/terms" target="_blank" style={{ color: "var(--primary-cyan)", textDecoration: "underline" }}>利用規約</a>
+                    ・
+                    <a href="/privacy" target="_blank" style={{ color: "var(--primary-cyan)", textDecoration: "underline" }}>プライバシーポリシー</a>
+                    ・
+                    <a href="/legal/tokushoho" target="_blank" style={{ color: "var(--primary-cyan)", textDecoration: "underline" }}>特定商取引法に基づく表記</a>
+                    に同意します
+                  </span>
+                </label>
+
+                <button
+                  onClick={goCheckout}
+                  disabled={billingLoading || !consentChecked}
+                  className="app-btn-primary"
+                  style={{
+                    width: "100%",
+                    padding: "14px 24px",
+                    fontSize: 15,
+                    opacity: consentChecked ? 1 : 0.5
+                  }}
+                >
+                  {billingLoading ? "処理中..." : showFreeTrialLabel ? "7日間無料で試す" : canRestartTrial ? "無料で再開する" : "アップグレード"}
+                </button>
+              </div>
+
+              {billingError && <div className="app-error" style={{ marginTop: 16 }}>{billingError}</div>}
+            </div>
+          )}
 
           {/* Delivery pause toggle - only for active subscribers */}
           {plan === "standard" && (subscriptionStatus === "active" || subscriptionStatus === "trialing") && (

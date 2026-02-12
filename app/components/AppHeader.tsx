@@ -72,8 +72,8 @@ export default function AppHeader({ variant = "app" }: Props) {
             </button>
             {menuOpen && (
               <div className="nav-dropdown">
-                <a href="/billing" onClick={() => setMenuOpen(false)}>プラン設定</a>
                 <a href="/account" onClick={() => setMenuOpen(false)}>アカウント管理</a>
+                <a href="/billing" onClick={() => setMenuOpen(false)}>プランの確認・解約</a>
                 <button onClick={handleLogout}>ログアウト</button>
               </div>
             )}
