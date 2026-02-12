@@ -343,29 +343,6 @@
   overflow: hidden;
 }
 
-.function-details::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(78, 255, 244, 0.06) 0%, transparent 60%);
-  animation: rotate 25s linear infinite;
-  pointer-events: none;
-}
-
-.function-details::after {
-  content: '';
-  position: absolute;
-  bottom: -40%;
-  right: -40%;
-  width: 180%;
-  height: 180%;
-  background: radial-gradient(circle, rgba(78, 255, 244, 0.04) 0%, transparent 55%);
-  animation: rotate 30s linear infinite reverse;
-  pointer-events: none;
-}
 
 .function-details .section-header {
   position: relative;
@@ -373,7 +350,7 @@
 }
 
 .strengths-brand {
-  color: #1A6B63;
+  color: #0D4A44;
 }
 
 .function-details .section-header h2 {
@@ -384,8 +361,8 @@
 .function-details .section-header p {
   font-size: 20px;
   font-weight: 600;
-  color: #1A6B63;
-  opacity: 0.8;
+  color: #0D4A44;
+  opacity: 1;
   letter-spacing: 2px;
 }
 
