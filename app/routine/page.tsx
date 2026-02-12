@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp, deleteField } from "firebase/firestore";
 import { auth, db } from "../../src/lib/firebase";
 import { useRouter } from "next/navigation";
 import "../app.css";
@@ -92,10 +92,14 @@ export default function SettingsPage() {
   const [trialSending, setTrialSending] = useState(false);
   const [trialMsg, setTrialMsg] = useState<{ text: string; type: "success" | "error" } | null>(null);
 
-  // Delivery pause
-  const [deliveryPaused, setDeliveryPaused] = useState(false);
-  const [pauseLoading, setPauseLoading] = useState(false);
-  const [pauseMsg, setPauseMsg] = useState<{ text: string; type: "success" | "error" } | null>(null);
+  // Delivery days (0=月, 6=日)
+  const defaultDays = [true, true, true, true, true, true, true];
+  const [deliveryDays, setDeliveryDays] = useState<boolean[]>(defaultDays);
+  const [savedDeliveryDays, setSavedDeliveryDays] = useState<boolean[]>(defaultDays);
+
+  // Legacy pause migration
+  const [legacyPaused, setLegacyPaused] = useState(false);
+  const [legacyPausedAt, setLegacyPausedAt] = useState<string | null>(null);
 
   const levelOptionsByExam: Record<ExamType, string[]> = useMemo(
     () => ({
@@ -163,7 +167,14 @@ export default function SettingsPage() {
       setTrialMailSentAt((data as any).trialMailSentAt ?? null);
       setFirstDeliveryAt((data as any).firstDeliveryAt ?? null);
       setStandardStartedAt((data as any).standardStartedAt ?? null);
-      setDeliveryPaused(Boolean((data as any).deliveryPaused));
+      // deliveryDays
+      const rawDays: number[] = Array.isArray((data as any).deliveryDays) ? (data as any).deliveryDays : [0,1,2,3,4,5,6];
+      const loadedDays = [0,1,2,3,4,5,6].map(i => rawDays.includes(i));
+      setDeliveryDays(loadedDays);
+      setSavedDeliveryDays(loadedDays);
+      // Legacy pause
+      setLegacyPaused(Boolean((data as any).deliveryPaused));
+      setLegacyPausedAt((data as any).pausedAt ?? null);
     } else {
       // New user - use defaults
       setDeliveryEmail(u.email ?? "");
@@ -192,15 +203,31 @@ export default function SettingsPage() {
     setMessage(null);
     try {
       const ref = doc(db, "users", user.uid);
-      await setDoc(ref, {
+      const daysArray = deliveryDays.map((on, i) => on ? i : -1).filter(i => i >= 0);
+
+      const updateData: Record<string, any> = {
         email: user.email ?? "",
         examType, examLevel, wordCount, sendTime,
+        deliveryDays: daysArray,
         updatedAt: serverTimestamp(),
-      }, { merge: true });
+      };
+
+      // Legacy pause migration
+      if (legacyPaused) {
+        updateData.deliveryPaused = false;
+        updateData.pausedAt = deleteField();
+        // pausedAt→今日の期間をpausedPeriodsに追加はserver-side delivery-pause APIが行うべきだが
+        // ここでは単純にフラグを落とす（pausedPeriodsは既存のまま保持）
+        setLegacyPaused(false);
+        setLegacyPausedAt(null);
+      }
+
+      await setDoc(ref, updateData, { merge: true });
       setSavedExamType(examType);
       setSavedExamLevel(examLevel);
       setSavedWordCount(wordCount);
       setSavedSendTime(sendTime);
+      setSavedDeliveryDays([...deliveryDays]);
       setMessage("保存しました");
       setMessageType("success");
     } catch (e) {
@@ -308,34 +335,9 @@ export default function SettingsPage() {
   };
 
   // Check for unsaved changes
-  const hasUnsavedChanges = examType !== savedExamType || examLevel !== savedExamLevel || wordCount !== savedWordCount || sendTime !== savedSendTime;
+  const daysChanged = deliveryDays.some((v, i) => v !== savedDeliveryDays[i]);
+  const hasUnsavedChanges = examType !== savedExamType || examLevel !== savedExamLevel || wordCount !== savedWordCount || sendTime !== savedSendTime || daysChanged;
   const [unsavedWarningMsg, setUnsavedWarningMsg] = useState(false);
-
-  const toggleDeliveryPause = async () => {
-    if (!user) return;
-    setPauseLoading(true);
-    setPauseMsg(null);
-    try {
-      const token = await user.getIdToken();
-      const newPaused = !deliveryPaused;
-      const res = await fetch("/api/delivery-pause", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ paused: newPaused }),
-      });
-      const json = await res.json();
-      if (!res.ok || !json.ok) {
-        setPauseMsg({ text: "更新に失敗しました", type: "error" });
-        return;
-      }
-      setDeliveryPaused(newPaused);
-      setPauseMsg({ text: newPaused ? "配信を一時停止しました" : "配信を再開しました", type: "success" });
-    } catch {
-      setPauseMsg({ text: "更新に失敗しました", type: "error" });
-    } finally {
-      setPauseLoading(false);
-    }
-  };
 
   const sendTrialMail = async () => {
     if (!user) return;
@@ -487,57 +489,9 @@ export default function SettingsPage() {
             </div>
           )}
 
-          {/* Delivery pause toggle - only for active subscribers */}
-          {plan === "standard" && (subscriptionStatus === "active" || subscriptionStatus === "trialing") && (
-            <div className="app-card">
-              <h2 className="section-title">配信設定</h2>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-                  <span style={{
-                    display: "inline-block",
-                    padding: "6px 14px",
-                    borderRadius: 999,
-                    fontSize: 13,
-                    fontWeight: 600,
-                    background: deliveryPaused ? "#FEF3C7" : "#D1FAE5",
-                    color: deliveryPaused ? "#92400E" : "#065F46",
-                    whiteSpace: "nowrap",
-                  }}>
-                    {deliveryPaused ? "⏸ 一時停止中" : "✓ 配信中"}
-                  </span>
-                  <p style={{ fontSize: 13, color: "#6B7280", marginTop: 4 }}>
-                    {deliveryPaused
-                      ? "再開するまでメールは届きません。停止中は達成率の計算から除外されます。"
-                      : "毎日指定した時間にメールが届きます"}
-                  </p>
-                </div>
-                <button
-                  onClick={toggleDeliveryPause}
-                  disabled={pauseLoading}
-                  className="app-btn-secondary"
-                  style={{
-                    padding: "8px 20px",
-                    fontSize: 13,
-                    whiteSpace: "nowrap",
-                    background: deliveryPaused ? "var(--primary-cyan)" : "#E5E7EB",
-                    color: deliveryPaused ? "var(--dark-navy)" : "#374151",
-                    border: "none",
-                  }}
-                >
-                  {pauseLoading ? "処理中..." : deliveryPaused ? "配信を再開" : "一時停止"}
-                </button>
-              </div>
-              {pauseMsg && (
-                <p style={{ marginTop: 8, fontSize: 13, color: pauseMsg.type === "success" ? "#059669" : "#991B1B" }}>
-                  {pauseMsg.text}
-                </p>
-              )}
-            </div>
-          )}
-
-          {/* Delivery Settings */}
+          {/* 配信設定 */}
           <div className="app-card">
-            <h2 className="section-title">メール設定</h2>
+            <h2 className="section-title">配信設定</h2>
 
             {/* Delivery email */}
             <div style={{ marginBottom: 20 }}>
@@ -584,6 +538,56 @@ export default function SettingsPage() {
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
               <div>
+                <label className="form-label">配信時間（JST）</label>
+                <select className="app-select" value={sendTime} onChange={(e) => setSendTime(e.target.value)}>
+                  {Array.from({ length: 144 }, (_, i) => {
+                    const totalMinutes = (4 * 60 + i * 10) % (24 * 60);
+                    const h = String(Math.floor(totalMinutes / 60)).padStart(2, "0");
+                    const m = String(totalMinutes % 60).padStart(2, "0");
+                    return <option key={`${h}:${m}`} value={`${h}:${m}`}>{h}:{m}</option>;
+                  })}
+                </select>
+                <p className="form-helper">※ 朝4:00から翌日3:59を１日とします</p>
+              </div>
+            </div>
+
+            {/* 配信曜日 */}
+            <div style={{ marginTop: 20 }}>
+              <label className="form-label">配信曜日</label>
+              <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+                {["月", "火", "水", "木", "金", "土", "日"].map((label, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => setDeliveryDays(prev => { const next = [...prev]; next[i] = !next[i]; return next; })}
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: "50%",
+                      border: "none",
+                      cursor: "pointer",
+                      fontSize: 14,
+                      fontWeight: 600,
+                      fontFamily: "'Inter', sans-serif",
+                      background: deliveryDays[i] ? "#1d1f42" : "#E5E7EB",
+                      color: deliveryDays[i] ? "#fff" : "#9CA3AF",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <p className="form-helper">※ OFFの曜日はメールが届かず、達成率の計算からも除外されます</p>
+            </div>
+          </div>
+
+          {/* 難易度設定 */}
+          <div className="app-card">
+            <h2 className="section-title">難易度設定</h2>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              <div>
                 <label className="form-label">試験</label>
                 <select
                   className="app-select"
@@ -618,32 +622,20 @@ export default function SettingsPage() {
                 </select>
                 <p className="form-helper">※ 手軽な継続には100〜200がおすすめ</p>
               </div>
-
-              <div>
-                <label className="form-label">配信時間（JST）</label>
-                <select className="app-select" value={sendTime} onChange={(e) => setSendTime(e.target.value)}>
-                  {Array.from({ length: 144 }, (_, i) => {
-                    const totalMinutes = (4 * 60 + i * 10) % (24 * 60);
-                    const h = String(Math.floor(totalMinutes / 60)).padStart(2, "0");
-                    const m = String(totalMinutes % 60).padStart(2, "0");
-                    return <option key={`${h}:${m}`} value={`${h}:${m}`}>{h}:{m}</option>;
-                  })}
-                </select>
-                <p className="form-helper">※ 朝4:00から翌日3:59を１日とします</p>
-              </div>
-            </div>
-
-            <div style={{ marginTop: 20, display: "flex", alignItems: "center", gap: 12 }}>
-              <button onClick={onSave} disabled={saving} className="app-btn-primary">
-                {saving ? "保存中..." : "保存"}
-              </button>
-              {message && <div className={messageType === "success" ? "app-success" : "app-error"} style={{ padding: "8px 16px" }}>{message}</div>}
             </div>
 
             <p style={{ marginTop: 16, fontSize: 13, color: "#1d1f42", lineHeight: 1.7, fontWeight: 600 }}>
               英文のテーマはビジネス関連のトピックからランダムに選出されます。<br />
               同じようなテーマが連続で届く場合もありますので、あらかじめご了承ください。
             </p>
+          </div>
+
+          {/* 保存ボタン */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <button onClick={onSave} disabled={saving} className="app-btn-primary">
+              {saving ? "保存中..." : "保存"}
+            </button>
+            {message && <div className={messageType === "success" ? "app-success" : "app-error"} style={{ padding: "8px 16px" }}>{message}</div>}
           </div>
 
           {/* Trial mail button */}

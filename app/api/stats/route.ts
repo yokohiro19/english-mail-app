@@ -92,6 +92,7 @@ export async function GET(req: Request) {
     const pausedPeriods = (userData?.pausedPeriods ?? []) as Array<{ start: string; end: string }>;
     const currentlyPaused = Boolean(userData?.deliveryPaused);
     const pausedAt = userData?.pausedAt as string | null;
+    const deliveryDays: number[] = Array.isArray(userData?.deliveryDays) ? userData.deliveryDays : [0,1,2,3,4,5,6];
 
     // 指定期間内の一時停止日数を計算するヘルパー（Setで重複排除）
     function countPausedDaysInRange(rangeStart: string, rangeEnd: string): number {
@@ -122,6 +123,18 @@ export async function GET(req: Request) {
         }
       }
 
+      // 配信曜日に含まれない日も停止日としてカウント
+      if (deliveryDays.length < 7) {
+        const rs = new Date(rangeStart + "T00:00:00Z");
+        const re = new Date(rangeEnd + "T00:00:00Z");
+        for (let d = new Date(rs); d <= re; d.setUTCDate(d.getUTCDate() + 1)) {
+          const dow = (d.getUTCDay() + 6) % 7; // 0=月, 6=日
+          if (!deliveryDays.includes(dow)) {
+            pausedDateSet.add(dateKeyFromJst(d));
+          }
+        }
+      }
+
       // 学習記録がある日は停止日としてカウントしない
       for (const dk of allDateKeys) {
         pausedDateSet.delete(dk);
@@ -137,6 +150,12 @@ export async function GET(req: Request) {
     function isDatePaused(dateKey: string): boolean {
       if (allDateKeys.has(dateKey)) return false;
       if (!currentlyPaused && dateKey === todayKey) return false;
+      // 配信曜日チェック
+      if (deliveryDays.length < 7) {
+        const d = new Date(dateKey + "T00:00:00Z");
+        const dow = (d.getUTCDay() + 6) % 7;
+        if (!deliveryDays.includes(dow)) return true;
+      }
       for (const period of pausedPeriods) {
         if (dateKey >= period.start && dateKey <= period.end) return true;
       }

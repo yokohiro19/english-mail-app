@@ -208,6 +208,14 @@ export async function GET(req: Request) {
         continue;
       }
 
+      // ===== Delivery Days Guard (曜日チェック) =====
+      const deliveryDays: number[] = Array.isArray(u.deliveryDays) ? u.deliveryDays : [0,1,2,3,4,5,6];
+      const jstDow = (logicalJstNow().getUTCDay() + 6) % 7; // 0=月, 6=日
+      if (!deliveryDays.includes(jstDow)) {
+        skippedPaused++;
+        continue;
+      }
+
       // ===== Email Verification Guard =====
       try {
         const adminAuth = getAdminAuth();

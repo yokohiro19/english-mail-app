@@ -38,6 +38,8 @@ export async function GET(req: Request) {
     const currentlyPaused = Boolean(userData?.deliveryPaused);
     const pausedAt = userData?.pausedAt as string | null;
 
+    const deliveryDays: number[] = Array.isArray(userData?.deliveryDays) ? userData.deliveryDays : [0,1,2,3,4,5,6];
+
     return NextResponse.json({
       ok: true,
       count: unique.length,
@@ -45,6 +47,7 @@ export async function GET(req: Request) {
       pausedPeriods,
       currentlyPaused,
       pausedAt,
+      deliveryDays,
     });
   } catch (e: any) {
     console.error(e);

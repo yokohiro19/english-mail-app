@@ -35,7 +35,7 @@ type Stats = {
 type PausedPeriod = { start: string; end: string };
 
 type CalendarResp =
-  | { ok: true; count: number; dateKeys: string[]; pausedPeriods?: PausedPeriod[]; currentlyPaused?: boolean; pausedAt?: string | null }
+  | { ok: true; count: number; dateKeys: string[]; pausedPeriods?: PausedPeriod[]; currentlyPaused?: boolean; pausedAt?: string | null; deliveryDays?: number[] }
   | { ok: false; error: string };
 
 function pct(v: number) {
@@ -196,8 +196,29 @@ export default function DashboardPage() {
         }
       }
 
-      // 今日は currentlyPaused の状態をリアルタイムに反映
-      if (!json.currentlyPaused) {
+      // 配信曜日に含まれない日をグレー表示（過去〜今月末）
+      const dDays: number[] = (json as any).deliveryDays ?? [0,1,2,3,4,5,6];
+      if (dDays.length < 7) {
+        // 表示中の月の1日〜末日を対象
+        const nowDate = new Date(Date.now() + 5 * 60 * 60 * 1000);
+        const calY = nowDate.getUTCFullYear();
+        const calM = nowDate.getUTCMonth(); // 0-indexed
+        const lastDay = new Date(Date.UTC(calY, calM + 1, 0)).getUTCDate();
+        for (let day = 1; day <= lastDay; day++) {
+          const d = new Date(Date.UTC(calY, calM, day));
+          const dow = (d.getUTCDay() + 6) % 7; // 0=月, 6=日
+          if (!dDays.includes(dow)) {
+            const key = `${calY}-${String(calM + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+            paused.add(key);
+          }
+        }
+      }
+
+      // 今日は currentlyPaused の状態をリアルタイムに反映（旧pause）
+      // ただし配信曜日OFFの場合はグレー維持
+      const todayDow = (new Date(todayKey + "T00:00:00Z").getUTCDay() + 6) % 7;
+      const todayIsNonDelivery = dDays.length < 7 && !dDays.includes(todayDow);
+      if (!json.currentlyPaused && !todayIsNonDelivery) {
         paused.delete(todayKey);
       }
 
