@@ -338,7 +338,7 @@
 /* Function Details Section */
 .function-details {
   padding: 100px 40px;
-  background: linear-gradient(170deg, #F0F2F1 0%, #EAEDEC 50%, #F0F2F1 100%);
+  background: linear-gradient(170deg, #FFF9E6 0%, #FFF3CC 50%, #FFF9E6 100%);
   position: relative;
   overflow: hidden;
 }
@@ -350,7 +350,7 @@
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle, rgba(78, 255, 244, 0.08) 0%, transparent 60%);
+  background: radial-gradient(circle, rgba(255, 200, 0, 0.1) 0%, transparent 60%);
   animation: rotate 25s linear infinite;
   pointer-events: none;
 }
@@ -362,7 +362,7 @@
   right: -40%;
   width: 180%;
   height: 180%;
-  background: radial-gradient(circle, rgba(29, 31, 66, 0.04) 0%, transparent 55%);
+  background: radial-gradient(circle, rgba(255, 180, 0, 0.06) 0%, transparent 55%);
   animation: rotate 30s linear infinite reverse;
   pointer-events: none;
 }
