@@ -8,6 +8,22 @@ export const OutputSchema = z.object({
   japanese_translation: z.string(),
 });
 
+export function mapLevelToCEFR(level: number): string {
+  const map: Record<number, string> = {
+    1: "A2",
+    2: "B1-",
+    3: "B1",
+    4: "B2",
+    5: "C1",
+  };
+  return map[level] ?? "B1-";
+}
+
+export function resolveCEFR(u: { level?: number; examType?: string; examLevel?: string }): string {
+  if (typeof u.level === "number") return mapLevelToCEFR(u.level);
+  return mapExamToCEFR(u.examType ?? "TOEIC", u.examLevel ?? "TOEIC 500");
+}
+
 export function mapExamToCEFR(examType: string, examLevel: string): string {
   const normalized = examLevel.replace(/\s+/g, " ").trim();
   const key = `${examType} ${normalized}`;

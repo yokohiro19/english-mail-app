@@ -3,7 +3,7 @@ import { getAdminAuth, getAdminDb } from "@/src/lib/firebaseClient";
 import { Resend } from "resend";
 import { safeCompare } from "@/src/lib/safeCompare";
 import { signReadToken } from "@/src/lib/readToken";
-import { mapExamToCEFR, pickRandomTopic, generateEmailContent, buildEmailHtml } from "@/src/lib/emailGenerator";
+import { resolveCEFR, pickRandomTopic, generateEmailContent, buildEmailHtml } from "@/src/lib/emailGenerator";
 
 export const runtime = "nodejs";
 export const preferredRegion = "hnd1";
@@ -275,10 +275,8 @@ export async function GET(req: Request) {
       }
 
       try {
-        const examType = (u.examType as string) ?? "TOEIC";
-        const examLevel = (u.examLevel as string) ?? "TOEIC 500";
         const wordCount = Number(u.wordCount ?? 150);
-        const cefr = mapExamToCEFR(examType, examLevel);
+        const cefr = resolveCEFR(u);
 
         const topic = await pickRandomTopic(db);
         const out = await generateEmailContent(cefr, wordCount, topic);

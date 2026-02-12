@@ -3,7 +3,7 @@ import { getAdminAuth, getAdminDb } from "@/src/lib/firebaseClient";
 import { Resend } from "resend";
 import { signReadToken } from "@/src/lib/readToken";
 import {
-  mapExamToCEFR,
+  resolveCEFR,
   pickRandomTopic,
   generateEmailContent,
   buildEmailHtml,
@@ -75,10 +75,8 @@ export async function POST(req: Request) {
     }
 
     // User settings
-    const examType = (u.examType as string) ?? "TOEIC";
-    const examLevel = (u.examLevel as string) ?? "TOEIC 500";
     const wordCount = Number(u.wordCount ?? 150);
-    const cefr = mapExamToCEFR(examType, examLevel);
+    const cefr = resolveCEFR(u);
 
     // Determine email address
     const baseEmail = u.email as string;

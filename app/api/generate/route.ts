@@ -4,10 +4,9 @@ import { z } from "zod";
 import { zodTextFormat } from "openai/helpers/zod";
 import { getAdminAuth, getAdminDb } from "@/src/lib/firebaseClient";
 import { createRateLimiter, getClientIp } from "@/src/lib/rateLimit";
+import { resolveCEFR } from "@/src/lib/emailGenerator";
 
 const generateLimiter = createRateLimiter({ windowMs: 60_000, maxRequests: 5 });
-
-type ExamType = "TOEIC" | "EIKEN" | "TOEFL";
 
 const OutputSchema = z.object({
   english_text: z.string(),
@@ -23,33 +22,6 @@ const OutputSchema = z.object({
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
-
-function mapExamToCEFR(examType: ExamType, examLevel: string): string {
-  // あなたの確定マッピング（必要なら後で微調整）
-  // 例: "TOEIC 600", "英検 2級", "TOEFL 80"
-  const normalized = examLevel.replace(/\s+/g, " ").trim();
-  const key = `${examType} ${normalized}`;
-
-  const map: Record<string, string> = {
-    "TOEIC TOEIC 400": "A2",
-    "TOEIC TOEIC 500": "B1-",
-    "TOEIC TOEIC 600": "B1",
-    "TOEIC TOEIC 700": "B2",
-    "TOEIC TOEIC 800": "B2+",
-    "TOEIC TOEIC 900": "C1",
-    "TOEIC TOEIC 990": "C2",
-    "EIKEN 英検 2級": "B1",
-    "EIKEN 英検 準1級": "C1",
-    "EIKEN 英検 1級": "C2",
-    "TOEFL TOEFL 40": "A2",
-    "TOEFL TOEFL 60": "B1",
-    "TOEFL TOEFL 80": "B2",
-    "TOEFL TOEFL 100": "C1",
-    "TOEFL TOEFL 110+": "C2",
-  };
-
-  return map[key] ?? "B1";
-}
 
 async function pickRandomTopic() {
   const db = getAdminDb();
@@ -110,11 +82,8 @@ export async function POST(req: Request) {
     }
 
     const u = userSnap.data() as any;
-    const examType = (u.examType as ExamType) ?? "TOEIC";
-    const examLevel = (u.examLevel as string) ?? "TOEIC 500";
     const wordCount = Number(u.wordCount ?? 150);
-
-    const cefr = mapExamToCEFR(examType, examLevel);
+    const cefr = resolveCEFR(u);
     const topic = await pickRandomTopic();
 
     // 4) プロンプト（CEFRだけ渡す設計）

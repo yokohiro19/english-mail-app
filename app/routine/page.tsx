@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp, deleteField } from "firebase/firestore";
 import { auth, db } from "../../src/lib/firebase";
@@ -8,13 +8,11 @@ import { useRouter } from "next/navigation";
 import "../app.css";
 import AppHeader from "../components/AppHeader";
 
-type ExamType = "TOEIC" | "EIKEN" | "TOEFL";
 type Plan = "free" | "standard";
 
 type UserSettings = {
   email: string;
-  examType: ExamType;
-  examLevel: string;
+  level: number;
   wordCount: number;
   sendTime: string;
   updatedAt?: any;
@@ -24,11 +22,31 @@ type UserSettings = {
 };
 
 const DEFAULT_SETTINGS: Omit<UserSettings, "email"> = {
-  examType: "TOEIC",
-  examLevel: "TOEIC 600",
+  level: 2,
   wordCount: 100,
   sendTime: "08:00",
 };
+
+const LEVELS = [
+  { value: 1, name: "Storybook", tagline: "情景が浮かび、英語が心地よく入ってくる", ref: "英検3級 / TOEIC ~300" },
+  { value: 2, name: "Lifestyle", tagline: "海外の空気感を気軽に味わえる", ref: "英検準2級 / TOEIC 400~" },
+  { value: 3, name: "Business Lite", tagline: "「明日誰かに話したくなる」知的な刺激を、負担なく摂取する", ref: "英検2級 / TOEIC 600~" },
+  { value: 4, name: "Global Pulse", tagline: "英語を「勉強」するのではなく、英語「で」世界を知る実感", ref: "英検準1級 / TOEIC 800~" },
+  { value: 5, name: "Executive", tagline: "英語の壁を忘れ、書き手の思想や深い洞察に没頭", ref: "英検1級 / TOEIC 900~" },
+];
+
+function legacyExamToLevel(examType: string, examLevel: string): number {
+  const map: Record<string, number> = {
+    "TOEIC TOEIC 400": 2, "TOEIC TOEIC 500": 2,
+    "TOEIC TOEIC 600": 3, "TOEIC TOEIC 700": 3,
+    "TOEIC TOEIC 800": 4, "TOEIC TOEIC 900": 5, "TOEIC TOEIC 990": 5,
+    "EIKEN 英検 3級": 1, "EIKEN 英検 準2級プラス": 2, "EIKEN 英検 準2級": 2,
+    "EIKEN 英検 2級": 3, "EIKEN 英検 準1級": 4, "EIKEN 英検 1級": 5,
+    "TOEFL TOEFL 30~44": 1, "TOEFL TOEFL 45~62": 2, "TOEFL TOEFL 63~93": 3,
+    "TOEFL TOEFL 94~108": 4, "TOEFL TOEFL 109~115": 5, "TOEFL TOEFL 116~120": 5,
+  };
+  return map[`${examType} ${examLevel}`] ?? 2;
+}
 
 function safeNumber(v: any, fallback: number) {
   const n = Number(v);
@@ -61,14 +79,12 @@ export default function SettingsPage() {
 
   const [nickname, setNickname] = useState("");
 
-  const [examType, setExamType] = useState<ExamType>(DEFAULT_SETTINGS.examType);
-  const [examLevel, setExamLevel] = useState(DEFAULT_SETTINGS.examLevel);
+  const [level, setLevel] = useState(DEFAULT_SETTINGS.level);
   const [wordCount, setWordCount] = useState(DEFAULT_SETTINGS.wordCount);
   const [sendTime, setSendTime] = useState(DEFAULT_SETTINGS.sendTime);
 
   // Track saved values to detect unsaved changes
-  const [savedExamType, setSavedExamType] = useState<ExamType>(DEFAULT_SETTINGS.examType);
-  const [savedExamLevel, setSavedExamLevel] = useState(DEFAULT_SETTINGS.examLevel);
+  const [savedLevel, setSavedLevel] = useState(DEFAULT_SETTINGS.level);
   const [savedWordCount, setSavedWordCount] = useState(DEFAULT_SETTINGS.wordCount);
   const [savedSendTime, setSavedSendTime] = useState(DEFAULT_SETTINGS.sendTime);
 
@@ -104,20 +120,6 @@ export default function SettingsPage() {
   const [legacyPaused, setLegacyPaused] = useState(false);
   const [legacyPausedAt, setLegacyPausedAt] = useState<string | null>(null);
 
-  const levelOptionsByExam: Record<ExamType, string[]> = useMemo(
-    () => ({
-      TOEIC: ["TOEIC 990", "TOEIC 900", "TOEIC 800", "TOEIC 700", "TOEIC 600", "TOEIC 500", "TOEIC 400"],
-      EIKEN: ["英検 1級", "英検 準1級", "英検 2級", "英検 準2級プラス", "英検 準2級", "英検 3級"],
-      TOEFL: ["TOEFL 116~120", "TOEFL 109~115", "TOEFL 94~108", "TOEFL 63~93", "TOEFL 45~62", "TOEFL 30~44"],
-    }),
-    []
-  );
-
-  const defaultLevelByExam: Record<ExamType, string> = useMemo(
-    () => ({ TOEIC: "TOEIC 500", EIKEN: "英検 2級", TOEFL: "TOEFL 63~93" }),
-    []
-  );
-
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
       setUser(u);
@@ -136,25 +138,25 @@ export default function SettingsPage() {
     const snap = await getDoc(ref);
 
     if (snap.exists()) {
-      const data = snap.data() as Partial<UserSettings> & { nickname?: string };
+      const data = snap.data() as Partial<UserSettings> & { nickname?: string; examType?: string; examLevel?: string };
       setNickname(data.nickname ?? "");
-      const loadedExamType = (data.examType as ExamType) ?? DEFAULT_SETTINGS.examType;
-      const loadedExamLevel = data.examLevel ?? defaultLevelByExam[loadedExamType] ?? DEFAULT_SETTINGS.examLevel;
+      const loadedLevel = typeof (data as any).level === "number"
+        ? (data as any).level
+        : (data as any).examType
+          ? legacyExamToLevel((data as any).examType, (data as any).examLevel ?? "")
+          : DEFAULT_SETTINGS.level;
       const loadedWordCount = typeof data.wordCount === "number" ? data.wordCount : safeNumber(data.wordCount, DEFAULT_SETTINGS.wordCount);
       const loadedSendTime = data.sendTime ?? DEFAULT_SETTINGS.sendTime;
-      setExamType(loadedExamType);
-      setExamLevel(loadedExamLevel);
+      setLevel(loadedLevel);
       setWordCount(loadedWordCount);
       setSendTime(loadedSendTime);
-      setSavedExamType(loadedExamType);
-      setSavedExamLevel(loadedExamLevel);
+      setSavedLevel(loadedLevel);
       setSavedWordCount(loadedWordCount);
       setSavedSendTime(loadedSendTime);
-      // sendTime等がFirestoreに未設定の場合、デフォルト値を補完書き込み
+      // Firestoreに未設定の場合、デフォルト値を補完書き込み
       const missing: Record<string, any> = {};
       if (!data.sendTime) missing.sendTime = DEFAULT_SETTINGS.sendTime;
-      if (!data.examType) missing.examType = DEFAULT_SETTINGS.examType;
-      if (!data.examLevel) missing.examLevel = DEFAULT_SETTINGS.examLevel;
+      if ((data as any).level == null) missing.level = loadedLevel;
       if (data.wordCount == null) missing.wordCount = DEFAULT_SETTINGS.wordCount;
       if (Object.keys(missing).length > 0) {
         await setDoc(ref, { ...missing, updatedAt: serverTimestamp() }, { merge: true });
@@ -198,7 +200,7 @@ export default function SettingsPage() {
     const run = async () => { if (!user) return; await loadUserDoc(user); };
     run().catch((e) => { console.error(e); setMessage("読み込みに失敗しました。"); setMessageType("error"); setLoadingData(false); });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, defaultLevelByExam]);
+  }, [user]);
 
   const onSaveDelivery = async () => {
     if (!user) return;
@@ -237,11 +239,10 @@ export default function SettingsPage() {
     try {
       const ref = doc(db, "users", user.uid);
       await setDoc(ref, {
-        examType, examLevel, wordCount,
+        level, wordCount,
         updatedAt: serverTimestamp(),
       }, { merge: true });
-      setSavedExamType(examType);
-      setSavedExamLevel(examLevel);
+      setSavedLevel(level);
       setSavedWordCount(wordCount);
       setDifficultySaveMsg({ text: "保存しました", type: "success" });
     } catch (e) {
@@ -350,7 +351,7 @@ export default function SettingsPage() {
   // Check for unsaved changes
   const daysChanged = deliveryDays.some((v, i) => v !== savedDeliveryDays[i]);
   const hasUnsavedDelivery = sendTime !== savedSendTime || daysChanged;
-  const hasUnsavedDifficulty = examType !== savedExamType || examLevel !== savedExamLevel || wordCount !== savedWordCount;
+  const hasUnsavedDifficulty = level !== savedLevel || wordCount !== savedWordCount;
   const hasUnsavedChanges = hasUnsavedDelivery || hasUnsavedDifficulty;
   const [unsavedWarningMsg, setUnsavedWarningMsg] = useState(false);
 
@@ -612,42 +613,42 @@ export default function SettingsPage() {
           <div className="app-card">
             <h2 className="section-title">難易度設定</h2>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-              <div>
-                <label className="form-label">試験</label>
-                <select
-                  className="app-select"
-                  value={examType}
-                  onChange={(e) => {
-                    const v = e.target.value as ExamType;
-                    setExamType(v);
-                    setExamLevel(defaultLevelByExam[v]);
-                  }}
-                >
-                  <option value="TOEIC">TOEIC</option>
-                  <option value="EIKEN">英検</option>
-                  <option value="TOEFL">TOEFL iBT</option>
-                </select>
+            <div style={{ marginBottom: 20 }}>
+              <label className="form-label">レベル</label>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 4 }}>
+                {LEVELS.map((lv) => (
+                  <button
+                    key={lv.value}
+                    type="button"
+                    onClick={() => setLevel(lv.value)}
+                    style={{
+                      display: "flex", flexDirection: "column", gap: 2,
+                      width: "100%", padding: "12px 16px",
+                      border: level === lv.value ? "2px solid #1d1f42" : "2px solid #E5E7EB",
+                      borderRadius: 10,
+                      background: level === lv.value ? "#F5F7FA" : "#fff",
+                      cursor: "pointer", textAlign: "left",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    <span style={{ fontSize: 14, fontWeight: 700, color: level === lv.value ? "#1d1f42" : "#374151" }}>
+                      Level {lv.value} : {lv.name}
+                    </span>
+                    <span style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>{lv.tagline}</span>
+                    <span style={{ fontSize: 11, color: "#9CA3AF" }}>{lv.ref}</span>
+                  </button>
+                ))}
               </div>
+            </div>
 
-              <div>
-                <label className="form-label">レベル</label>
-                <select className="app-select" value={examLevel} onChange={(e) => setExamLevel(e.target.value)}>
-                  {levelOptionsByExam[examType].map((lv) => (
-                    <option key={lv} value={lv}>{lv}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="form-label">単語数（words）</label>
-                <select className="app-select" value={wordCount} onChange={(e) => setWordCount(Number(e.target.value))}>
-                  {[50, 100, 150, 200, 250, 300, 350, 400, 450, 500].map((n) => (
-                    <option key={n} value={n}>{n}</option>
-                  ))}
-                </select>
-                <p className="form-helper">※ 手軽な継続には100〜200がおすすめ</p>
-              </div>
+            <div>
+              <label className="form-label">単語数（words）</label>
+              <select className="app-select" value={wordCount} onChange={(e) => setWordCount(Number(e.target.value))}>
+                {[50, 100, 150, 200, 250, 300, 350, 400, 450, 500].map((n) => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
+              <p className="form-helper">※ 手軽な継続には100〜200がおすすめ</p>
             </div>
 
             <p style={{ marginTop: 16, fontSize: 13, color: "#1d1f42", lineHeight: 1.7, fontWeight: 600 }}>
