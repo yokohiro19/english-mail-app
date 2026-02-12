@@ -41,14 +41,14 @@ function VerifyContent() {
                 メール認証が完了しました
               </h1>
               <p style={{ fontSize: 14, color: "#6B7280", marginBottom: 24, lineHeight: 1.7 }}>
-                アカウントが有効化されました。<br />設定画面へ進んで学習を始めましょう。
+                アカウントが有効化されました。<br />「学習プラン」を設定して、学習を始めましょう。
               </p>
               <a
-                href="/settings"
+                href="/routine"
                 className="app-btn-primary"
                 style={{ display: "inline-block", padding: "14px 32px", fontSize: 15, textDecoration: "none" }}
               >
-                設定画面へ進む
+                「学習プラン」画面へ進む
               </a>
             </>
           )}

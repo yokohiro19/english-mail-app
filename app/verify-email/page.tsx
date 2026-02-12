@@ -22,7 +22,7 @@ export default function VerifyEmailPage() {
         return;
       }
       if (u.emailVerified) {
-        router.replace("/settings");
+        router.replace("/routine");
         return;
       }
       setUser(u);
@@ -61,7 +61,7 @@ export default function VerifyEmailPage() {
       await user.reload();
       const refreshedUser = auth.currentUser;
       if (refreshedUser?.emailVerified) {
-        router.replace("/settings");
+        router.replace("/routine");
       } else {
         setMessage({ text: "まだ認証が完了していません。メール内のリンクをクリックしてください。", type: "error" });
       }

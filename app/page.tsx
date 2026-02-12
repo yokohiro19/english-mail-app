@@ -115,8 +115,8 @@ export default function Home() {
           <div className="function-item">
             <img src="/images/strength-record.png" alt="記録" className="function-icon-img" />
             <div className="function-content">
-              <h3>ダッシュボードで積み重ねを確認</h3>
-              <p>これまでどれだけ読んだか、ダッシュボードで積み重ねを確認</p>
+              <h3>「日々の歩み」で積み重ねを確認</h3>
+              <p>これまでどれだけ読んだか、「日々の歩み」で積み重ねを確認</p>
             </div>
           </div>
         </div>
@@ -138,7 +138,7 @@ export default function Home() {
           <div className="step">
             <div className="step-number">2</div>
             <div className="step-content">
-              <h3>学習設定をカスタマイズ</h3>
+              <h3>学習プランをカスタマイズ</h3>
               <p>難易度、文字数、配信時間、受け取りメールアドレスを設定。</p>
             </div>
           </div>

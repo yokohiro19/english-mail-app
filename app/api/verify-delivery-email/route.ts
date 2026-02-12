@@ -93,7 +93,7 @@ export async function GET(req: NextRequest) {
     });
 
     const baseUrl = process.env.NEXT_PUBLIC_APP_BASE_URL || process.env.APP_BASE_URL || "https://tapsmart.jp";
-    return new NextResponse(htmlPage("認証が完了しました", `配信先メールアドレス（${data.deliveryEmail}）が認証されました。`, `${baseUrl}/settings`), { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } });
+    return new NextResponse(htmlPage("認証が完了しました", `配信先メールアドレス（${data.deliveryEmail}）が認証されました。`, `${baseUrl}/routine`), { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } });
   } catch (e: any) {
     console.error("verify-delivery-email GET error:", e);
     return new NextResponse(htmlPage("エラーが発生しました", "しばらくしてから再度お試しください。"), { status: 500, headers: { "Content-Type": "text/html; charset=utf-8" } });
@@ -178,7 +178,7 @@ function htmlPage(title: string, message: string, redirectUrl?: string) {
   <div class="card">
     <h1>${title}</h1>
     <p>${message}</p>
-    ${redirectUrl ? `<p style="margin-top:16px;"><a href="${redirectUrl}">設定ページに戻る</a></p>` : ""}
+    ${redirectUrl ? `<p style="margin-top:16px;"><a href="${redirectUrl}">学習プランに戻る</a></p>` : ""}
   </div>
 </body>
 </html>`;

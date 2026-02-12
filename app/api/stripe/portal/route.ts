@@ -62,7 +62,7 @@ export async function POST(req: Request) {
     await ensureCustomerHasUid(customerId, uid);
 
     const appUrl = getAppUrl(req);
-    const returnUrl = `${appUrl}/settings`;
+    const returnUrl = `${appUrl}/routine`;
 
     const portal = await stripe.billingPortal.sessions.create({
       customer: customerId,

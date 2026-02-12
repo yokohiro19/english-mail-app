@@ -112,7 +112,7 @@ export async function POST(req: Request) {
       jp: out.japanese_translation,
       dateKey: today,
       readUrl,
-      settingsUrl: `${process.env.APP_BASE_URL}/settings`,
+      settingsUrl: `${process.env.APP_BASE_URL}/routine`,
     });
 
     // Send via Resend

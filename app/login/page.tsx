@@ -32,7 +32,7 @@ export default function LoginPage() {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
       if (user) {
-        router.replace("/settings");
+        router.replace("/routine");
       } else {
         setCheckingAuth(false);
       }
@@ -46,7 +46,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.push("/settings");
+      router.push("/routine");
     } catch (err: any) {
       setError(firebaseErrorJa(err));
     } finally {

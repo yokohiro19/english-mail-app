@@ -31,7 +31,7 @@ export default function SignupPage() {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
       if (user) {
-        router.replace("/settings");
+        router.replace("/routine");
       } else {
         setCheckingAuth(false);
       }

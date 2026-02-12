@@ -40,11 +40,11 @@ export default function AppHeader({ variant = "app" }: Props) {
           <img src="/images/logo.png" alt="TapSmart English" />
         </a>
         <nav className="app-header-nav">
-          <a href="/dashboard" className={pathname === "/dashboard" ? "active" : ""}>
-            ダッシュボード
+          <a href="/journey" className={pathname === "/journey" ? "active" : ""}>
+            日々の歩み
           </a>
-          <a href="/settings" className={pathname === "/settings" ? "active" : ""}>
-            設定
+          <a href="/routine" className={pathname === "/routine" ? "active" : ""}>
+            学習プラン
           </a>
           <button onClick={handleLogout} className="nav-logout">
             ログアウト

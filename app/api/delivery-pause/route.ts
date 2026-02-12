@@ -5,8 +5,9 @@ import { FieldValue } from "firebase-admin/firestore";
 export const runtime = "nodejs";
 
 // JST helpers
-function jstNow() {
-  return new Date(Date.now() + 9 * 60 * 60 * 1000);
+// 4:00 AM JST boundary: JST - 4h = UTC + 5h
+function logicalJstNow() {
+  return new Date(Date.now() + 5 * 60 * 60 * 1000);
 }
 function dateKeyFromJst(d: Date) {
   const y = d.getUTCFullYear();
@@ -40,7 +41,7 @@ export async function POST(req: Request) {
 
     const userData = userSnap.data() as any;
     const wasPaused = Boolean(userData.deliveryPaused);
-    const todayKey = dateKeyFromJst(jstNow());
+    const todayKey = dateKeyFromJst(logicalJstNow());
 
     if (paused && !wasPaused) {
       // Start pause: record pausedAt

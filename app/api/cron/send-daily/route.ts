@@ -16,6 +16,10 @@ function jstNow() {
   const now = new Date();
   return new Date(now.getTime() + 9 * 60 * 60 * 1000);
 }
+// 4:00 AM JST boundary: JST - 4h = UTC + 5h
+function logicalJstNow() {
+  return new Date(Date.now() + 5 * 60 * 60 * 1000);
+}
 function hhmm(d: Date) {
   const h = String(d.getUTCHours()).padStart(2, "0");
   const m = String(d.getUTCMinutes()).padStart(2, "0");
@@ -160,7 +164,7 @@ export async function GET(req: Request) {
 
     const nowJst = jstNow();
     const targetHHMM = hhmm(nowJst);
-    const today = dateKey(nowJst);
+    const today = dateKey(logicalJstNow());
 
     // ✅ 直近5分のsendTimeを対象にする（Cron遅延に強い）
     const windowHHMM = hhmmListForLastMinutes(nowJst, 5);
@@ -282,7 +286,7 @@ export async function GET(req: Request) {
           jp: out.japanese_translation,
           dateKey: today,
           readUrl,
-          settingsUrl: `${process.env.APP_BASE_URL}/settings`,
+          settingsUrl: `${process.env.APP_BASE_URL}/routine`,
         });
 
         const sendRes = await resend.emails.send({

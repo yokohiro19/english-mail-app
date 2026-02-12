@@ -15,6 +15,10 @@ function rankOf(rate: number): Rank {
 function jstNow() {
   return new Date(Date.now() + 9 * 60 * 60 * 1000);
 }
+// 4:00 AM JST boundary: JST - 4h = UTC + 5h
+function logicalJstNow() {
+  return new Date(Date.now() + 5 * 60 * 60 * 1000);
+}
 function dateKeyFromJst(d: Date) {
   const y = d.getUTCFullYear();
   const m = String(d.getUTCMonth() + 1).padStart(2, "0");
@@ -69,8 +73,8 @@ export async function GET(req: Request) {
 
     const db = getAdminDb();
 
-    const nowJst = jstNow();
-    const todayKey = dateKeyFromJst(nowJst);
+    const nowLogical = logicalJstNow();
+    const todayKey = dateKeyFromJst(nowLogical);
 
     // ユーザーの createdAt を取得（登録日より前を計算から除外するため）
     const userSnap = await db.collection("users").doc(uid).get();
@@ -80,8 +84,8 @@ export async function GET(req: Request) {
       const ts = userData.createdAt.toDate
         ? userData.createdAt.toDate()
         : new Date(userData.createdAt);
-      const createdJst = new Date(ts.getTime() + 9 * 60 * 60 * 1000);
-      createdAtKey = dateKeyFromJst(createdJst);
+      const createdLogical = new Date(ts.getTime() + 5 * 60 * 60 * 1000);
+      createdAtKey = dateKeyFromJst(createdLogical);
     }
 
     // 一時停止期間を取得
@@ -151,8 +155,8 @@ export async function GET(req: Request) {
     const partialErrors: string[] = [];
 
     // 12ヶ月前の1日を起点キーとして算出
-    const y = nowJst.getUTCFullYear();
-    const m1to12 = nowJst.getUTCMonth() + 1;
+    const y = nowLogical.getUTCFullYear();
+    const m1to12 = nowLogical.getUTCMonth() + 1;
     const base = jstMidnightUtcDate(y, m1to12, 1);
     const twelveMonthsAgo = addMonthsJstMidnight(base, -11);
     const rangeStartKey = dateKeyFromJst(twelveMonthsAgo);
@@ -207,9 +211,9 @@ export async function GET(req: Request) {
 
     // ---- 今週（日曜始まり） ----
     try {
-      const dow = nowJst.getUTCDay(); // 0=日, 1=月, ..., 6=土
+      const dow = nowLogical.getUTCDay(); // 0=日, 1=月, ..., 6=土
       const sundayJst = addDaysUtc(
-        jstMidnightUtcDate(y, m1to12, nowJst.getUTCDate()),
+        jstMidnightUtcDate(y, m1to12, nowLogical.getUTCDate()),
         -dow
       );
       let weekStartKey = dateKeyFromJst(sundayJst);

@@ -7,6 +7,10 @@ import { FieldValue } from "firebase-admin/firestore";
 function jstNow() {
   return new Date(Date.now() + 9 * 60 * 60 * 1000);
 }
+// 4:00 AM JST boundary: JST - 4h = UTC + 5h
+function logicalJstNow() {
+  return new Date(Date.now() + 5 * 60 * 60 * 1000);
+}
 function dateKeyFromJst(d: Date) {
   const y = d.getUTCFullYear();
   const m = String(d.getUTCMonth() + 1).padStart(2, "0");
@@ -42,14 +46,14 @@ export async function GET(req: Request) {
       return NextResponse.json({ ok: false, error: "delivery_not_found" }, { status: 404 });
     }
 
-    // 既読 → 設定画面にリダイレクト（バナー表示付き）
+    // 既読 → 学習プラン画面にリダイレクト（バナー表示付き）
     if (isFirstRead === false) {
-      const settingsUrl = new URL("/settings?already_read=1", url.origin);
+      const settingsUrl = new URL("/routine?already_read=1", url.origin);
       return NextResponse.redirect(settingsUrl.toString(), 302);
     }
 
-    // Step 2: 「読んだ日」= 今日（JST）の studyLog を作成/更新
-    const readDateKey = dateKeyFromJst(jstNow());
+    // Step 2: 「読んだ日」= 今日（4:00 AM JST境界）の studyLog を作成/更新
+    const readDateKey = dateKeyFromJst(logicalJstNow());
     const logId = `${uid}_${readDateKey}`;
     const logRef = db.collection("studyLogs").doc(logId);
 
@@ -230,7 +234,7 @@ function buildReadPage(dateKey: string, appBaseUrl: string, nickname: string) {
       color: #4EFFF4;
       font-weight: 800;
     }
-    .btn-settings {
+    .btn-routine {
       display: inline-block;
       background: #1d1f42;
       color: #fff;
@@ -242,8 +246,8 @@ function buildReadPage(dateKey: string, appBaseUrl: string, nickname: string) {
       letter-spacing: 0.3px;
       transition: opacity 0.2s;
     }
-    .btn-settings:hover { opacity: 0.85; }
-    .btn-dashboard {
+    .btn-routine:hover { opacity: 0.85; }
+    .btn-journey {
       display: inline-block;
       margin-top: 12px;
       background: transparent;
@@ -256,7 +260,7 @@ function buildReadPage(dateKey: string, appBaseUrl: string, nickname: string) {
       border: 1px solid #D1D5DB;
       transition: all 0.2s;
     }
-    .btn-dashboard:hover { background: #F5F7FA; border-color: #9CA3AF; }
+    .btn-journey:hover { background: #F5F7FA; border-color: #9CA3AF; }
     .footer {
       text-align: center;
       padding: 16px 24px;
@@ -273,7 +277,7 @@ function buildReadPage(dateKey: string, appBaseUrl: string, nickname: string) {
 </head>
 <body>
   <div class="header">
-    <a href="${appBaseUrl}/dashboard" class="header-logo"><span style="color:#ffffff">TapSmart</span> <span style="color:#4EFFF4">English</span></a>
+    <a href="${appBaseUrl}/journey" class="header-logo"><span style="color:#ffffff">TapSmart</span> <span style="color:#4EFFF4">English</span></a>
   </div>
   <div class="main">
     <div class="card">
@@ -282,7 +286,7 @@ function buildReadPage(dateKey: string, appBaseUrl: string, nickname: string) {
       <div class="title">Marked as read.</div>
       <div class="subtitle">See you tomorrow.</div>
       <div class="date">${dateKey.replaceAll("-", "/")}</div>
-      <a href="${appBaseUrl}/dashboard" class="btn-dashboard">ダッシュボードで学習成果を確認する</a>
+      <a href="${appBaseUrl}/journey" class="btn-journey">「日々の歩み」で学習成果を確認する</a>
 
       <div class="divider" style="margin-top:28px"></div>
 
@@ -318,7 +322,7 @@ function buildReadPage(dateKey: string, appBaseUrl: string, nickname: string) {
         </div>
       </div>
 
-      <a href="${appBaseUrl}/settings" class="btn-settings">設定を変更する</a>
+      <a href="${appBaseUrl}/routine" class="btn-routine">学習プランを変更する</a>
     </div>
   </div>
   <div class="footer">TapSmart English — tapsmart.jp</div>

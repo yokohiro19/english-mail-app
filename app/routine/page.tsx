@@ -287,8 +287,8 @@ export default function SettingsPage() {
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({
           trialDays: 7,
-          successPath: "/settings?billing=success",
-          cancelPath: "/settings?billing=cancel",
+          successPath: "/routine?billing=success",
+          cancelPath: "/routine?billing=cancel",
           consent: {
             agreedAt: new Date().toISOString(),
             termsVersion: "2026-02-06",
@@ -305,7 +305,7 @@ export default function SettingsPage() {
         }),
       });
       const json = await res.json().catch(() => ({}));
-      if (json?.code === "subscription_exists") { await openPortalInternal("/settings"); return; }
+      if (json?.code === "subscription_exists") { await openPortalInternal("/routine"); return; }
       if (!res.ok || !json?.ok || !json?.url) { setBillingError("課金処理に失敗しました。"); return; }
       window.location.href = json.url;
     } catch {
@@ -324,7 +324,7 @@ export default function SettingsPage() {
       const res = await fetch("/api/stripe/portal", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ returnPath: "/settings" }),
+        body: JSON.stringify({ returnPath: "/routine" }),
       });
       const json = await res.json();
       if (!res.ok || !json?.ok || !json?.url) { setBillingError("ポータル起動に失敗しました。"); return; }
@@ -336,7 +336,7 @@ export default function SettingsPage() {
     }
   };
 
-  const openPortalInternal = async (returnPath = "/settings") => {
+  const openPortalInternal = async (returnPath = "/routine") => {
     if (!user) throw new Error("no_user");
     const token = await user.getIdToken();
     const res = await fetch("/api/stripe/portal", {
@@ -457,7 +457,7 @@ export default function SettingsPage() {
 
           {/* Page title */}
           <div>
-            <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 28, fontWeight: 800, marginBottom: 4 }}>設定</h1>
+            <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 28, fontWeight: 800, marginBottom: 4 }}>学習プラン</h1>
             <p style={{ fontSize: 14, color: "#6B7280" }}>{nickname || user?.email || ""}様</p>
           </div>
 
@@ -633,7 +633,7 @@ export default function SettingsPage() {
 
           {/* Delivery Settings */}
           <div className="app-card">
-            <h2 className="section-title">配信設定</h2>
+            <h2 className="section-title">メール設定</h2>
 
             {/* Delivery email */}
             <div style={{ marginBottom: 20 }}>
@@ -719,12 +719,13 @@ export default function SettingsPage() {
                 <label className="form-label">配信時間（JST）</label>
                 <select className="app-select" value={sendTime} onChange={(e) => setSendTime(e.target.value)}>
                   {Array.from({ length: 144 }, (_, i) => {
-                    const h = String(Math.floor(i / 6)).padStart(2, "0");
-                    const m = String((i % 6) * 10).padStart(2, "0");
+                    const totalMinutes = (4 * 60 + i * 10) % (24 * 60);
+                    const h = String(Math.floor(totalMinutes / 60)).padStart(2, "0");
+                    const m = String(totalMinutes % 60).padStart(2, "0");
                     return <option key={`${h}:${m}`} value={`${h}:${m}`}>{h}:{m}</option>;
                   })}
                 </select>
-                <p className="form-helper">※ 一日一回まで、指定した時間に配信が行われます</p>
+                <p className="form-helper">※ 朝4:00から翌日3:59を１日とします</p>
               </div>
             </div>
 

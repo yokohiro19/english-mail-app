@@ -289,7 +289,7 @@ export default function DashboardPage() {
           {/* Page title */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div>
-              <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 28, fontWeight: 800, marginBottom: 4 }}>ダッシュボード</h1>
+              <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 28, fontWeight: 800, marginBottom: 4 }}>日々の歩み</h1>
               <p style={{ fontSize: 14, color: "#6B7280" }}>{nickname || user?.email || ""}様</p>
             </div>
             <button
@@ -369,7 +369,7 @@ export default function DashboardPage() {
                 setCursor={setCalendarCursor}
                 monthSummary={selectedMonthSummary}
                 createdAtKey={createdAtKey}
-                todayKey={stats.todayKey ?? ymdJst(new Date())}
+                todayKey={stats.todayKey ?? logicalTodayJst()}
               />
 
               {/* Study logs table */}
@@ -417,6 +417,14 @@ function ymdJst(d: Date) {
   const y = jst.getUTCFullYear();
   const m = String(jst.getUTCMonth() + 1).padStart(2, "0");
   const day = String(jst.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+// 4:00 AM JST boundary: JST - 4h = UTC + 5h
+function logicalTodayJst() {
+  const d = new Date(Date.now() + 5 * 60 * 60 * 1000);
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(d.getUTCDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
 }
 
