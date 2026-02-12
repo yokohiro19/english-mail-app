@@ -224,9 +224,9 @@ export default function SettingsPage() {
       setSavedSendTime(sendTime);
       setSavedDeliveryDays([...deliveryDays]);
       setDeliverySaveMsg({ text: "保存しました", type: "success" });
-    } catch (e) {
-      console.error(e);
-      setDeliverySaveMsg({ text: "保存に失敗しました。", type: "error" });
+    } catch (e: any) {
+      console.error("[saveDelivery]", e);
+      setDeliverySaveMsg({ text: `保存に失敗しました（${e?.code || e?.message || "unknown"}）`, type: "error" });
     } finally {
       setSavingDelivery(false);
     }
@@ -245,9 +245,9 @@ export default function SettingsPage() {
       setSavedLevel(level);
       setSavedWordCount(wordCount);
       setDifficultySaveMsg({ text: "保存しました", type: "success" });
-    } catch (e) {
-      console.error(e);
-      setDifficultySaveMsg({ text: "保存に失敗しました。", type: "error" });
+    } catch (e: any) {
+      console.error("[saveDifficulty]", e);
+      setDifficultySaveMsg({ text: `保存に失敗しました（${e?.code || e?.message || "unknown"}）`, type: "error" });
     } finally {
       setSavingDifficulty(false);
     }
