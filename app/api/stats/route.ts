@@ -209,14 +209,15 @@ export async function GET(req: Request) {
       if (typeof log.dateKey === "string") allDateKeys.add(log.dateKey);
     }
 
-    // ---- 今週（日曜始まり） ----
+    // ---- 今週（月曜始まり） ----
     try {
       const dow = nowLogical.getUTCDay(); // 0=日, 1=月, ..., 6=土
-      const sundayJst = addDaysUtc(
+      const mondayOffset = dow === 0 ? -6 : -(dow - 1); // 月曜までの日数
+      const mondayJst = addDaysUtc(
         jstMidnightUtcDate(y, m1to12, nowLogical.getUTCDate()),
-        -dow
+        mondayOffset
       );
-      let weekStartKey = dateKeyFromJst(sundayJst);
+      let weekStartKey = dateKeyFromJst(mondayJst);
 
       // createdAt より前の日を除外
       if (createdAtKey && createdAtKey > weekStartKey) {

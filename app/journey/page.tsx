@@ -453,16 +453,18 @@ function CalendarHeatmap({
   const month = cursor.getMonth();
   const first = new Date(year, month, 1);
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const leading = first.getDay();
+  // Monday-start: Sun(0)→6, Mon(1)→0, Tue(2)→1, ...
+  const leading = (first.getDay() + 6) % 7;
 
-  const cells: Array<{ key: string; day: number; studied: boolean; paused: boolean; beforeReg: boolean; isToday: boolean } | null> = [];
+  const cells: Array<{ key: string; day: number; studied: boolean; paused: boolean; beforeReg: boolean; isToday: boolean; colIdx: number } | null> = [];
   for (let i = 0; i < leading; i++) cells.push(null);
 
   for (let day = 1; day <= daysInMonth; day++) {
     const date = new Date(year, month, day);
     const key = ymdJst(date);
     const beforeReg = createdAtKey ? key < createdAtKey : false;
-    cells.push({ key, day, studied: studiedSet.has(key), paused: pausedSet.has(key), beforeReg, isToday: key === todayKey });
+    const colIdx = (leading + day - 1) % 7; // 0=Mon ... 5=Sat, 6=Sun
+    cells.push({ key, day, studied: studiedSet.has(key), paused: pausedSet.has(key), beforeReg, isToday: key === todayKey, colIdx });
   }
 
   while (cells.length < 42) cells.push(null);
@@ -496,8 +498,8 @@ function CalendarHeatmap({
 
       {/* Day headers */}
       <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6, fontSize: 12, color: "#6B7280", textAlign: "center" }}>
-        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((w) => (
-          <div key={w}>{w}</div>
+        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((w) => (
+          <div key={w} style={{ color: w === "Sat" ? "#93B5E0" : w === "Sun" ? "#E0A0A0" : "#6B7280" }}>{w}</div>
         ))}
       </div>
 
@@ -506,7 +508,9 @@ function CalendarHeatmap({
         {cells.map((c, idx) => {
           if (!c) return <div key={idx} style={{ height: 40, borderRadius: 8 }} />;
 
-          const bg = c.isToday ? "#FFF9E0" : c.paused ? "#F9FAFB" : "#fff";
+          const isSat = c.colIdx === 5;
+          const isSun = c.colIdx === 6;
+          const bg = c.isToday ? "#FFF9E0" : c.paused ? "#F9FAFB" : isSat ? "#F0F5FB" : isSun ? "#FBF0F0" : "#fff";
 
           return (
             <div
