@@ -83,10 +83,59 @@
   background: rgba(78, 255, 244, 0.1);
 }
 
-.app-header-nav .nav-logout {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 13px;
-  margin-left: 8px;
+.nav-hamburger {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+.nav-hamburger:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.nav-hamburger span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 1px;
+}
+
+.nav-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+  min-width: 180px;
+  padding: 8px 0;
+  z-index: 200;
+}
+.nav-dropdown a,
+.nav-dropdown button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151 !important;
+  background: none !important;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  font-family: 'Inter', sans-serif;
+  transition: background 0.15s;
+}
+.nav-dropdown a:hover,
+.nav-dropdown button:hover {
+  background: #F5F7FA !important;
+  color: #1d1f42 !important;
 }
 
 /* ===== Auth header (login/signup) ===== */
@@ -412,8 +461,10 @@
     padding: 6px 8px;
   }
 
-  .app-header-nav .nav-logout {
-    font-size: 11px;
-    margin-left: 4px;
+  .nav-hamburger span {
+    width: 16px;
+  }
+  .nav-hamburger {
+    padding: 6px 8px;
   }
 }
