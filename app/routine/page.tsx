@@ -52,9 +52,12 @@ export default function SettingsPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [loadingData, setLoadingData] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [messageType, setMessageType] = useState<"success" | "error">("success");
+  const [savingDelivery, setSavingDelivery] = useState(false);
+  const [deliverySaveMsg, setDeliverySaveMsg] = useState<{text: string; type: "success"|"error"} | null>(null);
+  const [savingDifficulty, setSavingDifficulty] = useState(false);
+  const [difficultySaveMsg, setDifficultySaveMsg] = useState<{text: string; type: "success"|"error"} | null>(null);
 
   const [nickname, setNickname] = useState("");
 
@@ -197,45 +200,55 @@ export default function SettingsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, defaultLevelByExam]);
 
-  const onSave = async () => {
+  const onSaveDelivery = async () => {
     if (!user) return;
-    setSaving(true);
-    setMessage(null);
+    setSavingDelivery(true);
+    setDeliverySaveMsg(null);
     try {
       const ref = doc(db, "users", user.uid);
       const daysArray = deliveryDays.map((on, i) => on ? i : -1).filter(i => i >= 0);
-
       const updateData: Record<string, any> = {
-        email: user.email ?? "",
-        examType, examLevel, wordCount, sendTime,
+        sendTime,
         deliveryDays: daysArray,
         updatedAt: serverTimestamp(),
       };
-
-      // Legacy pause migration
       if (legacyPaused) {
         updateData.deliveryPaused = false;
         updateData.pausedAt = deleteField();
-        // pausedAt→今日の期間をpausedPeriodsに追加はserver-side delivery-pause APIが行うべきだが
-        // ここでは単純にフラグを落とす（pausedPeriodsは既存のまま保持）
         setLegacyPaused(false);
         setLegacyPausedAt(null);
       }
-
       await setDoc(ref, updateData, { merge: true });
+      setSavedSendTime(sendTime);
+      setSavedDeliveryDays([...deliveryDays]);
+      setDeliverySaveMsg({ text: "保存しました", type: "success" });
+    } catch (e) {
+      console.error(e);
+      setDeliverySaveMsg({ text: "保存に失敗しました。", type: "error" });
+    } finally {
+      setSavingDelivery(false);
+    }
+  };
+
+  const onSaveDifficulty = async () => {
+    if (!user) return;
+    setSavingDifficulty(true);
+    setDifficultySaveMsg(null);
+    try {
+      const ref = doc(db, "users", user.uid);
+      await setDoc(ref, {
+        examType, examLevel, wordCount,
+        updatedAt: serverTimestamp(),
+      }, { merge: true });
       setSavedExamType(examType);
       setSavedExamLevel(examLevel);
       setSavedWordCount(wordCount);
-      setSavedSendTime(sendTime);
-      setSavedDeliveryDays([...deliveryDays]);
-      setMessage("保存しました");
-      setMessageType("success");
+      setDifficultySaveMsg({ text: "保存しました", type: "success" });
     } catch (e) {
       console.error(e);
-      setMessage("保存に失敗しました。");
-      setMessageType("error");
+      setDifficultySaveMsg({ text: "保存に失敗しました。", type: "error" });
     } finally {
-      setSaving(false);
+      setSavingDifficulty(false);
     }
   };
 
@@ -336,7 +349,9 @@ export default function SettingsPage() {
 
   // Check for unsaved changes
   const daysChanged = deliveryDays.some((v, i) => v !== savedDeliveryDays[i]);
-  const hasUnsavedChanges = examType !== savedExamType || examLevel !== savedExamLevel || wordCount !== savedWordCount || sendTime !== savedSendTime || daysChanged;
+  const hasUnsavedDelivery = sendTime !== savedSendTime || daysChanged;
+  const hasUnsavedDifficulty = examType !== savedExamType || examLevel !== savedExamLevel || wordCount !== savedWordCount;
+  const hasUnsavedChanges = hasUnsavedDelivery || hasUnsavedDifficulty;
   const [unsavedWarningMsg, setUnsavedWarningMsg] = useState(false);
 
   const sendTrialMail = async () => {
@@ -402,6 +417,10 @@ export default function SettingsPage() {
             <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 28, fontWeight: 800, marginBottom: 4 }}>学習プラン</h1>
             <p style={{ fontSize: 14, color: "#6B7280" }}>{nickname || user?.email || ""}様</p>
           </div>
+
+          {message && (
+            <div className={messageType === "success" ? "app-success" : "app-error"} style={{ padding: "8px 16px" }}>{message}</div>
+          )}
 
           {/* Billing card for free users */}
           {plan !== "standard" && (
@@ -580,6 +599,13 @@ export default function SettingsPage() {
               </div>
               <p className="form-helper">※ OFFの曜日はメールが届かず、達成率の計算からも除外されます</p>
             </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 20 }}>
+              <button onClick={onSaveDelivery} disabled={savingDelivery} className="app-btn-primary">
+                {savingDelivery ? "保存中..." : "保存"}
+              </button>
+              {deliverySaveMsg && <span style={{ fontSize: 13, color: deliverySaveMsg.type === "success" ? "#059669" : "#991B1B", fontWeight: 600 }}>{deliverySaveMsg.text}</span>}
+            </div>
           </div>
 
           {/* 難易度設定 */}
@@ -628,14 +654,13 @@ export default function SettingsPage() {
               英文のテーマはビジネス関連のトピックからランダムに選出されます。<br />
               同じようなテーマが連続で届く場合もありますので、あらかじめご了承ください。
             </p>
-          </div>
 
-          {/* 保存ボタン */}
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <button onClick={onSave} disabled={saving} className="app-btn-primary">
-              {saving ? "保存中..." : "保存"}
-            </button>
-            {message && <div className={messageType === "success" ? "app-success" : "app-error"} style={{ padding: "8px 16px" }}>{message}</div>}
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 20 }}>
+              <button onClick={onSaveDifficulty} disabled={savingDifficulty} className="app-btn-primary">
+                {savingDifficulty ? "保存中..." : "保存"}
+              </button>
+              {difficultySaveMsg && <span style={{ fontSize: 13, color: difficultySaveMsg.type === "success" ? "#059669" : "#991B1B", fontWeight: 600 }}>{difficultySaveMsg.text}</span>}
+            </div>
           </div>
 
           {/* Trial mail button */}
