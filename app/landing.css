@@ -338,7 +338,7 @@
 /* Function Details Section */
 .function-details {
   padding: 100px 40px;
-  background: linear-gradient(170deg, #FFFDF5 0%, #FFF8E7 50%, #FFFDF5 100%);
+  background: linear-gradient(170deg, #FEFFF5 0%, #FCFFE8 50%, #FEFFF5 100%);
   position: relative;
   overflow: hidden;
 }
@@ -350,7 +350,7 @@
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle, rgba(255, 210, 50, 0.06) 0%, transparent 60%);
+  background: radial-gradient(circle, rgba(230, 240, 50, 0.05) 0%, transparent 60%);
   animation: rotate 25s linear infinite;
   pointer-events: none;
 }
@@ -362,7 +362,7 @@
   right: -40%;
   width: 180%;
   height: 180%;
-  background: radial-gradient(circle, rgba(255, 200, 50, 0.04) 0%, transparent 55%);
+  background: radial-gradient(circle, rgba(220, 235, 50, 0.03) 0%, transparent 55%);
   animation: rotate 30s linear infinite reverse;
   pointer-events: none;
 }
@@ -404,7 +404,7 @@
   grid-template-columns: 64px 1fr;
   gap: 28px;
   align-items: center;
-  background: linear-gradient(135deg, rgba(255, 253, 245, 0.95) 0%, rgba(255, 249, 230, 0.9) 100%);
+  background: linear-gradient(135deg, rgba(254, 255, 248, 0.95) 0%, rgba(252, 255, 235, 0.9) 100%);
   backdrop-filter: blur(10px);
   padding: 32px 36px;
   border-radius: 18px;
@@ -414,7 +414,7 @@
 }
 
 .function-item:hover {
-  background: linear-gradient(135deg, rgba(255, 251, 235, 0.98) 0%, rgba(255, 245, 210, 0.95) 100%);
+  background: linear-gradient(135deg, rgba(253, 255, 240, 0.98) 0%, rgba(250, 255, 225, 0.95) 100%);
   transform: translateY(-2px);
   box-shadow: 0 8px 28px rgba(180, 150, 50, 0.1);
   border-color: rgba(217, 181, 82, 0.3);
