@@ -338,7 +338,7 @@
 /* Function Details Section */
 .function-details {
   padding: 100px 40px;
-  background: linear-gradient(170deg, #FFF9E6 0%, #FFF3CC 50%, #FFF9E6 100%);
+  background: linear-gradient(170deg, #FFFDF5 0%, #FFF8E7 50%, #FFFDF5 100%);
   position: relative;
   overflow: hidden;
 }
@@ -350,7 +350,7 @@
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle, rgba(255, 200, 0, 0.1) 0%, transparent 60%);
+  background: radial-gradient(circle, rgba(255, 210, 50, 0.06) 0%, transparent 60%);
   animation: rotate 25s linear infinite;
   pointer-events: none;
 }
@@ -362,7 +362,7 @@
   right: -40%;
   width: 180%;
   height: 180%;
-  background: radial-gradient(circle, rgba(255, 180, 0, 0.06) 0%, transparent 55%);
+  background: radial-gradient(circle, rgba(255, 200, 50, 0.04) 0%, transparent 55%);
   animation: rotate 30s linear infinite reverse;
   pointer-events: none;
 }
@@ -373,7 +373,7 @@
 }
 
 .strengths-brand {
-  color: var(--primary-blue);
+  color: #8B6914;
 }
 
 .function-details .section-header h2 {
@@ -384,8 +384,8 @@
 .function-details .section-header p {
   font-size: 20px;
   font-weight: 600;
-  color: var(--dark-navy);
-  opacity: 0.6;
+  color: #7A5F1A;
+  opacity: 0.7;
   letter-spacing: 2px;
 }
 
@@ -404,20 +404,20 @@
   grid-template-columns: 64px 1fr;
   gap: 28px;
   align-items: center;
-  background: linear-gradient(135deg, rgba(237, 242, 241, 0.9) 0%, rgba(227, 237, 235, 0.85) 100%);
+  background: linear-gradient(135deg, rgba(255, 253, 245, 0.95) 0%, rgba(255, 249, 230, 0.9) 100%);
   backdrop-filter: blur(10px);
   padding: 32px 36px;
   border-radius: 18px;
-  border: 1px solid rgba(78, 255, 244, 0.12);
-  box-shadow: 0 2px 16px rgba(29, 31, 66, 0.06);
+  border: 1px solid rgba(217, 181, 82, 0.18);
+  box-shadow: 0 2px 16px rgba(180, 150, 50, 0.06);
   transition: all 0.3s ease;
 }
 
 .function-item:hover {
-  background: linear-gradient(135deg, rgba(232, 240, 238, 0.95) 0%, rgba(220, 234, 231, 0.95) 100%);
+  background: linear-gradient(135deg, rgba(255, 251, 235, 0.98) 0%, rgba(255, 245, 210, 0.95) 100%);
   transform: translateY(-2px);
-  box-shadow: 0 8px 28px rgba(29, 31, 66, 0.1);
-  border-color: rgba(78, 255, 244, 0.25);
+  box-shadow: 0 8px 28px rgba(180, 150, 50, 0.1);
+  border-color: rgba(217, 181, 82, 0.3);
 }
 
 .function-icon {
