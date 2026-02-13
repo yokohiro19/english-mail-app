@@ -116,7 +116,7 @@ export default function BillingPage() {
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({
           trialDays: 7,
-          successPath: "/billing?billing=success",
+          successPath: "/routine?billing=success",
           cancelPath: "/billing?billing=cancel",
           consent: {
             agreedAt: new Date().toISOString(),

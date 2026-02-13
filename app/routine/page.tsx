@@ -59,11 +59,21 @@ export default function SettingsPage() {
 
   // already_read バナー
   const [alreadyReadBanner, setAlreadyReadBanner] = useState(false);
+  // billing=success バナー（トライアル申込完了後の遷移）
+  const [billingBanner, setBillingBanner] = useState<string | null>(null);
   useEffect(() => {
-    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("already_read") === "1") {
-      setAlreadyReadBanner(true);
-      const t = setTimeout(() => setAlreadyReadBanner(false), 4000);
-      return () => clearTimeout(t);
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("already_read") === "1") {
+        setAlreadyReadBanner(true);
+        const t = setTimeout(() => setAlreadyReadBanner(false), 4000);
+        return () => clearTimeout(t);
+      }
+      if (params.get("billing") === "success") {
+        setBillingBanner("トライアルの申し込みが完了しました！配信設定をカスタマイズしましょう。");
+        const t = setTimeout(() => setBillingBanner(null), 6000);
+        return () => clearTimeout(t);
+      }
     }
   }, []);
 
@@ -410,6 +420,17 @@ export default function SettingsPage() {
             }}>
               この文書は既に読了しています
               <style>{`@keyframes fadeInOut { 0% { opacity: 0; } 10% { opacity: 1; } 75% { opacity: 1; } 100% { opacity: 0; } }`}</style>
+            </div>
+          )}
+
+          {billingBanner && (
+            <div style={{
+              background: "#1d1f42", color: "#fff", padding: "14px 20px", borderRadius: 12,
+              fontSize: 14, fontWeight: 600, textAlign: "center",
+              animation: "fadeInOut6 6s ease-in-out forwards",
+            }}>
+              {billingBanner}
+              <style>{`@keyframes fadeInOut6 { 0% { opacity: 0; } 8% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }`}</style>
             </div>
           )}
 
