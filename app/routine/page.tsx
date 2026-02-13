@@ -28,11 +28,11 @@ const DEFAULT_SETTINGS: Omit<UserSettings, "email"> = {
 };
 
 const LEVELS = [
-  { value: 1, name: "Storybook", tagline: "情景が浮かび、英語が心地よく入ってくる", ref: "英検3級 / TOEIC ~300" },
-  { value: 2, name: "Lifestyle", tagline: "海外の空気感を気軽に味わえる", ref: "英検準2級 / TOEIC 400~" },
+  { value: 1, name: "Fundamental", tagline: "英語の「核」を捉え、読む自信を積み上げる", ref: "英検3級 / TOEIC ~300" },
+  { value: 2, name: "Daily Connect", tagline: "「定型文」を卒業し、状況に応じた文脈を掴む", ref: "英検準2級 / TOEIC 400~" },
   { value: 3, name: "Business Lite", tagline: "「明日誰かに話したくなる」知的な刺激を、負担なく摂取する", ref: "英検2級 / TOEIC 600~" },
-  { value: 4, name: "Global Pulse", tagline: "英語を「勉強」するのではなく、英語「で」世界を知る実感", ref: "英検準1級 / TOEIC 800~" },
-  { value: 5, name: "Executive", tagline: "英語の壁を忘れ、書き手の思想や深い洞察に没頭", ref: "英検1級 / TOEIC 900~" },
+  { value: 4, name: "Global Pulse", tagline: "英語を「勉強」するのではなく、英語「で」世界を知る", ref: "英検準1級 / TOEIC 800~" },
+  { value: 5, name: "Executive", tagline: "英語の壁を忘れ、書き手の思想や深い洞察に没頭する", ref: "英検1級 / TOEIC 900~" },
 ];
 
 function legacyExamToLevel(examType: string, examLevel: string): number {
