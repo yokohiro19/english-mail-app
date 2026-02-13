@@ -502,11 +502,11 @@ export default function SettingsPage() {
                   />
                   <span>
                     上記内容および
-                    <a href="/terms" target="_blank" style={{ color: "var(--primary-cyan)", textDecoration: "underline" }}>利用規約</a>
+                    <a href="/terms" target="_blank" style={{ color: "#1d1f42", textDecoration: "underline" }}>利用規約</a>
                     ・
-                    <a href="/privacy" target="_blank" style={{ color: "var(--primary-cyan)", textDecoration: "underline" }}>プライバシーポリシー</a>
+                    <a href="/privacy" target="_blank" style={{ color: "#1d1f42", textDecoration: "underline" }}>プライバシーポリシー</a>
                     ・
-                    <a href="/legal/tokushoho" target="_blank" style={{ color: "var(--primary-cyan)", textDecoration: "underline" }}>特定商取引法に基づく表記</a>
+                    <a href="/legal/tokushoho" target="_blank" style={{ color: "#1d1f42", textDecoration: "underline" }}>特定商取引法に基づく表記</a>
                     に同意します
                   </span>
                 </label>
