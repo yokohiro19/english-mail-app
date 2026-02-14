@@ -208,11 +208,25 @@ export async function POST(req: Request) {
     // subscription_data（uidをsubscriptionにも刻む）
     // トライアル未使用 → フル日数、使用済みだが期間内 → 残日数で無料再開
     const effectiveTrialDays = !trialUsed ? requestedTrialDays : remainingTrialDays;
+
+    // trial_end を JST 00:00 ぴったりに設定
+    let trialEndUnix: number | undefined;
+    if (effectiveTrialDays > 0) {
+      const jstOffset = 9 * 60 * 60 * 1000;
+      const jstNow = new Date(Date.now() + jstOffset);
+      // 今日 + effectiveTrialDays 日の JST 00:00
+      const targetMidnightJst = Date.UTC(
+        jstNow.getUTCFullYear(),
+        jstNow.getUTCMonth(),
+        jstNow.getUTCDate() + effectiveTrialDays,
+      );
+      // JST 00:00 → UTC に戻す
+      trialEndUnix = Math.floor((targetMidnightJst - jstOffset) / 1000);
+    }
+
     const subscriptionData: Stripe.Checkout.SessionCreateParams.SubscriptionData = {
       metadata: { uid },
-      ...(effectiveTrialDays > 0
-        ? { trial_period_days: effectiveTrialDays }
-        : {}),
+      ...(trialEndUnix ? { trial_end: trialEndUnix } : {}),
     };
 
     const session = await stripe.checkout.sessions.create({
