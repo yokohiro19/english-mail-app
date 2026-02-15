@@ -276,10 +276,11 @@ export default function BillingPage() {
                 }}>
                   <p style={{ fontWeight: 600, marginBottom: 8 }}>月額500円（税込）{showFreeTrialLabel && " / 初回7日間無料"}</p>
                   <ul style={{ margin: 0, paddingLeft: 20 }}>
-                    {showFreeTrialLabel && <li>無料期間終了後、自動的に有料プランへ移行します</li>}
+                    {showFreeTrialLabel && <li>無料期間終了後に自動的に課金が開始されます</li>}
+                    {showFreeTrialLabel && <li>無料期間中に解約すれば料金は発生しません</li>}
                     <li>解約しない限り毎月自動更新されます</li>
-                    <li>更新日の前日までにいつでも解約可能です</li>
-                    <li>決済完了後の返金・日割り計算はできません</li>
+                    <li>いつでも解約可能です（解約後も次回更新日まで利用できます）</li>
+                    <li>決済完了後の返金には応じておりません</li>
                   </ul>
                 </div>
 
