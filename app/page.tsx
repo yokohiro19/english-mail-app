@@ -79,8 +79,9 @@ export default function Home() {
             <img src="/images/feature-mail.png" alt="メール" className="feature-icon-img" />
             <h3>いつも使うメールアドレスにお届け</h3>
             <p>
-              指定したアドレスで受け取り可能。<br />
-              <span style={{ fontSize: "13px", opacity: 0.8, color: "#374151" }}>※会社メールでの受け取りは社内規定をご確認ください</span>
+              英文は、指定したアドレスで受け取り可能。<br />
+              だから、毎日に英語との接点が作れます。<br />
+              <span style={{ fontSize: "11px", opacity: 0.7, color: "#374151" }}>※会社メールでの受け取りは社内規定をご確認ください</span>
             </p>
           </div>
           <div className="feature-card">
