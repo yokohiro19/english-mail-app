@@ -77,6 +77,7 @@ export async function generateEmailContent(
     "You are creating English learning material for Japanese learners.",
     "Your task is to generate a complete, ready-to-read English email text that requires NO editing or filling in by the reader.",
     "NEVER use placeholders like [Your Name], [Company], [Date], [Recipient], etc. Instead, use realistic fictional names and details.",
+    "Email signatures MUST only contain a fictional name and job title (2 lines max). NEVER include company names, email addresses, phone numbers, URLs, or physical addresses in signatures.",
     "Return output as JSON that strictly matches the schema.",
     "Difficulty MUST follow CEFR level only (A2/B1/B2/C1/C2).",
     "For A2–B1: keep sentences short, avoid complex subordinate clauses, minimize idioms, avoid abstract discussion.",
