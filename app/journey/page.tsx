@@ -531,7 +531,7 @@ function CalendarHeatmap({
                 position: "relative",
                 height: 40,
                 borderRadius: 8,
-                border: "1px solid #E8EAED",
+                border: c.isToday ? "2px solid #E5C84B" : "1px solid #E8EAED",
                 background: bg,
                 display: "flex",
                 alignItems: "center",
