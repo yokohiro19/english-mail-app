@@ -76,14 +76,15 @@ export async function GET(req: Request) {
     const nowLogical = logicalJstNow();
     const todayKey = dateKeyFromJst(nowLogical);
 
-    // ユーザーの createdAt を取得（登録日より前を計算から除外するため）
+    // ユーザーの起点日を取得（トライアル開始日 or 登録日より前を計算から除外）
     const userSnap = await db.collection("users").doc(uid).get();
     const userData = userSnap.exists ? (userSnap.data() as any) : null;
     let createdAtKey: string | null = null;
-    if (userData?.createdAt) {
-      const ts = userData.createdAt.toDate
-        ? userData.createdAt.toDate()
-        : new Date(userData.createdAt);
+    const rawOrigin = userData?.trialStartedAt ?? userData?.createdAt;
+    if (rawOrigin) {
+      const ts = rawOrigin.toDate
+        ? rawOrigin.toDate()
+        : new Date(rawOrigin);
       const createdLogical = new Date(ts.getTime() + 5 * 60 * 60 * 1000);
       createdAtKey = dateKeyFromJst(createdLogical);
     }

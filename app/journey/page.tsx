@@ -223,9 +223,9 @@ export default function DashboardPage() {
       const snap = await getDoc(ref);
       if (snap.exists()) {
         setNickname(snap.data().nickname ?? "");
-        const ca = snap.data().createdAt;
-        if (ca) {
-          const d = ca.toDate ? ca.toDate() : new Date(ca);
+        const origin = snap.data().trialStartedAt ?? snap.data().createdAt;
+        if (origin) {
+          const d = origin.toDate ? origin.toDate() : new Date(origin);
           setCreatedAtKey(ymdJst(d));
         }
       }

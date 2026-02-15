@@ -226,8 +226,7 @@ export default function BillingPage() {
                       try {
                         const d = typeof trialEndsAt?.toDate === "function" ? trialEndsAt.toDate() : trialEndsAt instanceof Date ? trialEndsAt : new Date(trialEndsAt);
                         if (Number.isNaN(d.getTime())) return "";
-                        const prev = new Date(d.getTime() - 24 * 60 * 60 * 1000);
-                        return prev.toLocaleDateString("ja-JP") + " 23:59";
+                        return d.toLocaleDateString("ja-JP") + " " + d.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
                       } catch { return ""; }
                     })()}に終了します
                   </p>

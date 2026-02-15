@@ -102,6 +102,7 @@ function buildPatchFromSubscription(sub: any, fallbackUid?: string | null) {
 
   if (status === "trialing") {
     patch.trialUsed = true;
+    patch.trialStartedAt = new Date();
   }
 
   // plan 判定（現仕様：activeは期間末までstandard）
