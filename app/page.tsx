@@ -79,8 +79,7 @@ export default function Home() {
             <img src="/images/feature-mail.png" alt="メール" className="feature-icon-img" />
             <h3>いつも使うメールアドレスにお届け</h3>
             <p>
-              仕事のメールチェックのついでに、1分だけ英語に触れる。<br />
-              ブラウザやアプリを立ち上げる必要すらありません。
+              仕事のメールチェックのついでに、1分だけ英語に触れる。ブラウザやアプリを立ち上げる必要すらありません。
             </p>
           </div>
           <div className="feature-card">
