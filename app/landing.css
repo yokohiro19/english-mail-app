@@ -350,7 +350,7 @@
 }
 
 .strengths-brand {
-  color: #0D4A44;
+  color: var(--dark-navy);
 }
 
 .function-details .section-header h2 {
@@ -361,7 +361,7 @@
 .function-details .section-header p {
   font-size: 20px;
   font-weight: 600;
-  color: #0D4A44;
+  color: var(--dark-navy);
   opacity: 1;
   letter-spacing: 2px;
 }
