@@ -79,9 +79,8 @@ export default function Home() {
             <img src="/images/feature-mail.png" alt="メール" className="feature-icon-img" />
             <h3>いつも使うメールアドレスにお届け</h3>
             <p>
-              英文は、指定したアドレスで受け取り可能。<br />
-              だから、毎日に英語との接点が作れます。<br />
-              <span style={{ fontSize: "11px", opacity: 0.7, color: "#374151" }}>※会社メールでの受け取りは社内規定をご確認ください</span>
+              仕事のメールチェックのついでに、1分だけ英語に触れる。<br />
+              ブラウザやアプリを立ち上げる必要すらありません。
             </p>
           </div>
           <div className="feature-card">
@@ -101,7 +100,7 @@ export default function Home() {
           <div className="function-item">
             <img src="/images/strength-tap.png" alt="Tap" className="function-icon-img" />
             <div className="function-content">
-              <h3>どこでもできる「Tap」するだけの簡単操作</h3>
+              <h3>アプリを開かず、「Tap」するだけの簡単操作</h3>
               <p>毎日指定した時間に、英文、単語の解説、日本語訳、が記載されたメールが届くので、読んだら「Read ✔」ボタンを押すだけ</p>
             </div>
           </div>
@@ -116,7 +115,7 @@ export default function Home() {
             <img src="/images/strength-record.png" alt="記録" className="function-icon-img" />
             <div className="function-content">
               <h3>「日々の歩み」で積み重ねを確認</h3>
-              <p>これまでどれだけ読んだか、「日々の歩み」で積み重ねを確認</p>
+              <p>完璧じゃなくても大丈夫、月間・週間の達成率で自分の「歩み」を実感。</p>
             </div>
           </div>
         </div>
@@ -153,7 +152,7 @@ export default function Home() {
             <div className="step-number">4</div>
             <div className="step-content">
               <h3>読んで記録を残す</h3>
-              <p>英文を読んだら「Read✔️」ボタンをタップ。学習記録が残り、継続の励みになります。</p>
+              <p>英文を読んだら「Read✔️」ボタンをタップ。それだけで、今日のミッション完了です。</p>
             </div>
           </div>
         </div>
