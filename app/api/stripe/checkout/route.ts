@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { z } from "zod";
+import { createHash } from "crypto";
 import { getAdminAuth, getAdminDb } from "@/src/lib/firebaseAdmin.server";
 import { createRateLimiter, getClientIp } from "@/src/lib/rateLimit";
+
+function hashEmail(email: string): string {
+  return createHash("sha256").update(email.trim().toLowerCase()).digest("hex");
+}
 
 const checkoutLimiter = createRateLimiter({ windowMs: 60_000, maxRequests: 10 });
 
@@ -165,7 +170,14 @@ export async function POST(req: Request) {
     const cancelUrl = `${appUrl}${cancelPath.startsWith("/") ? "" : "/"}${cancelPath}`;
 
     // ★ trialUsed 判定 + トライアル残日数の計算
-    const trialUsed = user?.trialUsed === true;
+    let trialUsed = user?.trialUsed === true;
+
+    // メールハッシュで過去のトライアル利用を照合（退会→再登録対策）
+    if (!trialUsed && email) {
+      const hash = hashEmail(email);
+      const trialEmailSnap = await getAdminDb().collection("trialEmails").doc(hash).get();
+      if (trialEmailSnap.exists) trialUsed = true;
+    }
     let remainingTrialDays = 0;
     if (trialUsed) {
       const trialEndsAt = user?.trialEndsAt;

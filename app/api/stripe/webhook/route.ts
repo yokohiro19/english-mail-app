@@ -1,7 +1,25 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
+import { createHash } from "crypto";
 import { getAdminDb } from "@/src/lib/firebaseAdmin.server";
 import { createRateLimiter, getClientIp } from "@/src/lib/rateLimit";
+
+function hashEmail(email: string): string {
+  return createHash("sha256").update(email.trim().toLowerCase()).digest("hex");
+}
+
+async function recordTrialEmail(uid: string): Promise<void> {
+  try {
+    const db = getAdminDb();
+    const userSnap = await db.collection("users").doc(uid).get();
+    const email = userSnap.data()?.email as string | undefined;
+    if (!email) return;
+    const hash = hashEmail(email);
+    await db.collection("trialEmails").doc(hash).set({ usedAt: new Date() }, { merge: true });
+  } catch (e: any) {
+    console.error("[trialEmails] failed to record:", e?.message);
+  }
+}
 
 const webhookLimiter = createRateLimiter({ windowMs: 60_000, maxRequests: 100 });
 
@@ -374,6 +392,11 @@ async function handleSubscriptionUpsert(event: Stripe.Event) {
 
   await db.collection("users").doc(uid).set(mergePatch, { merge: true });
 
+  // トライアル開始時にメールハッシュを記録（退会→再登録のトライアル重複防止）
+  if (built.status === "trialing") {
+    await recordTrialEmail(uid);
+  }
+
   await safeUpsertOpsStripeEvent({
     event,
     uid,
@@ -615,6 +638,11 @@ export async function POST(req: Request) {
         }
 
         await db.collection("users").doc(uid).set(checkoutMergePatch, { merge: true });
+
+        // トライアル開始時にメールハッシュを記録
+        if (subscription?.status === "trialing") {
+          await recordTrialEmail(uid);
+        }
 
         await safeUpsertOpsStripeEvent({
           event,
