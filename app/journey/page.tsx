@@ -474,7 +474,7 @@ function CalendarHeatmap({
     const colIdx = (leading + day - 1) % 7; // 0=Mon ... 5=Sat, 6=Sun
     // 配信曜日OFFによるグレー表示は本日以降のみ（過去は実際のpause記録で判定）
     const dow = (date.getDay() + 6) % 7; // 0=Mon, 6=Sun
-    const isNonDelivery = key >= todayKey && deliveryDays.length < 7 && !deliveryDays.includes(dow);
+    const isNonDelivery = key > todayKey && deliveryDays.length < 7 && !deliveryDays.includes(dow);
     const paused = pausedSet.has(key) || isNonDelivery;
     cells.push({ key, day, studied: studiedSet.has(key), paused, beforeReg, isToday: key === todayKey, colIdx });
   }

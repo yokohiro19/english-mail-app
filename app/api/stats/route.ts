@@ -130,7 +130,7 @@ export async function GET(req: Request) {
         const re = new Date(rangeEnd + "T00:00:00Z");
         for (let d = new Date(rs); d <= re; d.setUTCDate(d.getUTCDate() + 1)) {
           const dk = dateKeyFromJst(d);
-          if (dk < todayKey) continue;
+          if (dk <= todayKey) continue;
           const dow = (d.getUTCDay() + 6) % 7; // 0=月, 6=日
           if (!deliveryDays.includes(dow)) {
             pausedDateSet.add(dk);
@@ -153,8 +153,8 @@ export async function GET(req: Request) {
     function isDatePaused(dateKey: string): boolean {
       if (allDateKeys.has(dateKey)) return false;
       if (!currentlyPaused && dateKey === todayKey) return false;
-      // 配信曜日チェック（今日以降のみ）
-      if (deliveryDays.length < 7 && dateKey >= todayKey) {
+      // 配信曜日チェック（明日以降のみ）
+      if (deliveryDays.length < 7 && dateKey > todayKey) {
         const d = new Date(dateKey + "T00:00:00Z");
         const dow = (d.getUTCDay() + 6) % 7;
         if (!deliveryDays.includes(dow)) return true;
