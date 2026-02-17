@@ -66,6 +66,74 @@ export async function pickRandomTopic(db: FirebaseFirestore.Firestore) {
   return { id: doc.id, category: data.category, title: data.title, promptSeed: data.promptSeed };
 }
 
+const LEVEL_GUIDELINES: Record<string, string> = {
+  "A2": [
+    "CEFR A2 — Beginner level. The reader knows only basic English.",
+    "Grammar: Use ONLY simple present, simple past, and simple future (will). No perfect tenses, no passive voice, no conditionals beyond 'if + present, will'.",
+    "Vocabulary: Use only the most common ~1500 English words. Avoid business jargon. If a simpler word exists, always use it (e.g., 'use' not 'utilize', 'help' not 'assist').",
+    "Sentences: Keep each sentence under 12 words. One idea per sentence. No subordinate clauses.",
+    "Style: No idioms, no phrasal verbs, no abstract concepts. Very direct and concrete.",
+  ].join("\n"),
+  "B1-": [
+    "CEFR B1 (lower) — Elementary-intermediate level.",
+    "Grammar: Simple tenses + present perfect ('I have finished'). Simple conditionals ('if... will'). No passive voice except very common patterns ('it was sent').",
+    "Vocabulary: Common business words (meeting, schedule, deadline, confirm). Avoid advanced vocabulary. Use simple phrasal verbs only (look forward to, set up, find out).",
+    "Sentences: Keep most sentences under 15 words. Allow simple subordinate clauses with 'because', 'when', 'if', 'that'.",
+    "Style: No idioms. Keep tone friendly and straightforward.",
+  ].join("\n"),
+  "B1": [
+    "CEFR B1 — Intermediate level.",
+    "Grammar: All basic tenses + present perfect continuous. Simple passive voice. Second conditional ('if I had time, I would...'). Relative clauses with 'who/which/that'.",
+    "Vocabulary: Standard business vocabulary. Common phrasal verbs freely. A few simple collocations (make a decision, take responsibility).",
+    "Sentences: Average 15-18 words. Compound and complex sentences are fine.",
+    "Style: A few well-known idioms OK (e.g., 'on the same page'). Keep explanations concrete.",
+  ].join("\n"),
+  "B2": [
+    "CEFR B2 — Upper-intermediate level.",
+    "Grammar: All tenses freely including past perfect, mixed conditionals. Passive voice, reported speech, participle phrases ('Having reviewed the report, I suggest...').",
+    "Vocabulary: Advanced business vocabulary (stakeholder, scalable, leverage, align). Phrasal verbs and idioms used naturally. Collocations expected.",
+    "Sentences: Longer complex sentences OK (up to 25 words). Use varied sentence structures.",
+    "Style: Professional register. Nuanced expressions (hedging: 'It might be worth considering...'). Some abstract discussion is fine.",
+  ].join("\n"),
+  "B2+": [
+    "CEFR B2+ — Same guidelines as B2 but slightly more sophisticated vocabulary and expressions allowed.",
+    "Grammar: All tenses freely including past perfect, mixed conditionals. Passive voice, reported speech, participle phrases.",
+    "Vocabulary: Advanced business vocabulary with some formal/academic words. Phrasal verbs and idioms natural.",
+    "Sentences: Longer complex sentences OK. Use varied sentence structures.",
+    "Style: Professional register. Nuanced hedging and diplomatic language.",
+  ].join("\n"),
+  "C1": [
+    "CEFR C1 — Advanced level.",
+    "Grammar: Full range including subjunctive ('I suggest he attend'), inversion ('Not only did we...'), cleft sentences ('What we need is...'), mixed conditionals freely.",
+    "Vocabulary: Sophisticated and precise word choices. Formal register where appropriate. Domain-specific terminology OK. Subtle distinctions (e.g., 'imply' vs 'infer').",
+    "Sentences: Complex multi-clause sentences. Varied paragraph structure. Use cohesive devices (nevertheless, notwithstanding, accordingly).",
+    "Style: Formal and professional. Idioms, metaphors, and abstract reasoning expected. Diplomatic and nuanced tone.",
+  ].join("\n"),
+  "C2": [
+    "CEFR C2 — Near-native level.",
+    "Grammar: No restrictions. Use the full range of English grammar naturally, including rare structures.",
+    "Vocabulary: No restrictions. Use precise, sophisticated, and varied vocabulary. Literary or academic register when fitting.",
+    "Sentences: No length restrictions. Varied and elegant prose.",
+    "Style: Indistinguishable from a native professional's writing. Wit, understatement, and cultural nuance welcome.",
+  ].join("\n"),
+};
+
+export function buildSystemPrompt(cefr: string): string {
+  const levelGuide = LEVEL_GUIDELINES[cefr] ?? LEVEL_GUIDELINES["B1"];
+  return [
+    "You are creating English learning material for Japanese learners.",
+    "Your task is to generate a complete, ready-to-read English email text that requires NO editing or filling in by the reader.",
+    "NEVER use placeholders like [Your Name], [Company], [Date], [Recipient], etc. Instead, use realistic fictional names and details.",
+    "Email signatures MUST only contain a fictional name and job title (2 lines max). NEVER include company names, email addresses, phone numbers, URLs, or physical addresses in signatures.",
+    "Return output as JSON that strictly matches the schema.",
+    "The email must be practical and natural, like a short work email.",
+    "",
+    "=== DIFFICULTY LEVEL (STRICTLY FOLLOW) ===",
+    levelGuide,
+    "=== END DIFFICULTY LEVEL ===",
+  ].join("\n");
+}
+
 export async function generateEmailContent(
   cefr: string,
   wordCount: number,
@@ -73,16 +141,7 @@ export async function generateEmailContent(
 ) {
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-  const system = [
-    "You are creating English learning material for Japanese learners.",
-    "Your task is to generate a complete, ready-to-read English email text that requires NO editing or filling in by the reader.",
-    "NEVER use placeholders like [Your Name], [Company], [Date], [Recipient], etc. Instead, use realistic fictional names and details.",
-    "Email signatures MUST only contain a fictional name and job title (2 lines max). NEVER include company names, email addresses, phone numbers, URLs, or physical addresses in signatures.",
-    "Return output as JSON that strictly matches the schema.",
-    "Difficulty MUST follow CEFR level only (A2/B1/B2/C1/C2).",
-    "For A2–B1: keep sentences short, avoid complex subordinate clauses, minimize idioms, avoid abstract discussion.",
-    "The email must be practical and natural, like a short work email.",
-  ].join("\n");
+  const system = buildSystemPrompt(cefr);
 
   const userPrompt = [
     `CEFR: ${cefr}`,

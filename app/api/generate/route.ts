@@ -4,7 +4,7 @@ import { z } from "zod";
 import { zodTextFormat } from "openai/helpers/zod";
 import { getAdminAuth, getAdminDb } from "@/src/lib/firebaseClient";
 import { createRateLimiter, getClientIp } from "@/src/lib/rateLimit";
-import { resolveCEFR } from "@/src/lib/emailGenerator";
+import { resolveCEFR, buildSystemPrompt } from "@/src/lib/emailGenerator";
 
 const generateLimiter = createRateLimiter({ windowMs: 60_000, maxRequests: 5 });
 
@@ -86,16 +86,8 @@ export async function POST(req: Request) {
     const cefr = resolveCEFR(u);
     const topic = await pickRandomTopic();
 
-    // 4) プロンプト（CEFRだけ渡す設計）
-    const system = [
-      "You are creating English learning material for Japanese learners.",
-      "Your task is to generate a complete, ready-to-read English email text that requires NO editing or filling in by the reader.",
-      "NEVER use placeholders like [Your Name], [Company], [Date], [Recipient], etc. Instead, use realistic fictional names and details.",
-      "Return output as JSON that strictly matches the schema.",
-      "Difficulty MUST follow CEFR level only (A2/B1/B2/C1/C2).",
-      "For A2–B1: keep sentences short, avoid complex subordinate clauses, minimize idioms, avoid abstract discussion.",
-      "The email must be practical and natural, like a short work email.",
-    ].join("\n");
+    // 4) プロンプト（CEFRレベル別の詳細ガイドライン）
+    const system = buildSystemPrompt(cefr);
 
     const userPrompt = [
       `CEFR: ${cefr}`,
