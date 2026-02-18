@@ -50,6 +50,7 @@ export default function BillingPage() {
   const [billingLoading, setBillingLoading] = useState(false);
   const [billingError, setBillingError] = useState<string | null>(null);
   const [consentChecked, setConsentChecked] = useState(false);
+  const [resumeConsentChecked, setResumeConsentChecked] = useState(false);
 
   // billing=success banner
   const [billingBanner, setBillingBanner] = useState<string | null>(null);
@@ -280,17 +281,79 @@ export default function BillingPage() {
                 )}
               </div>
               <div>
-                {plan === "standard" && (
+                {plan === "standard" && !cancelAtPeriodEnd && (
                   <button
                     onClick={subscriptionStatus === "trialing" ? cancelTrial : openPortal}
                     disabled={billingLoading}
                     className="app-btn-secondary"
                   >
-                    {billingLoading ? "処理中..." : cancelAtPeriodEnd ? "再開" : "解約"}
+                    {billingLoading ? "処理中..." : "解約"}
                   </button>
                 )}
               </div>
             </div>
+
+            {/* Resume section for cancelled standard users */}
+            {plan === "standard" && cancelAtPeriodEnd && (
+              <div style={{ marginTop: 20, paddingTop: 20, borderTop: "1px solid #E8EAED" }}>
+                <div style={{
+                  background: "#F9FAFB",
+                  borderRadius: 10,
+                  padding: "16px 20px",
+                  marginBottom: 16,
+                  fontSize: 13,
+                  color: "#374151",
+                  lineHeight: 1.8
+                }}>
+                  <p style={{ fontWeight: 600, marginBottom: 8 }}>月額500円（税込）</p>
+                  <ul style={{ margin: 0, paddingLeft: 20 }}>
+                    <li>解約しない限り毎月自動更新されます</li>
+                    <li>いつでも解約可能です（解約後も次回更新日まで利用できます）</li>
+                    <li>決済完了後の返金には応じておりません</li>
+                  </ul>
+                </div>
+
+                <label style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 10,
+                  cursor: "pointer",
+                  marginBottom: 16,
+                  fontSize: 13,
+                  color: "#374151"
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={resumeConsentChecked}
+                    onChange={(e) => setResumeConsentChecked(e.target.checked)}
+                    style={{ marginTop: 2, width: 16, height: 16, accentColor: "var(--primary-cyan)" }}
+                  />
+                  <span>
+                    上記内容および
+                    <a href="/terms" target="_blank" style={{ color: "#1d1f42", textDecoration: "underline" }}>利用規約</a>
+                    ・
+                    <a href="/privacy" target="_blank" style={{ color: "#1d1f42", textDecoration: "underline" }}>プライバシーポリシー</a>
+                    ・
+                    <a href="/legal/tokushoho" target="_blank" style={{ color: "#1d1f42", textDecoration: "underline" }}>特定商取引法に基づく表記</a>
+                    に同意します
+                  </span>
+                </label>
+
+                <button
+                  onClick={openPortal}
+                  disabled={billingLoading || !resumeConsentChecked}
+                  className="app-btn-primary"
+                  style={{
+                    width: "100%",
+                    padding: "14px 24px",
+                    fontSize: 15,
+                    opacity: resumeConsentChecked ? 1 : 0.5
+                  }}
+                >
+                  {billingLoading ? "処理中..." : "再開"}
+                </button>
+              </div>
+            )}
 
             {/* Upgrade section for free users */}
             {plan !== "standard" && (
