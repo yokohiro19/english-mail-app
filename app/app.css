@@ -203,8 +203,8 @@
 }
 
 .app-btn-primary:disabled {
-  background: #D1D5DB;
-  color: #9CA3AF;
+  background: #E5E7EB;
+  color: #B0B5BC;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
