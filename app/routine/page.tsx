@@ -70,7 +70,7 @@ export default function SettingsPage() {
         return () => clearTimeout(t);
       }
       if (params.get("billing") === "success") {
-        setBillingBanner("トライアルの申し込みが完了しました！配信設定をカスタマイズしましょう。");
+        setBillingBanner("__billing_success__");
         const t = setTimeout(() => setBillingBanner(null), 6000);
         return () => clearTimeout(t);
       }
@@ -438,7 +438,9 @@ export default function SettingsPage() {
               fontSize: 14, fontWeight: 600, textAlign: "center",
               animation: "fadeInOut6 6s ease-in-out forwards",
             }}>
-              {billingBanner}
+              {subscriptionStatus === "trialing"
+                ? "トライアルの申し込みが完了しました！配信設定をカスタマイズしましょう。"
+                : "Standardプランへの登録が完了しました！配信設定をカスタマイズしましょう。"}
               <style>{`@keyframes fadeInOut6 { 0% { opacity: 0; } 8% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }`}</style>
             </div>
           )}
