@@ -245,23 +245,21 @@ export default function BillingPage() {
                     トライアル期間内のため、無料で再開できます
                   </p>
                 )}
-                {plan === "standard" && currentPeriodEnd && (
-                  cancelAtPeriodEnd ? (
-                    <div style={{ fontSize: 13, marginTop: 8, padding: "10px 14px", background: "#FEF3C7", borderRadius: 8, color: "#92400E" }}>
-                      <p style={{ fontWeight: 600, marginBottom: 2 }}>解約予約中</p>
-                      <p>{formatDateOnly(currentPeriodEnd)}まで利用可能（以降は自動更新されません）</p>
-                    </div>
-                  ) : (
-                    <p style={{ fontSize: 13, color: "#6B7280", marginTop: 4 }}>
-                      次回更新: {formatTs(currentPeriodEnd)}
-                    </p>
-                  )
+                {plan === "standard" && cancelAtPeriodEnd && currentPeriodEnd && (
+                  <p style={{ fontSize: 14, color: "#DC2626", marginTop: 8, fontWeight: 600 }}>
+                    サービスは {formatDateOnly(currentPeriodEnd)} に終了します。
+                  </p>
+                )}
+                {plan === "standard" && !cancelAtPeriodEnd && currentPeriodEnd && (
+                  <p style={{ fontSize: 13, color: "#6B7280", marginTop: 4 }}>
+                    次回更新: {formatTs(currentPeriodEnd)}
+                  </p>
                 )}
               </div>
               <div>
                 {plan === "standard" && (
                   <button onClick={openPortal} disabled={billingLoading} className="app-btn-secondary">
-                    {billingLoading ? "起動中..." : "解約"}
+                    {billingLoading ? "起動中..." : cancelAtPeriodEnd ? "再開" : "解約"}
                   </button>
                 )}
               </div>
