@@ -23,7 +23,7 @@ export default function PrivacyPage() {
         <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 32, fontWeight: 800, marginBottom: 8, color: "var(--dark-navy)" }}>
           プライバシーポリシー
         </h1>
-        <p style={{ fontSize: 13, color: "#9CA3AF", marginBottom: 40 }}>最終更新日: 2026年2月6日</p>
+        <p style={{ fontSize: 13, color: "#9CA3AF", marginBottom: 40 }}>最終更新日: 2026年2月18日</p>
 
         <div style={{ fontSize: 15, lineHeight: 1.9, color: "#374151" }}>
           <p>TapSmart English（以下「当社」）は、TapSmart Englishが提供する各種サービス（以下「本サービス」）における個人情報の取扱いについて、以下のとおり定めます。</p>
@@ -59,6 +59,7 @@ export default function PrivacyPage() {
             <li>決済処理（Stripe, Inc.）</li>
             <li>AI関連サービス（OpenAI API 等）</li>
             <li>サーバーおよびインフラ管理（Vercel Inc.、Google LLC（Firebase））</li>
+            <li>広告配信・効果測定（Meta Platforms, Inc.）</li>
             <li>メール配信、システム運用等</li>
           </ul>
           <p>これらの委託先には、日本国外（主に米国）に所在する事業者が含まれる場合があり、ユーザーの個人情報が国外で取り扱われることがあります。</p>
@@ -73,7 +74,8 @@ export default function PrivacyPage() {
           <p>18歳未満のユーザーが本サービスを利用する場合、事前に法定代理人（保護者等）の同意を得た上で利用するものとします。</p>
 
           <h2 style={h2Style}>7. Cookie等の利用</h2>
-          <p>当社は、本サービスの提供および利便性向上のため、Cookie等の技術を使用します。ユーザーは、ブラウザの設定によりCookieを無効化することができますが、その場合、本サービスの一部機能が利用できないことがあります。</p>
+          <p>当社は、本サービスの提供および利便性向上のため、Cookie等の技術を使用します。また、広告配信および効果測定のため、Meta Pixel等のトラッキング技術を使用し、ユーザーのアクセス情報が広告配信事業者に送信されることがあります。</p>
+          <p>ユーザーは、ブラウザの設定によりCookieを無効化することができますが、その場合、本サービスの一部機能が利用できないことがあります。</p>
 
           <h2 style={h2Style}>8. 安全管理</h2>
           <p>当社は、個人情報の管理について、法令に従い必要かつ適切な安全管理措置を講じます。ただし、インターネット通信の性質上、情報の完全な安全性を保証するものではありません。</p>
@@ -81,7 +83,7 @@ export default function PrivacyPage() {
           <h2 style={h2Style}>9. 保存期間</h2>
           <p>当社は、以下の目的に必要な範囲で個人情報を保持します。</p>
           <ul style={ulStyle}>
-            <li>アカウント情報・学習履歴：法令対応、不正防止、紛争対応等に必要な期間</li>
+            <li>アカウント情報・学習履歴：法令対応、不正防止、紛争対応等に必要な期間（不正利用防止のため、退会後もメールアドレスの不可逆的ハッシュ値を保持する場合があります）</li>
             <li>お問い合わせ情報：対応完了後、一定期間</li>
             <li>決済関連情報：法令および決済事業者の定める期間</li>
           </ul>
