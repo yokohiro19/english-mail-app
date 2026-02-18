@@ -153,6 +153,29 @@ export default function BillingPage() {
     }
   };
 
+  const cancelTrial = async () => {
+    if (!user) return;
+    if (!window.confirm("トライアルを解約しますか？\n解約すると即時にサービスが停止します。")) return;
+    setBillingLoading(true);
+    setBillingError(null);
+    try {
+      const token = await user.getIdToken();
+      const res = await fetch("/api/stripe/cancel", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const json = await res.json();
+      if (!res.ok || !json?.ok) { setBillingError("解約処理に失敗しました。"); return; }
+      setPlan("free");
+      setSubscriptionStatus("canceled");
+      setCancelAtPeriodEnd(false);
+    } catch {
+      setBillingError("解約処理に失敗しました。");
+    } finally {
+      setBillingLoading(false);
+    }
+  };
+
   const openPortal = async () => {
     if (!user) return;
     setBillingLoading(true);
@@ -258,8 +281,12 @@ export default function BillingPage() {
               </div>
               <div>
                 {plan === "standard" && (
-                  <button onClick={openPortal} disabled={billingLoading} className="app-btn-secondary">
-                    {billingLoading ? "起動中..." : cancelAtPeriodEnd ? "再開" : "解約"}
+                  <button
+                    onClick={subscriptionStatus === "trialing" ? cancelTrial : openPortal}
+                    disabled={billingLoading}
+                    className="app-btn-secondary"
+                  >
+                    {billingLoading ? "処理中..." : cancelAtPeriodEnd ? "再開" : "解約"}
                   </button>
                 )}
               </div>
