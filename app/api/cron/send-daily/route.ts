@@ -180,6 +180,29 @@ export async function GET(req: Request) {
       } catch (e: any) {
         console.error("[trialEmails cleanup] failed:", e?.message);
       }
+
+      // ops ログクリーンアップ（30日保持）
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const thirtyDaysAgoUnix = Math.floor(thirtyDaysAgo.getTime() / 1000);
+
+      const opsCleanups: Array<{ col: string; field: string; value: any }> = [
+        { col: "opsCronRuns", field: "ranAt", value: thirtyDaysAgo },
+        { col: "opsStripeEvents", field: "created", value: thirtyDaysAgoUnix },
+        { col: "opsStripeWebhookErrors", field: "createdAtIso", value: thirtyDaysAgo.toISOString() },
+      ];
+      for (const { col, field, value } of opsCleanups) {
+        try {
+          const snap = await db.collection(col).where(field, "<", value).limit(200).get();
+          if (!snap.empty) {
+            const batch = db.batch();
+            for (const d of snap.docs) batch.delete(d.ref);
+            await batch.commit();
+            console.log(`[${col} cleanup] deleted ${snap.size} expired records`);
+          }
+        } catch (e: any) {
+          console.error(`[${col} cleanup] failed:`, e?.message);
+        }
+      }
     }
 
     // ✅ 直近5分のsendTimeを対象にする（Cron遅延に強い）
