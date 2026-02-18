@@ -99,6 +99,21 @@ export default function BillingPage() {
           }
           setCurrentPeriodEnd(data.currentPeriodEnd ?? null);
           setCancelAtPeriodEnd(Boolean(data.cancelAtPeriodEnd));
+
+          // standard会員: Stripeの実状態と同期
+          if ((data.plan as Plan) === "standard" && data.stripeSubscriptionId) {
+            const idToken = await user.getIdToken();
+            fetch("/api/stripe/status", { headers: { Authorization: `Bearer ${idToken}` } })
+              .then(r => r.json())
+              .then(j => {
+                if (j.ok && j.synced) {
+                  setCancelAtPeriodEnd(j.cancelAtPeriodEnd);
+                  setSubscriptionStatus(j.subscriptionStatus);
+                  if (j.currentPeriodEnd) setCurrentPeriodEnd(j.currentPeriodEnd);
+                }
+              })
+              .catch(() => {});
+          }
         }
       } catch (e) {
         console.error(e);
