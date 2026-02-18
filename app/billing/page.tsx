@@ -100,19 +100,18 @@ export default function BillingPage() {
           setCurrentPeriodEnd(data.currentPeriodEnd ?? null);
           setCancelAtPeriodEnd(Boolean(data.cancelAtPeriodEnd));
 
-          // standard会員: Stripeの実状態と同期
+          // standard会員: Stripeの実状態と同期（完了を待つ）
           if ((data.plan as Plan) === "standard" && data.stripeSubscriptionId) {
-            const idToken = await user.getIdToken();
-            fetch("/api/stripe/status", { headers: { Authorization: `Bearer ${idToken}` } })
-              .then(r => r.json())
-              .then(j => {
-                if (j.ok && j.synced) {
-                  setCancelAtPeriodEnd(j.cancelAtPeriodEnd);
-                  setSubscriptionStatus(j.subscriptionStatus);
-                  if (j.currentPeriodEnd) setCurrentPeriodEnd(j.currentPeriodEnd);
-                }
-              })
-              .catch(() => {});
+            try {
+              const idToken = await user.getIdToken();
+              const statusRes = await fetch("/api/stripe/status", { headers: { Authorization: `Bearer ${idToken}` } });
+              const statusJson = await statusRes.json();
+              if (statusJson.ok && statusJson.synced) {
+                setCancelAtPeriodEnd(statusJson.cancelAtPeriodEnd);
+                setSubscriptionStatus(statusJson.subscriptionStatus);
+                if (statusJson.currentPeriodEnd) setCurrentPeriodEnd(statusJson.currentPeriodEnd);
+              }
+            } catch {}
           }
         }
       } catch (e) {
