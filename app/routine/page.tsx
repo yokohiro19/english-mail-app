@@ -173,8 +173,17 @@ export default function SettingsPage() {
       }
       setPlan((data.plan as Plan) ?? "free");
       setSubscriptionStatus((data.subscriptionStatus as any) ?? null);
-      setTrialUsed(Boolean((data as any).trialUsed));
+      const localTrialUsed = Boolean((data as any).trialUsed);
+      setTrialUsed(localTrialUsed);
       setTrialEndsAt((data as any).trialEndsAt ?? null);
+      // 再登録ユーザー: trialEmails でメールハッシュを照合
+      if (!localTrialUsed && u.email) {
+        const idToken = await u.getIdToken();
+        fetch("/api/check-trial", { headers: { Authorization: `Bearer ${idToken}` } })
+          .then(r => r.json())
+          .then(j => { if (j.trialUsed) setTrialUsed(true); })
+          .catch(() => {});
+      }
       const loadedDeliveryEmail = (data as any).deliveryEmail ?? u.email ?? "";
       setDeliveryEmail(loadedDeliveryEmail);
       setSavedDeliveryEmail(loadedDeliveryEmail);
@@ -523,7 +532,7 @@ export default function SettingsPage() {
                     opacity: consentChecked ? 1 : 0.5
                   }}
                 >
-                  {billingLoading ? "処理中..." : showFreeTrialLabel ? "7日間無料で試す" : canRestartTrial ? "無料で再開する" : "アップグレード"}
+                  {billingLoading ? "処理中..." : showFreeTrialLabel ? "7日間無料で試す" : canRestartTrial ? "無料で再開する" : "Standardプランにアップグレード"}
                 </button>
               </div>
 

@@ -85,8 +85,17 @@ export default function BillingPage() {
           const data = snap.data() as any;
           setPlan((data.plan as Plan) ?? "free");
           setSubscriptionStatus(data.subscriptionStatus ?? null);
-          setTrialUsed(Boolean(data.trialUsed));
+          const localTrialUsed = Boolean(data.trialUsed);
+          setTrialUsed(localTrialUsed);
           setTrialEndsAt(data.trialEndsAt ?? null);
+          // 再登録ユーザー: trialEmails でメールハッシュを照合
+          if (!localTrialUsed && user.email) {
+            const idToken = await user.getIdToken();
+            fetch("/api/check-trial", { headers: { Authorization: `Bearer ${idToken}` } })
+              .then(r => r.json())
+              .then(j => { if (j.trialUsed) setTrialUsed(true); })
+              .catch(() => {});
+          }
           setCurrentPeriodEnd(data.currentPeriodEnd ?? null);
           setCancelAtPeriodEnd(Boolean(data.cancelAtPeriodEnd));
         }
@@ -321,7 +330,7 @@ export default function BillingPage() {
                     opacity: consentChecked ? 1 : 0.5
                   }}
                 >
-                  {billingLoading ? "処理中..." : showFreeTrialLabel ? "7日間無料で試す" : canRestartTrial ? "無料で再開する" : "アップグレード"}
+                  {billingLoading ? "処理中..." : showFreeTrialLabel ? "7日間無料で試す" : canRestartTrial ? "無料で再開する" : "Standardプランにアップグレード"}
                 </button>
               </div>
             )}
