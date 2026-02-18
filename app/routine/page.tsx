@@ -624,7 +624,7 @@ export default function SettingsPage() {
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 20 }}>
-              <button onClick={onSaveDelivery} disabled={savingDelivery} className="app-btn-primary">
+              <button onClick={onSaveDelivery} disabled={savingDelivery || !hasUnsavedDelivery} className="app-btn-primary">
                 {savingDelivery ? "保存中..." : "保存"}
               </button>
               {deliverySaveMsg && <span style={{ fontSize: 13, color: deliverySaveMsg.type === "success" ? "#059669" : "#991B1B", fontWeight: 600 }}>{deliverySaveMsg.text}</span>}
@@ -678,7 +678,7 @@ export default function SettingsPage() {
             </p>
 
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 20 }}>
-              <button onClick={onSaveDifficulty} disabled={savingDifficulty} className="app-btn-primary">
+              <button onClick={onSaveDifficulty} disabled={savingDifficulty || !hasUnsavedDifficulty} className="app-btn-primary">
                 {savingDifficulty ? "保存中..." : "保存"}
               </button>
               {difficultySaveMsg && <span style={{ fontSize: 13, color: difficultySaveMsg.type === "success" ? "#059669" : "#991B1B", fontWeight: 600 }}>{difficultySaveMsg.text}</span>}

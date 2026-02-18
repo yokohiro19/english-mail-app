@@ -203,9 +203,11 @@
 }
 
 .app-btn-primary:disabled {
-  opacity: 0.5;
+  background: #D1D5DB;
+  color: #9CA3AF;
   cursor: not-allowed;
   transform: none;
+  box-shadow: none;
 }
 
 /* ===== Secondary button ===== */
