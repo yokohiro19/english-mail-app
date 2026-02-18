@@ -166,6 +166,22 @@ export async function GET(req: Request) {
     const targetHHMM = hhmm(nowJst);
     const today = dateKey(logicalJstNow());
 
+    // trialEmails クリーンアップ（1日1回、04:00 JST台に実行）
+    if (targetHHMM >= "04:00" && targetHHMM <= "04:09") {
+      try {
+        const twoYearsAgo = new Date(Date.now() - 2 * 365 * 24 * 60 * 60 * 1000);
+        const oldSnap = await db.collection("trialEmails").where("usedAt", "<", twoYearsAgo).limit(100).get();
+        if (!oldSnap.empty) {
+          const batch = db.batch();
+          for (const d of oldSnap.docs) batch.delete(d.ref);
+          await batch.commit();
+          console.log(`[trialEmails cleanup] deleted ${oldSnap.size} expired records`);
+        }
+      } catch (e: any) {
+        console.error("[trialEmails cleanup] failed:", e?.message);
+      }
+    }
+
     // ✅ 直近5分のsendTimeを対象にする（Cron遅延に強い）
     const windowHHMM = hhmmListForLastMinutes(nowJst, 5);
     const usersSnap = await db.collection("users").where("sendTime", "in", windowHHMM).get();
