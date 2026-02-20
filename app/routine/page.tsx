@@ -110,9 +110,12 @@ export default function SettingsPage() {
   const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
   const [trialUsed, setTrialUsed] = useState<boolean>(false);
   const [trialEndsAt, setTrialEndsAt] = useState<any>(null);
+  const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
+  const [currentPeriodEnd, setCurrentPeriodEnd] = useState<any>(null);
   const [billingLoading, setBillingLoading] = useState(false);
   const [billingError, setBillingError] = useState<string | null>(null);
   const [consentChecked, setConsentChecked] = useState(false);
+  const [resumeConsentChecked, setResumeConsentChecked] = useState(false);
 
   // Trial mail
   const [trialMailSentAt, setTrialMailSentAt] = useState<any>(null);
@@ -171,8 +174,11 @@ export default function SettingsPage() {
       if (Object.keys(missing).length > 0) {
         await setDoc(ref, { ...missing, updatedAt: serverTimestamp() }, { merge: true });
       }
-      setPlan((data.plan as Plan) ?? "free");
+      const loadedPlan = (data.plan as Plan) ?? "free";
+      setPlan(loadedPlan);
       setSubscriptionStatus((data.subscriptionStatus as any) ?? null);
+      setCancelAtPeriodEnd(Boolean((data as any).cancelAtPeriodEnd));
+      setCurrentPeriodEnd((data as any).currentPeriodEnd ?? null);
       const localTrialUsed = Boolean((data as any).trialUsed);
       setTrialUsed(localTrialUsed);
       setTrialEndsAt((data as any).trialEndsAt ?? null);
@@ -183,6 +189,19 @@ export default function SettingsPage() {
           .then(r => r.json())
           .then(j => { if (j.trialUsed) setTrialUsed(true); })
           .catch(() => {});
+      }
+      // standard会員: Stripeの実状態と同期
+      if (loadedPlan === "standard" && (data as any).stripeSubscriptionId) {
+        try {
+          const idToken = await u.getIdToken();
+          const statusRes = await fetch("/api/stripe/status", { headers: { Authorization: `Bearer ${idToken}` } });
+          const statusJson = await statusRes.json();
+          if (statusJson.ok && statusJson.synced) {
+            setCancelAtPeriodEnd(statusJson.cancelAtPeriodEnd);
+            setSubscriptionStatus(statusJson.subscriptionStatus);
+            if (statusJson.currentPeriodEnd) setCurrentPeriodEnd(statusJson.currentPeriodEnd);
+          }
+        } catch {}
       }
       const loadedDeliveryEmail = (data as any).deliveryEmail ?? u.email ?? "";
       setDeliveryEmail(loadedDeliveryEmail);
@@ -369,6 +388,41 @@ export default function SettingsPage() {
     }
   };
 
+  const openPortal = async (withConsent = false) => {
+    if (!user) return;
+    setBillingLoading(true);
+    setBillingError(null);
+    try {
+      const token = await user.getIdToken();
+      const bodyData: any = { returnPath: "/routine" };
+      if (withConsent) {
+        bodyData.consent = {
+          agreedAt: new Date().toISOString(),
+          termsVersion: "2026-02-20",
+          privacyVersion: "2026-02-20",
+          displayedTerms: [
+            "月額500円（税込）",
+            "解約しない限り毎月自動更新",
+            "いつでも解約可能（解約後も次回更新日まで利用可能）",
+            "決済完了後の返金不可",
+          ],
+        };
+      }
+      const res = await fetch("/api/stripe/portal", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify(bodyData),
+      });
+      const json = await res.json();
+      if (!res.ok || !json?.ok || !json?.url) { setBillingError("ポータル起動に失敗しました。"); return; }
+      window.location.href = json.url;
+    } catch {
+      setBillingError("ポータル起動に失敗しました。");
+    } finally {
+      setBillingLoading(false);
+    }
+  };
+
   // Check for unsaved changes
   const daysChanged = deliveryDays.some((v, i) => v !== savedDeliveryDays[i]);
   const hasUnsavedDelivery = sendTime !== savedSendTime || daysChanged;
@@ -455,6 +509,93 @@ export default function SettingsPage() {
 
           {message && (
             <div className={messageType === "success" ? "app-success" : "app-error"} style={{ padding: "8px 16px" }}>{message}</div>
+          )}
+
+          {/* Billing card for cancelled standard users */}
+          {plan === "standard" && cancelAtPeriodEnd && (
+            <div className="app-card">
+              <div>
+                <p style={{ fontSize: 12, color: "#6B7280" }}>現在のプラン</p>
+                <p style={{ fontFamily: "'Outfit', sans-serif", fontSize: 28, fontWeight: 800 }}>
+                  Standard
+                  <span style={{ fontSize: 14, fontWeight: 400, color: "#6B7280", marginLeft: 8 }}>
+                    （月額500円）
+                  </span>
+                </p>
+                {currentPeriodEnd && (
+                  <p style={{ fontSize: 14, color: "#DC2626", marginTop: 8, fontWeight: 600 }}>
+                    サービスは {(() => {
+                      try {
+                        const d = typeof currentPeriodEnd?.toDate === "function" ? currentPeriodEnd.toDate() : currentPeriodEnd instanceof Date ? currentPeriodEnd : new Date(currentPeriodEnd);
+                        if (Number.isNaN(d.getTime())) return "-";
+                        return d.toLocaleDateString("ja-JP");
+                      } catch { return "-"; }
+                    })()} に終了します
+                  </p>
+                )}
+              </div>
+
+              <div style={{ marginTop: 20, paddingTop: 20, borderTop: "1px solid #E8EAED" }}>
+                <div style={{
+                  background: "#F9FAFB",
+                  borderRadius: 10,
+                  padding: "16px 20px",
+                  marginBottom: 16,
+                  fontSize: 13,
+                  color: "#374151",
+                  lineHeight: 1.8
+                }}>
+                  <p style={{ fontWeight: 600, marginBottom: 8 }}>月額500円（税込）</p>
+                  <ul style={{ margin: 0, paddingLeft: 20 }}>
+                    <li>解約しない限り毎月自動更新されます</li>
+                    <li>いつでも解約可能です（解約後も次回更新日まで利用できます）</li>
+                    <li>決済完了後の返金には応じておりません</li>
+                  </ul>
+                </div>
+
+                <label style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 10,
+                  cursor: "pointer",
+                  marginBottom: 16,
+                  fontSize: 13,
+                  color: "#374151"
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={resumeConsentChecked}
+                    onChange={(e) => setResumeConsentChecked(e.target.checked)}
+                    style={{ marginTop: 2, width: 16, height: 16, accentColor: "var(--primary-cyan)" }}
+                  />
+                  <span>
+                    上記内容および
+                    <a href="/terms" target="_blank" style={{ color: "#1d1f42", textDecoration: "underline" }}>利用規約</a>
+                    ・
+                    <a href="/privacy" target="_blank" style={{ color: "#1d1f42", textDecoration: "underline" }}>プライバシーポリシー</a>
+                    ・
+                    <a href="/legal/tokushoho" target="_blank" style={{ color: "#1d1f42", textDecoration: "underline" }}>特定商取引法に基づく表記</a>
+                    に同意します
+                  </span>
+                </label>
+
+                <button
+                  onClick={() => openPortal(true)}
+                  disabled={billingLoading || !resumeConsentChecked}
+                  className="app-btn-primary"
+                  style={{
+                    width: "100%",
+                    padding: "14px 24px",
+                    fontSize: 15,
+                    opacity: resumeConsentChecked ? 1 : 0.5
+                  }}
+                >
+                  {billingLoading ? "処理中..." : "再開"}
+                </button>
+              </div>
+
+              {billingError && <div className="app-error" style={{ marginTop: 16 }}>{billingError}</div>}
+            </div>
           )}
 
           {/* Billing card for free users */}
