@@ -12,9 +12,9 @@ import { FieldValue } from "firebase-admin/firestore";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-function jstNow() {
-  const now = new Date();
-  return new Date(now.getTime() + 9 * 60 * 60 * 1000);
+// 4:00 AM JST boundary: JST - 4h = UTC + 5h
+function logicalJstNow() {
+  return new Date(Date.now() + 5 * 60 * 60 * 1000);
 }
 
 function dateKeyFromJst(d: Date) {
@@ -64,9 +64,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: "already_sent" }, { status: 400 });
     }
 
-    // Guard: check if today's delivery already exists
-    const nowJst = jstNow();
-    const today = dateKeyFromJst(nowJst);
+    // Guard: check if today's delivery already exists (4AM JST boundary)
+    const today = dateKeyFromJst(logicalJstNow());
     const deliveryId = `${uid}_${today}`;
     const deliveryRef = db.collection("deliveries").doc(deliveryId);
     const deliverySnap = await deliveryRef.get();

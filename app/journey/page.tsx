@@ -226,7 +226,7 @@ export default function DashboardPage() {
         const origin = snap.data().trialStartedAt ?? snap.data().createdAt;
         if (origin) {
           const d = origin.toDate ? origin.toDate() : new Date(origin);
-          setCreatedAtKey(ymdJst(d));
+          setCreatedAtKey(ymdLogical(d));
         }
       }
     };
@@ -418,20 +418,16 @@ export default function DashboardPage() {
 }
 
 /* ===== Calendar ===== */
-function ymdJst(d: Date) {
-  const jst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
-  const y = jst.getUTCFullYear();
-  const m = String(jst.getUTCMonth() + 1).padStart(2, "0");
-  const day = String(jst.getUTCDate()).padStart(2, "0");
+// 4:00 AM JST boundary: JST - 4h = UTC + 5h
+function ymdLogical(d: Date) {
+  const logical = new Date(d.getTime() + 5 * 60 * 60 * 1000);
+  const y = logical.getUTCFullYear();
+  const m = String(logical.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(logical.getUTCDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
 }
-// 4:00 AM JST boundary: JST - 4h = UTC + 5h
 function logicalTodayJst() {
-  const d = new Date(Date.now() + 5 * 60 * 60 * 1000);
-  const y = d.getUTCFullYear();
-  const m = String(d.getUTCMonth() + 1).padStart(2, "0");
-  const day = String(d.getUTCDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
+  return ymdLogical(new Date());
 }
 
 function addMonths(d: Date, n: number) {
@@ -469,7 +465,7 @@ function CalendarHeatmap({
 
   for (let day = 1; day <= daysInMonth; day++) {
     const date = new Date(year, month, day);
-    const key = ymdJst(date);
+    const key = ymdLogical(date);
     const beforeReg = createdAtKey ? key < createdAtKey : false;
     const colIdx = (leading + day - 1) % 7; // 0=Mon ... 5=Sat, 6=Sun
     // 配信曜日OFFによるグレー表示は本日以降のみ（過去は実際のpause記録で判定）
