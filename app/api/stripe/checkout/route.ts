@@ -169,7 +169,7 @@ export async function POST(req: Request) {
     const successUrl = `${appUrl}${successPath.startsWith("/") ? "" : "/"}${successPath}`;
     const cancelUrl = `${appUrl}${cancelPath.startsWith("/") ? "" : "/"}${cancelPath}`;
 
-    // ★ trialUsed 判定 + トライアル残日数の計算
+    // ★ trialUsed 判定 + トライアル残時間の計算
     let trialUsed = user?.trialUsed === true;
 
     // メールハッシュで過去のトライアル利用を照合（退会→再登録対策）
@@ -178,7 +178,9 @@ export async function POST(req: Request) {
       const trialEmailSnap = await getAdminDb().collection("trialEmails").doc(hash).get();
       if (trialEmailSnap.exists) trialUsed = true;
     }
-    let remainingTrialDays = 0;
+
+    // 初回トライアル終了タイムスタンプ（ms）を解決
+    let trialEndsAtMs: number | null = null;
     if (trialUsed) {
       const trialEndsAt = user?.trialEndsAt;
       if (trialEndsAt) {
@@ -187,9 +189,8 @@ export async function POST(req: Request) {
           : typeof trialEndsAt?.toDate === "function"
             ? trialEndsAt.toDate().getTime()
             : new Date(trialEndsAt).getTime();
-        if (Number.isFinite(endMs)) {
-          const days = Math.ceil((endMs - Date.now()) / (24 * 60 * 60 * 1000));
-          if (days > 0) remainingTrialDays = days;
+        if (Number.isFinite(endMs) && endMs > Date.now()) {
+          trialEndsAtMs = endMs;
         }
       }
     }
@@ -218,14 +219,30 @@ export async function POST(req: Request) {
     }
 
     // subscription_data（uidをsubscriptionにも刻む）
-    // トライアル未使用 → フル日数、使用済みだが期間内 → 残日数で無料再開
-    const effectiveTrialDays = !trialUsed ? requestedTrialDays : remainingTrialDays;
-    const subscriptionData: Stripe.Checkout.SessionCreateParams.SubscriptionData = {
-      metadata: { uid },
-      ...(effectiveTrialDays > 0
-        ? { trial_period_days: effectiveTrialDays }
-        : {}),
-    };
+    // トライアル未使用 → フル日数、使用済み → 初回の終了時刻を厳密に引き継ぐ
+    let effectiveTrialDays = 0;
+    const subscriptionData: Record<string, any> = { metadata: { uid } };
+
+    if (!trialUsed) {
+      // 初回トライアル
+      effectiveTrialDays = requestedTrialDays;
+      if (requestedTrialDays > 0) {
+        subscriptionData.trial_period_days = requestedTrialDays;
+      }
+    } else if (trialEndsAtMs !== null) {
+      // 再トライアル: 初回の終了時刻を正確に引き継ぐ
+      const remainingMs = trialEndsAtMs - Date.now();
+      effectiveTrialDays = Math.ceil(remainingMs / (24 * 60 * 60 * 1000));
+      const MIN_48H_MS = 48 * 60 * 60 * 1000;
+      if (remainingMs >= MIN_48H_MS) {
+        // trial_end で正確なタイムスタンプを指定（Stripe は 48h 以上を要求）
+        subscriptionData.trial_end = Math.floor(trialEndsAtMs / 1000);
+      } else {
+        // 48h 未満: trial_period_days にフォールバック
+        subscriptionData.trial_period_days = Math.max(1, Math.ceil(remainingMs / (24 * 60 * 60 * 1000)));
+      }
+    }
+    // trialUsed && trialEndsAtMs === null → トライアル期間切れ、trial なし
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
