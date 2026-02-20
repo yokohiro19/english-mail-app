@@ -293,28 +293,24 @@ function buildReadPage(dateKey: string, appBaseUrl: string, nickname: string) {
       <div class="adjust-title">読むのが大変だった人、簡単すぎた人は、<br>難易度を調整しましょう</div>
       <div class="guide-grid">
         <div class="guide-item">
-          <div class="guide-emoji">😓</div>
           <div class="guide-text">
             <div class="guide-label">読むのが大変だった</div>
             <div class="guide-action">単語数を減らす</div>
           </div>
         </div>
         <div class="guide-item">
-          <div class="guide-emoji">🤔</div>
           <div class="guide-text">
             <div class="guide-label">言葉が難しかった</div>
             <div class="guide-action">難易度を下げる</div>
           </div>
         </div>
         <div class="guide-item">
-          <div class="guide-emoji">📖</div>
           <div class="guide-text">
             <div class="guide-label">もっと読みたい</div>
             <div class="guide-action">単語数を増やす</div>
           </div>
         </div>
         <div class="guide-item">
-          <div class="guide-emoji">😎</div>
           <div class="guide-text">
             <div class="guide-label">言葉が簡単だった</div>
             <div class="guide-action">難易度を上げる</div>
