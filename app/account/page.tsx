@@ -6,7 +6,6 @@ import {
   EmailAuthProvider,
   reauthenticateWithCredential,
   updatePassword,
-  verifyBeforeUpdateEmail,
   signOut,
   User,
 } from "firebase/auth";
@@ -61,6 +60,25 @@ export default function AccountPage() {
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteMsg, setDeleteMsg] = useState<{ text: string; type: "success" | "error" } | null>(null);
+
+  // Email change result banner
+  const [emailChangeBanner, setEmailChangeBanner] = useState<{ text: string; type: "success" | "error" } | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const result = params.get("email-change");
+      if (result === "success") {
+        setEmailChangeBanner({ text: "メールアドレスを変更しました。", type: "success" });
+      } else if (result === "in-use") {
+        setEmailChangeBanner({ text: "このメールアドレスは既に使用されています。", type: "error" });
+      } else if (result === "expired") {
+        setEmailChangeBanner({ text: "リンクの有効期限が切れています。再度お試しください。", type: "error" });
+      } else if (result === "error") {
+        setEmailChangeBanner({ text: "メールアドレスの変更に失敗しました。", type: "error" });
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
@@ -127,12 +145,32 @@ export default function AccountPage() {
     setEmailLoading(true);
     setEmailMsg(null);
     try {
+      // パスワード確認（再認証）
       const credential = EmailAuthProvider.credential(user.email, emailPassword);
       await reauthenticateWithCredential(user, credential);
-      await verifyBeforeUpdateEmail(user, newEmail);
-      setEmailMsg({ text: "確認メールを送信しました。新しいメールアドレスの受信トレイを確認してください。", type: "success" });
-      setNewEmail("");
-      setEmailPassword("");
+
+      // サーバー側で確認メール送信
+      const idToken = await user.getIdToken();
+      const res = await fetch("/api/change-email", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${idToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ newEmail }),
+      });
+      const json = await res.json().catch(() => ({}));
+
+      if (res.ok && json.ok) {
+        setEmailMsg({ text: "確認メールを送信しました。新しいメールアドレスの受信トレイを確認してください。", type: "success" });
+        setNewEmail("");
+        setEmailPassword("");
+      } else if (json.error === "same_email") {
+        setEmailMsg({ text: "現在のメールアドレスと同じです。", type: "error" });
+      } else if (json.error === "email_in_use") {
+        setEmailMsg({ text: "このメールアドレスは既に使用されています。", type: "error" });
+      } else if (json.error === "too_many_attempts") {
+        setEmailMsg({ text: "しばらく時間をおいてから再度お試しください。", type: "error" });
+      } else {
+        setEmailMsg({ text: "送信に失敗しました。", type: "error" });
+      }
     } catch (err: any) {
       setEmailMsg({ text: firebaseErrorJa(err), type: "error" });
     } finally {
@@ -214,6 +252,16 @@ export default function AccountPage() {
       <AppHeader />
       <main style={{ maxWidth: 800, margin: "0 auto", padding: "32px 24px" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+
+          {emailChangeBanner && (
+            <div style={{
+              background: emailChangeBanner.type === "success" ? "#059669" : "#DC2626",
+              color: "#fff", padding: "14px 20px", borderRadius: 12,
+              fontSize: 14, fontWeight: 600, textAlign: "center",
+            }}>
+              {emailChangeBanner.text}
+            </div>
+          )}
 
           {/* Page title */}
           <div>
