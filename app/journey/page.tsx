@@ -465,7 +465,7 @@ function CalendarHeatmap({
 
   for (let day = 1; day <= daysInMonth; day++) {
     const date = new Date(year, month, day);
-    const key = ymdLogical(date);
+    const key = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     const beforeReg = createdAtKey ? key < createdAtKey : false;
     const colIdx = (leading + day - 1) % 7; // 0=Mon ... 5=Sat, 6=Sun
     // 配信曜日OFFによるグレー表示は本日以降のみ（過去は実際のpause記録で判定）
