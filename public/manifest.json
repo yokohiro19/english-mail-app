@@ -1,7 +1,7 @@
 {
   "name": "TapSmart English",
   "short_name": "TapSmart",
-  "start_url": "/",
+  "start_url": "/routine",
   "display": "standalone",
   "background_color": "#1d1f42",
   "theme_color": "#1d1f42",
