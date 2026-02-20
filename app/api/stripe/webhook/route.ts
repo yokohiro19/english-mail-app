@@ -106,11 +106,14 @@ function buildPatchFromSubscription(sub: any, fallbackUid?: string | null) {
 
   const patch: any = {
     subscriptionStatus: status ?? null,
-    cancelAtPeriodEnd,
+    cancelAtPeriodEnd: hasCancellationScheduled,
     updatedAt: new Date(),
   };
 
-  if (hasCurrentPeriodEnd(sub)) {
+  // 終了日: cancel_at > current_period_end の優先順位
+  if (cancelAt !== null) {
+    patch.currentPeriodEnd = new Date(cancelAt * 1000);
+  } else if (hasCurrentPeriodEnd(sub)) {
     patch.currentPeriodEnd = new Date(sub.current_period_end * 1000);
   }
 
@@ -132,7 +135,7 @@ function buildPatchFromSubscription(sub: any, fallbackUid?: string | null) {
     patch.plan = "free";
   }
 
-  return { uid, patch, status, cancelAtPeriodEnd };
+  return { uid, patch, status, cancelAtPeriodEnd: hasCancellationScheduled };
 }
 
 /**

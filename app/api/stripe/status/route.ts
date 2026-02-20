@@ -39,20 +39,29 @@ export async function GET(req: Request) {
       return NextResponse.json({ ok: true, synced: false, reason: "deleted" });
     }
 
-    const cancelAtPeriodEnd = Boolean(sub.cancel_at_period_end);
+    // cancel_at_period_end または cancel_at のどちらかで解約予約を判定
+    const rawCancelAt = (sub as any).cancel_at;
+    const cancelScheduled = Boolean(sub.cancel_at_period_end) || (typeof rawCancelAt === "number" && rawCancelAt > 0);
+
     const status = sub.status;
-    const rawPeriodEnd = (sub as any).current_period_end;
-    const currentPeriodEnd = typeof rawPeriodEnd === "number"
-      ? new Date(rawPeriodEnd * 1000)
+
+    // 終了日: cancel_at > current_period_end の優先順位で取得
+    const endTimestamp = typeof rawCancelAt === "number" && rawCancelAt > 0
+      ? rawCancelAt
+      : typeof (sub as any).current_period_end === "number"
+        ? (sub as any).current_period_end
+        : null;
+    const currentPeriodEnd = typeof endTimestamp === "number"
+      ? new Date(endTimestamp * 1000)
       : null;
 
     // Firestoreと差分があれば同期
     const firestoreCancelAtPeriodEnd = Boolean(user?.cancelAtPeriodEnd);
     const firestoreStatus = user?.subscriptionStatus ?? null;
 
-    if (firestoreCancelAtPeriodEnd !== cancelAtPeriodEnd || firestoreStatus !== status) {
+    if (firestoreCancelAtPeriodEnd !== cancelScheduled || firestoreStatus !== status) {
       const patch: any = {
-        cancelAtPeriodEnd,
+        cancelAtPeriodEnd: cancelScheduled,
         subscriptionStatus: status,
         updatedAt: new Date(),
       };
@@ -63,7 +72,7 @@ export async function GET(req: Request) {
     return NextResponse.json({
       ok: true,
       synced: true,
-      cancelAtPeriodEnd,
+      cancelAtPeriodEnd: cancelScheduled,
       subscriptionStatus: status,
       currentPeriodEnd: currentPeriodEnd?.toISOString() ?? null,
     });
