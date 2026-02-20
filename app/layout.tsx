@@ -16,6 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "TapSmart English - ちょうど楽しい難易度。だから、明日も読みたくなる。",
   description: "自分に最適な難易度と文字数で、AIが生成した英文が毎日メールで届く。無理なく続けられる、新しいビジネス英語学習。月額500円、初回7日間無料。",
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({
