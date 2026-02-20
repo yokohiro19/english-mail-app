@@ -52,6 +52,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true });
   } catch (e: any) {
     console.error("[send-verification] error:", e?.message, e?.code, JSON.stringify(e));
+    if (e?.message?.includes("TOO_MANY_ATTEMPTS_TRY_LATER") || e?.code === "auth/too-many-requests") {
+      return NextResponse.json({ ok: false, error: "too_many_attempts" }, { status: 429 });
+    }
     return NextResponse.json({ ok: false, error: e?.message || "failed" }, { status: 500 });
   }
 }

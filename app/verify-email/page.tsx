@@ -44,8 +44,10 @@ export default function VerifyEmailPage() {
       const json = await res.json().catch(() => ({}));
       if (res.ok) {
         setMessage({ text: "認証メールを再送信しました。受信トレイを確認してください。", type: "success" });
+      } else if (res.status === 429 || json.error === "too_many_attempts") {
+        setMessage({ text: "しばらく時間をおいてから再度お試しください。", type: "error" });
       } else {
-        setMessage({ text: `送信に失敗しました: ${json.error || res.status}`, type: "error" });
+        setMessage({ text: "送信に失敗しました。しばらくしてから再度お試しください。", type: "error" });
       }
     } catch {
       setMessage({ text: "送信に失敗しました。", type: "error" });
