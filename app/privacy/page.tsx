@@ -23,7 +23,7 @@ export default function PrivacyPage() {
         <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 32, fontWeight: 800, marginBottom: 8, color: "var(--dark-navy)" }}>
           プライバシーポリシー
         </h1>
-        <p style={{ fontSize: 13, color: "#9CA3AF", marginBottom: 40 }}>最終更新日: 2026年2月18日</p>
+        <p style={{ fontSize: 13, color: "#9CA3AF", marginBottom: 40 }}>最終更新日: 2026年2月20日</p>
 
         <div style={{ fontSize: 15, lineHeight: 1.9, color: "#374151" }}>
           <p>TapSmart English（以下「当社」）は、TapSmart Englishが提供する各種サービス（以下「本サービス」）における個人情報の取扱いについて、以下のとおり定めます。</p>
@@ -48,6 +48,7 @@ export default function PrivacyPage() {
           <ul style={ulStyle}>
             <li>本サービスの提供、維持、管理</li>
             <li>利用状況の分析、不正行為（多重登録、不正決済、BOT利用等）の防止および対応</li>
+            <li>不正利用の防止やセキュリティ確保のためのアクセスログ（IPアドレス等）の収集・保存</li>
             <li>お問い合わせへの対応</li>
             <li>決済処理および利用状況の管理</li>
             <li>法令の遵守および利用規約違反への対応</li>

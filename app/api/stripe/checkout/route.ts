@@ -250,14 +250,19 @@ export async function POST(req: Request) {
     // ===== 同意ログを保存（監査用） =====
     if (consentData) {
       const db = getAdminDb();
+      const ipAddress = getClientIp(req);
+      const now = new Date();
+      const agreedAt = consentData.agreedAt ? new Date(consentData.agreedAt) : now;
+
       const consentLogRef = db.collection("users").doc(uid).collection("consentLogs").doc();
       await consentLogRef.set({
         type: "checkout",
         sessionId: session.id,
-        agreedAt: consentData.agreedAt ? new Date(consentData.agreedAt) : new Date(),
+        agreedAt,
         termsVersion: consentData.termsVersion ?? null,
         privacyVersion: consentData.privacyVersion ?? null,
         displayedTerms: consentData.displayedTerms ?? [],
+        ipAddress,
         planInfo: {
           priceId,
           price: 500,
@@ -265,9 +270,23 @@ export async function POST(req: Request) {
           trialDays: effectiveTrialDays,
           autoRenewal: true,
         },
-        createdAt: new Date(),
+        createdAt: now,
       }).catch((e) => {
         console.error("[consent log] failed to save:", e);
+      });
+
+      // ユーザードキュメントに最新同意を上書き
+      await db.collection("users").doc(uid).set({
+        latestConsent: {
+          type: "checkout",
+          agreedAt,
+          termsVersion: consentData.termsVersion ?? null,
+          privacyVersion: consentData.privacyVersion ?? null,
+          ipAddress,
+          createdAt: now,
+        },
+      }, { merge: true }).catch((e) => {
+        console.error("[latestConsent] failed to save:", e);
       });
     }
 

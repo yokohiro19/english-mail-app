@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { getAdminAuth, getAdminDb } from "@/src/lib/firebaseAdmin.server";
+import { getClientIp } from "@/src/lib/rateLimit";
 
 
 export const runtime = "nodejs";
@@ -38,6 +39,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: "missing_STRIPE_SECRET_KEY" }, { status: 500 });
     }
 
+    const body = await req.json().catch(() => ({}));
+
     // ===== auth =====
     const authHeader = req.headers.get("authorization") || "";
     const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
@@ -68,6 +71,40 @@ export async function POST(req: Request) {
       customer: customerId,
       return_url: returnUrl,
     });
+
+    // ===== resume 同意ログを保存 =====
+    const consentData = body?.consent;
+    if (consentData) {
+      const ipAddress = getClientIp(req);
+      const now = new Date();
+      const agreedAt = consentData.agreedAt ? new Date(consentData.agreedAt) : now;
+
+      const consentLogRef = db.collection("users").doc(uid).collection("consentLogs").doc();
+      await consentLogRef.set({
+        type: "resume",
+        agreedAt,
+        termsVersion: consentData.termsVersion ?? null,
+        privacyVersion: consentData.privacyVersion ?? null,
+        displayedTerms: consentData.displayedTerms ?? [],
+        ipAddress,
+        createdAt: now,
+      }).catch((e) => {
+        console.error("[consent log resume] failed to save:", e);
+      });
+
+      await userRef.set({
+        latestConsent: {
+          type: "resume",
+          agreedAt,
+          termsVersion: consentData.termsVersion ?? null,
+          privacyVersion: consentData.privacyVersion ?? null,
+          ipAddress,
+          createdAt: now,
+        },
+      }, { merge: true }).catch((e) => {
+        console.error("[latestConsent resume] failed to save:", e);
+      });
+    }
 
     return NextResponse.json({ ok: true, url: portal.url });
   } catch (e: any) {

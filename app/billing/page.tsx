@@ -144,8 +144,8 @@ export default function BillingPage() {
           cancelPath: "/billing?billing=cancel",
           consent: {
             agreedAt: new Date().toISOString(),
-            termsVersion: "2026-02-06",
-            privacyVersion: "2026-02-06",
+            termsVersion: "2026-02-20",
+            privacyVersion: "2026-02-20",
             displayedTerms: [
               "月額500円（税込）",
               showFreeTrialLabel ? "初回7日間無料" : null,
@@ -191,16 +191,30 @@ export default function BillingPage() {
     }
   };
 
-  const openPortal = async () => {
+  const openPortal = async (withConsent = false) => {
     if (!user) return;
     setBillingLoading(true);
     setBillingError(null);
     try {
       const token = await user.getIdToken();
+      const bodyData: any = { returnPath: "/billing" };
+      if (withConsent) {
+        bodyData.consent = {
+          agreedAt: new Date().toISOString(),
+          termsVersion: "2026-02-20",
+          privacyVersion: "2026-02-20",
+          displayedTerms: [
+            "月額500円（税込）",
+            "解約しない限り毎月自動更新",
+            "いつでも解約可能（解約後も次回更新日まで利用可能）",
+            "決済完了後の返金不可",
+          ],
+        };
+      }
       const res = await fetch("/api/stripe/portal", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ returnPath: "/billing" }),
+        body: JSON.stringify(bodyData),
       });
       const json = await res.json();
       if (!res.ok || !json?.ok || !json?.url) { setBillingError("ポータル起動に失敗しました。"); return; }
@@ -297,7 +311,7 @@ export default function BillingPage() {
               <div>
                 {plan === "standard" && !cancelAtPeriodEnd && (
                   <button
-                    onClick={subscriptionStatus === "trialing" ? cancelTrial : openPortal}
+                    onClick={subscriptionStatus === "trialing" ? cancelTrial : () => openPortal()}
                     disabled={billingLoading}
                     className="app-btn-secondary"
                   >
@@ -354,7 +368,7 @@ export default function BillingPage() {
                 </label>
 
                 <button
-                  onClick={openPortal}
+                  onClick={() => openPortal(true)}
                   disabled={billingLoading || !resumeConsentChecked}
                   className="app-btn-primary"
                   style={{
