@@ -243,6 +243,7 @@ export default function SettingsPage() {
       setSavedSendTime(sendTime);
       setSavedDeliveryDays([...deliveryDays]);
       setDeliverySaveMsg({ text: "保存しました", type: "success" });
+      setTimeout(() => setDeliverySaveMsg(null), 3000);
     } catch (e: any) {
       console.error("[saveDelivery]", e);
       setDeliverySaveMsg({ text: `保存に失敗しました（${e?.code || e?.message || "unknown"}）`, type: "error" });
@@ -264,6 +265,7 @@ export default function SettingsPage() {
       setSavedLevel(level);
       setSavedWordCount(wordCount);
       setDifficultySaveMsg({ text: "保存しました", type: "success" });
+      setTimeout(() => setDifficultySaveMsg(null), 3000);
     } catch (e: any) {
       console.error("[saveDifficulty]", e);
       setDifficultySaveMsg({ text: `保存に失敗しました（${e?.code || e?.message || "unknown"}）`, type: "error" });
@@ -333,8 +335,8 @@ export default function SettingsPage() {
           cancelPath: "/billing?billing=cancel",
           consent: {
             agreedAt: new Date().toISOString(),
-            termsVersion: "2026-02-06",
-            privacyVersion: "2026-02-06",
+            termsVersion: "2026-02-20",
+            privacyVersion: "2026-02-20",
             displayedTerms: [
               "月額500円（税込）",
               showFreeTrialLabel ? "初回7日間無料" : null,
