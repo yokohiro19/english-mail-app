@@ -931,8 +931,12 @@ export default function SettingsPage() {
               <div
                 style={{
                   marginTop: 14,
-                  fontSize: 12,
-                  color: "#6B7280",
+                  fontSize: 13,
+                  color: "#92400E",
+                  background: "#FFFBEB",
+                  border: "1px solid #FDE68A",
+                  borderRadius: 8,
+                  padding: "12px 14px",
                   lineHeight: 1.7,
                 }}
               >
