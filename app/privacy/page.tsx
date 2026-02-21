@@ -106,7 +106,7 @@ export default function PrivacyPage() {
         <div className="footer-content">
           <div className="footer-brand">
             <h3>TapSmart <span style={{ color: "var(--primary-cyan)" }}>English</span></h3>
-            <p>ビジネス英語を、自分のペースで。<br />毎日続けられる学習体験を提供します。</p>
+            <p>ビジネス英語を、自分の「楽しい」ペースで。<br />毎日続けられる学習体験を提供します。</p>
           </div>
           <div className="footer-links">
             <h4>プロダクト</h4>
