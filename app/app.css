@@ -434,7 +434,8 @@
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
   .stats-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
   }
 
   .auth-card {
