@@ -248,11 +248,17 @@ export async function GET(req: Request) {
       }
 
       // ===== Delivery Days Guard (曜日チェック) =====
+      // 今日設定した配信停止は明日から反映（今日はまだ送る）
       const deliveryDays: number[] = Array.isArray(u.deliveryDays) ? u.deliveryDays : [0,1,2,3,4,5,6];
       const jstDow = (logicalJstNow().getUTCDay() + 6) % 7; // 0=月, 6=日
       if (!deliveryDays.includes(jstDow)) {
-        skippedPaused++;
-        continue;
+        const offSince = (u.deliveryDayOffSince ?? {})[String(jstDow)] as string | undefined;
+        if (!offSince || offSince < today) {
+          // 前日以前に設定済み → 配信しない
+          skippedPaused++;
+          continue;
+        }
+        // offSince >= today → 今日設定した → 今日はまだ送る
       }
 
       // ===== Email Verification Guard =====
