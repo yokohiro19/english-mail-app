@@ -356,6 +356,7 @@ export async function GET(req: Request) {
             sentAt: now,
             topicId: topic.id,
             cefr,
+            wordCount,
             emailProvider: "resend",
             emailId: (sendRes as any)?.data?.id ?? null,
           },
