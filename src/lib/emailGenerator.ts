@@ -48,13 +48,13 @@ export function mapExamToCEFR(examType: string, examLevel: string): string {
 }
 
 export async function pickRandomTopic(db: FirebaseFirestore.Firestore) {
-  const snap = await db.collection("topics").select("category", "title", "promptSeed").get();
+  const snap = await db.collection("topics").select("category", "promptSeed").get();
   if (snap.empty) throw new Error("No topics found.");
 
   const idx = Math.floor(Math.random() * snap.size);
   const doc = snap.docs[idx];
   const data = doc.data() as any;
-  return { id: doc.id, category: data.category, title: data.title, promptSeed: data.promptSeed };
+  return { id: doc.id, category: data.category, promptSeed: data.promptSeed };
 }
 
 const LEVEL_GUIDELINES: Record<string, string> = {
@@ -128,7 +128,7 @@ export function buildSystemPrompt(cefr: string): string {
 export async function generateEmailContent(
   cefr: string,
   wordCount: number,
-  topic: { category: string; title: string; promptSeed: string },
+  topic: { category: string; promptSeed: string },
 ) {
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -138,8 +138,7 @@ export async function generateEmailContent(
     `CEFR: ${cefr}`,
     `Target word count: about ${wordCount} words (not characters).`,
     `Topic category: ${topic.category}`,
-    `Topic title: ${topic.title}`,
-    `Topic details: ${topic.promptSeed}`,
+    `Topic: ${topic.promptSeed}`,
     "",
     "Generate JSON fields:",
     `- english_text: email-like text (~${wordCount} words)`,

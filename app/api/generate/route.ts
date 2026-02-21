@@ -25,30 +25,13 @@ const openai = new OpenAI({
 
 async function pickRandomTopic() {
   const db = getAdminDb();
-  const r = Math.random();
-
-  let snap = await db
-    .collection("topics")
-    .where("rand", ">=", r)
-    .orderBy("rand", "asc")
-    .limit(1)
-    .get();
-
-  if (snap.empty) {
-    snap = await db.collection("topics").orderBy("rand", "asc").limit(1).get();
-  }
-
+  const snap = await db.collection("topics").select("category", "promptSeed").get();
   if (snap.empty) throw new Error("No topics found.");
 
-  const doc = snap.docs[0];
+  const idx = Math.floor(Math.random() * snap.size);
+  const doc = snap.docs[idx];
   const data = doc.data() as any;
-
-  return {
-    id: doc.id,
-    category: data.category,
-    title: data.title,
-    promptSeed: data.promptSeed,
-  };
+  return { id: doc.id, category: data.category, promptSeed: data.promptSeed };
 }
 
 export async function POST(req: Request) {
@@ -93,8 +76,7 @@ export async function POST(req: Request) {
       `CEFR: ${cefr}`,
       `Target word count: about ${wordCount} words (not characters).`,
       `Topic category: ${topic.category}`,
-      `Topic title: ${topic.title}`,
-      `Topic details: ${topic.promptSeed}`,
+      `Topic: ${topic.promptSeed}`,
       "",
       "Generate JSON fields:",
       `- english_text: email-like text (~${wordCount} words)`,

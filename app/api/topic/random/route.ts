@@ -19,26 +19,14 @@ export async function GET(req: Request) {
     }
 
     const db = getAdminDb();
-    const r = Math.random();
-
-    // rand >= r の先頭を取る
-    let snap = await db
-      .collection("topics")
-      .where("rand", ">=", r)
-      .orderBy("rand", "asc")
-      .limit(1)
-      .get();
-
-    // 無ければ先頭に巻き戻し
-    if (snap.empty) {
-      snap = await db.collection("topics").orderBy("rand", "asc").limit(1).get();
-    }
+    const snap = await db.collection("topics").select("category", "promptSeed").get();
 
     if (snap.empty) {
       return NextResponse.json({ ok: false, error: "No topics found" }, { status: 404 });
     }
 
-    const doc = snap.docs[0];
+    const idx = Math.floor(Math.random() * snap.size);
+    const doc = snap.docs[idx];
     const data = doc.data() as FirebaseFirestore.DocumentData;
 
     return NextResponse.json({
@@ -46,7 +34,6 @@ export async function GET(req: Request) {
       topic: {
         id: doc.id,
         category: data.category,
-        title: data.title,
         promptSeed: data.promptSeed,
       },
     });
