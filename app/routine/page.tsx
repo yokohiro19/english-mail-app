@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { doc, getDoc, setDoc, updateDoc, serverTimestamp, deleteField } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp, deleteField } from "firebase/firestore";
 import { auth, db } from "../../src/lib/firebase";
 import { useRouter } from "next/navigation";
 import "../app.css";
@@ -252,17 +252,22 @@ export default function SettingsPage() {
         deliveryDays: daysArray,
         updatedAt: serverTimestamp(),
       };
-      // 曜日ごとの配信停止日を管理（dot notation で個別更新）
+      // 曜日ごとの配信停止日を管理
       const logical = new Date(Date.now() + 5 * 60 * 60 * 1000);
       const logicalKey = `${logical.getUTCFullYear()}-${String(logical.getUTCMonth() + 1).padStart(2, "0")}-${String(logical.getUTCDate()).padStart(2, "0")}`;
+      const offSinceUpdate: Record<string, any> = {};
+      let hasOffSinceChange = false;
       for (let i = 0; i < 7; i++) {
         if (savedDeliveryDays[i] && !deliveryDays[i]) {
-          // 新たに配信停止にした曜日 → 今日の日付を記録
-          updateData[`deliveryDayOffSince.${i}`] = logicalKey;
+          offSinceUpdate[String(i)] = logicalKey;
+          hasOffSinceChange = true;
         } else if (!savedDeliveryDays[i] && deliveryDays[i]) {
-          // 配信再開にした曜日 → 記録を削除
-          updateData[`deliveryDayOffSince.${i}`] = deleteField();
+          offSinceUpdate[String(i)] = deleteField();
+          hasOffSinceChange = true;
         }
+      }
+      if (hasOffSinceChange) {
+        updateData.deliveryDayOffSince = offSinceUpdate;
       }
       if (legacyPaused) {
         updateData.deliveryPaused = false;
@@ -270,7 +275,7 @@ export default function SettingsPage() {
         setLegacyPaused(false);
         setLegacyPausedAt(null);
       }
-      await updateDoc(ref, updateData);
+      await setDoc(ref, updateData, { merge: true });
       setSavedSendTime(sendTime);
       setSavedDeliveryDays([...deliveryDays]);
       setDeliverySaveMsg({ text: "保存しました", type: "success" });
