@@ -22,12 +22,17 @@ function formatTs(ts: any) {
   }
 }
 
-function formatDateOnly(ts: any) {
+function formatDateOnly(ts: any, withTime = false) {
   try {
     if (!ts) return null;
     const d =
       typeof ts?.toDate === "function" ? ts.toDate() : ts instanceof Date ? ts : new Date(ts);
     if (Number.isNaN(d.getTime())) return null;
+    if (withTime) {
+      const h = String(d.getHours()).padStart(2, "0");
+      const m = String(d.getMinutes()).padStart(2, "0");
+      return `${d.toLocaleDateString("ja-JP")} ${h}:${m}`;
+    }
     return d.toLocaleDateString("ja-JP");
   } catch {
     return null;
@@ -299,7 +304,7 @@ export default function BillingPage() {
                 )}
                 {plan === "standard" && cancelAtPeriodEnd && currentPeriodEnd && (
                   <p style={{ fontSize: 14, color: "#DC2626", marginTop: 8, fontWeight: 600 }}>
-                    サービスは {formatDateOnly(currentPeriodEnd)} に終了します。
+                    サービスは {formatDateOnly(currentPeriodEnd, true)} に終了します。
                   </p>
                 )}
                 {plan === "standard" && !cancelAtPeriodEnd && currentPeriodEnd && (
