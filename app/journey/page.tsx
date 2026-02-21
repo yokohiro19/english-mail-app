@@ -342,7 +342,7 @@ export default function DashboardPage() {
                   <div className="stat-sub">
                     {stats.thisWeek?.hit ?? 0}/{stats.thisWeek?.days ?? 0} 日
                   </div>
-                  <div style={{ marginTop: 8, fontSize: 11, color: "#9CA3AF", lineHeight: 1.6 }}>
+                  <div className="stat-legend">
                     S: 100% / A: 80% / B: 50% / C: 50%未満
                   </div>
                 </div>
@@ -360,7 +360,7 @@ export default function DashboardPage() {
                   <div className="stat-sub">
                     {stats.thisMonth?.hit ?? 0}/{stats.thisMonth?.days ?? 0} 日
                   </div>
-                  <div style={{ marginTop: 8, fontSize: 11, color: "#9CA3AF", lineHeight: 1.6 }}>
+                  <div className="stat-legend">
                     S: 100% / A: 80% / B: 50% / C: 50%未満
                   </div>
                 </div>

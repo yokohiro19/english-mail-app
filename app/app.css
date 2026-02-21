@@ -295,6 +295,13 @@
   margin-top: 2px;
 }
 
+.stat-legend {
+  margin-top: 8px;
+  font-size: 11px;
+  color: #9CA3AF;
+  line-height: 1.6;
+}
+
 /* ===== Rank badges ===== */
 .rank-badge {
   display: inline-flex;
@@ -435,7 +442,38 @@
 @media (max-width: 768px) {
   .stats-grid {
     grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
+    gap: 6px;
+  }
+
+  .stat-card {
+    padding: 12px 10px;
+    border-radius: 12px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+    margin-bottom: 2px;
+  }
+
+  .stat-value {
+    font-size: 22px;
+  }
+
+  .stat-unit {
+    font-size: 12px;
+  }
+
+  .stat-sub {
+    font-size: 11px;
+  }
+
+  .rank-badge {
+    padding: 1px 6px;
+    font-size: 11px;
+  }
+
+  .stat-legend {
+    display: none;
   }
 
   .auth-card {
