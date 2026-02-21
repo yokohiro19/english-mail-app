@@ -40,14 +40,8 @@ export async function GET(req: Request) {
 
     const deliveryDays: number[] = Array.isArray(userData?.deliveryDays) ? userData.deliveryDays : [0,1,2,3,4,5,6];
 
-    // deliveryDays の最終更新日（論理日）を算出
-    let deliveryDaysUpdatedAtKey: string | null = null;
-    const rawUpdatedAt = userData?.deliveryDaysUpdatedAt;
-    if (rawUpdatedAt) {
-      const ts = rawUpdatedAt.toDate ? rawUpdatedAt.toDate() : new Date(rawUpdatedAt);
-      const logical = new Date(ts.getTime() + 5 * 60 * 60 * 1000);
-      deliveryDaysUpdatedAtKey = `${logical.getUTCFullYear()}-${String(logical.getUTCMonth() + 1).padStart(2, "0")}-${String(logical.getUTCDate()).padStart(2, "0")}`;
-    }
+    // 曜日ごとの配信停止開始日
+    const deliveryDayOffSince = (userData?.deliveryDayOffSince ?? {}) as Record<string, string>;
 
     return NextResponse.json({
       ok: true,
@@ -57,7 +51,7 @@ export async function GET(req: Request) {
       currentlyPaused,
       pausedAt,
       deliveryDays,
-      deliveryDaysUpdatedAtKey,
+      deliveryDayOffSince,
     });
   } catch (e: any) {
     console.error(e);

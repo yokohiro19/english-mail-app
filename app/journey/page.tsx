@@ -35,7 +35,7 @@ type Stats = {
 type PausedPeriod = { start: string; end: string };
 
 type CalendarResp =
-  | { ok: true; count: number; dateKeys: string[]; pausedPeriods?: PausedPeriod[]; currentlyPaused?: boolean; pausedAt?: string | null; deliveryDays?: number[]; deliveryDaysUpdatedAtKey?: string | null }
+  | { ok: true; count: number; dateKeys: string[]; pausedPeriods?: PausedPeriod[]; currentlyPaused?: boolean; pausedAt?: string | null; deliveryDays?: number[]; deliveryDayOffSince?: Record<string, string> }
   | { ok: false; error: string };
 
 function pct(v: number) {
@@ -80,7 +80,7 @@ export default function DashboardPage() {
   const [calendarCount, setCalendarCount] = useState<number>(0);
   const [calendarError, setCalendarError] = useState<string | null>(null);
   const [deliveryDays, setDeliveryDays] = useState<number[]>([0,1,2,3,4,5,6]);
-  const [deliveryDaysUpdatedAtKey, setDeliveryDaysUpdatedAtKey] = useState<string | null>(null);
+  const [deliveryDayOffSince, setDeliveryDayOffSince] = useState<Record<string, string>>({});
 
   const [calendarCursor, setCalendarCursor] = useState(() => {
     const now = new Date();
@@ -201,7 +201,7 @@ export default function DashboardPage() {
       // deliveryDays をステートに保存（CalendarHeatmap 側で全月に対応）
       const dDays: number[] = json.deliveryDays ?? [0,1,2,3,4,5,6];
       setDeliveryDays(dDays);
-      setDeliveryDaysUpdatedAtKey(json.deliveryDaysUpdatedAtKey ?? null);
+      setDeliveryDayOffSince(json.deliveryDayOffSince ?? {});
 
       // 今日は currentlyPaused の状態をリアルタイムに反映
       if (!json.currentlyPaused) {
@@ -375,7 +375,7 @@ export default function DashboardPage() {
                 studiedSet={calendarSet}
                 pausedSet={pausedSet}
                 deliveryDays={deliveryDays}
-                deliveryDaysUpdatedAtKey={deliveryDaysUpdatedAtKey}
+                deliveryDayOffSince={deliveryDayOffSince}
                 cursor={calendarCursor}
                 setCursor={setCalendarCursor}
                 monthSummary={selectedMonthSummary}
@@ -443,7 +443,7 @@ function CalendarHeatmap({
   studiedSet,
   pausedSet,
   deliveryDays,
-  deliveryDaysUpdatedAtKey,
+  deliveryDayOffSince,
   cursor,
   setCursor,
   monthSummary,
@@ -453,7 +453,7 @@ function CalendarHeatmap({
   studiedSet: Set<string>;
   pausedSet: Set<string>;
   deliveryDays: number[];
-  deliveryDaysUpdatedAtKey: string | null;
+  deliveryDayOffSince: Record<string, string>;
   cursor: Date;
   setCursor: Dispatch<SetStateAction<Date>>;
   monthSummary: MonthlyItem | null;
@@ -478,12 +478,17 @@ function CalendarHeatmap({
     const dow = (date.getDay() + 6) % 7; // 0=Mon, 6=Sun
     // 配信曜日OFFによるグレー表示：
     // - 明日以降: 常に適用
-    // - 今日: 前日以前に設定済みの場合のみ適用（今日設定したら来週から）
-    const isNonDeliveryDay = deliveryDays.length < 7 && !deliveryDays.includes(dow);
-    const isNonDelivery = isNonDeliveryDay && (
-      key > todayKey ||
-      (key === todayKey && (!deliveryDaysUpdatedAtKey || deliveryDaysUpdatedAtKey < todayKey))
-    );
+    // - 今日: その曜日が前日以前に停止設定済みの場合のみ適用
+    const isExcludedDay = deliveryDays.length < 7 && !deliveryDays.includes(dow);
+    let isNonDelivery = false;
+    if (isExcludedDay) {
+      if (key > todayKey) {
+        isNonDelivery = true;
+      } else if (key === todayKey) {
+        const offSince = deliveryDayOffSince[String(dow)];
+        isNonDelivery = !offSince || offSince < todayKey;
+      }
+    }
     const paused = pausedSet.has(key) || isNonDelivery;
     cells.push({ key, day, studied: studiedSet.has(key), paused, beforeReg, isToday: key === todayKey, colIdx });
   }
