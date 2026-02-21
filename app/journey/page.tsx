@@ -33,7 +33,7 @@ type Stats = {
 };
 
 type CalendarResp =
-  | { ok: true; count: number; dateKeys: string[]; deliveryDays?: number[]; deliveryDayOffSince?: Record<string, string> }
+  | { ok: true; count: number; dateKeys: string[]; deliveryDays?: number[]; deliveryDayOffSince?: Record<string, string>; skippedDayOffKeys?: string[] }
   | { ok: false; error: string };
 
 function pct(v: number) {
@@ -78,6 +78,7 @@ export default function DashboardPage() {
   const [calendarError, setCalendarError] = useState<string | null>(null);
   const [deliveryDays, setDeliveryDays] = useState<number[]>([0,1,2,3,4,5,6]);
   const [deliveryDayOffSince, setDeliveryDayOffSince] = useState<Record<string, string>>({});
+  const [skippedDayOffSet, setSkippedDayOffSet] = useState<Set<string>>(new Set());
 
   const [calendarCursor, setCalendarCursor] = useState(() => {
     const now = new Date();
@@ -177,6 +178,7 @@ export default function DashboardPage() {
       const dDays: number[] = json.deliveryDays ?? [0,1,2,3,4,5,6];
       setDeliveryDays(dDays);
       setDeliveryDayOffSince(json.deliveryDayOffSince ?? {});
+      setSkippedDayOffSet(new Set(json.skippedDayOffKeys ?? []));
 
       setCalendarSet(set);
       setCalendarCount(set.size);
@@ -344,6 +346,7 @@ export default function DashboardPage() {
                 studiedSet={calendarSet}
                 deliveryDays={deliveryDays}
                 deliveryDayOffSince={deliveryDayOffSince}
+                skippedDayOffSet={skippedDayOffSet}
                 cursor={calendarCursor}
                 setCursor={setCalendarCursor}
                 monthSummary={selectedMonthSummary}
@@ -411,6 +414,7 @@ function CalendarHeatmap({
   studiedSet,
   deliveryDays,
   deliveryDayOffSince,
+  skippedDayOffSet,
   cursor,
   setCursor,
   monthSummary,
@@ -420,6 +424,7 @@ function CalendarHeatmap({
   studiedSet: Set<string>;
   deliveryDays: number[];
   deliveryDayOffSince: Record<string, string>;
+  skippedDayOffSet: Set<string>;
   cursor: Date;
   setCursor: Dispatch<SetStateAction<Date>>;
   monthSummary: MonthlyItem | null;
@@ -443,17 +448,18 @@ function CalendarHeatmap({
     const colIdx = (leading + day - 1) % 7; // 0=Mon ... 5=Sat, 6=Sun
     const dow = (date.getDay() + 6) % 7; // 0=Mon, 6=Sun
     // 配信曜日OFFによるグレー表示：
-    // - 過去・未来: 常に適用（過去も遡及）
-    // - 今日: その曜日が前日以前に停止設定済みの場合のみ適用
+    // - 過去: cron が skipped_day_off を記録した日のみ
+    // - 今日: その曜日が前日以前に停止設定済みの場合のみ
+    // - 未来: 現在の deliveryDays 設定で対象外なら常に適用
     const isExcludedDay = deliveryDays.length < 7 && !deliveryDays.includes(dow);
     let nonDelivery = false;
-    if (isExcludedDay) {
-      if (key === todayKey) {
-        const offSince = deliveryDayOffSince[String(dow)];
-        nonDelivery = !offSince || offSince < todayKey;
-      } else {
-        nonDelivery = true;
-      }
+    if (key < todayKey) {
+      nonDelivery = skippedDayOffSet.has(key);
+    } else if (key === todayKey && isExcludedDay) {
+      const offSince = deliveryDayOffSince[String(dow)];
+      nonDelivery = !offSince || offSince < todayKey;
+    } else if (key > todayKey && isExcludedDay) {
+      nonDelivery = true;
     }
     cells.push({ key, day, studied: studiedSet.has(key), nonDelivery, beforeReg, isToday: key === todayKey, colIdx });
   }

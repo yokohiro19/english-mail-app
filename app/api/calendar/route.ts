@@ -39,12 +39,26 @@ export async function GET(req: Request) {
     // 曜日ごとの配信停止開始日
     const deliveryDayOffSince = (userData?.deliveryDayOffSince ?? {}) as Record<string, string>;
 
+    // 配信曜日OFFでスキップされた日を取得
+    const skippedSnap = await db
+      .collection("deliveries")
+      .where("uid", "==", uid)
+      .where("status", "==", "skipped_day_off")
+      .select("dateKey")
+      .get();
+    const skippedDayOffKeys: string[] = [];
+    for (const d of skippedSnap.docs) {
+      const k = (d.data() as any)?.dateKey;
+      if (typeof k === "string") skippedDayOffKeys.push(k);
+    }
+
     return NextResponse.json({
       ok: true,
       count: unique.length,
       dateKeys: unique,
       deliveryDays,
       deliveryDayOffSince,
+      skippedDayOffKeys,
     });
   } catch (e: any) {
     console.error(e);

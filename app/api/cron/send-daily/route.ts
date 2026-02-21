@@ -248,7 +248,18 @@ export async function GET(req: Request) {
       if (!deliveryDays.includes(jstDow)) {
         const offSince = (u.deliveryDayOffSince ?? {})[String(jstDow)] as string | undefined;
         if (!offSince || offSince < today) {
-          // 前日以前に設定済み → 配信しない
+          // 前日以前に設定済み → 配信しない → スキップ記録を残す
+          const skipId = `${uid}_${today}`;
+          const skipRef = db.collection("deliveries").doc(skipId);
+          const skipSnap = await skipRef.get();
+          if (!skipSnap.exists) {
+            await skipRef.set({
+              uid,
+              dateKey: today,
+              status: "skipped_day_off",
+              skippedAt: new Date(),
+            });
+          }
           skippedDayOff++;
           continue;
         }

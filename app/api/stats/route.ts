@@ -95,24 +95,30 @@ export async function GET(req: Request) {
     const deliveryDayOffSince = (userData?.deliveryDayOffSince ?? {}) as Record<string, string>;
 
     // 指定期間内の配信対象外日数を計算するヘルパー
+    // - 過去: skippedDayOffSet（cron記録）で判定
+    // - 今日: deliveryDayOffSince で前日以前に設定済みなら対象外
+    // - 未来: 現在の deliveryDays 設定で対象外なら常に適用
     function countPausedDaysInRange(rangeStart: string, rangeEnd: string): number {
       const pausedDateSet = new Set<string>();
 
-      // 配信曜日に含まれない日を停止日としてカウント（過去も遡及）
-      // - 今日: 前日以前に設定済みの場合のみ適用
-      // - 過去・未来: 常に適用
-      if (deliveryDays.length < 7) {
-        const rs = new Date(rangeStart + "T00:00:00Z");
-        const re = new Date(rangeEnd + "T00:00:00Z");
-        for (let d = new Date(rs); d <= re; d.setUTCDate(d.getUTCDate() + 1)) {
-          const dk = dateKeyFromJst(d);
-          const dow = (d.getUTCDay() + 6) % 7; // 0=月, 6=日
-          if (!deliveryDays.includes(dow)) {
-            if (dk === todayKey) {
+      const rs = new Date(rangeStart + "T00:00:00Z");
+      const re = new Date(rangeEnd + "T00:00:00Z");
+      for (let d = new Date(rs); d <= re; d.setUTCDate(d.getUTCDate() + 1)) {
+        const dk = dateKeyFromJst(d);
+        if (dk < todayKey) {
+          if (skippedDayOffSet.has(dk)) pausedDateSet.add(dk);
+        } else if (dk === todayKey) {
+          if (deliveryDays.length < 7) {
+            const dow = (d.getUTCDay() + 6) % 7;
+            if (!deliveryDays.includes(dow)) {
               const offSince = deliveryDayOffSince[String(dow)];
-              if (offSince && offSince >= todayKey) continue;
+              if (!offSince || offSince < todayKey) pausedDateSet.add(dk);
             }
-            pausedDateSet.add(dk);
+          }
+        } else {
+          if (deliveryDays.length < 7) {
+            const dow = (d.getUTCDay() + 6) % 7;
+            if (!deliveryDays.includes(dow)) pausedDateSet.add(dk);
           }
         }
       }
@@ -127,16 +133,21 @@ export async function GET(req: Request) {
     // 指定日が配信対象外かどうかを判定（学習した日は対象外扱いしない）
     function isDatePaused(dateKey: string): boolean {
       if (allDateKeys.has(dateKey)) return false;
-      if (deliveryDays.length < 7) {
+      if (dateKey < todayKey) {
+        return skippedDayOffSet.has(dateKey);
+      }
+      if (dateKey === todayKey && deliveryDays.length < 7) {
         const d = new Date(dateKey + "T00:00:00Z");
         const dow = (d.getUTCDay() + 6) % 7;
         if (!deliveryDays.includes(dow)) {
-          if (dateKey === todayKey) {
-            const offSince = deliveryDayOffSince[String(dow)];
-            return !offSince || offSince < todayKey;
-          }
-          return true;
+          const offSince = deliveryDayOffSince[String(dow)];
+          return !offSince || offSince < todayKey;
         }
+      }
+      if (dateKey > todayKey && deliveryDays.length < 7) {
+        const d = new Date(dateKey + "T00:00:00Z");
+        const dow = (d.getUTCDay() + 6) % 7;
+        if (!deliveryDays.includes(dow)) return true;
       }
       return false;
     }
@@ -183,8 +194,24 @@ export async function GET(req: Request) {
       return sum;
     };
 
+    // ---- 配信曜日OFFでスキップされた日を取得 ----
+    const fetchSkippedDayOff = async () => {
+      const snap = await db
+        .collection("deliveries")
+        .where("uid", "==", uid)
+        .where("status", "==", "skipped_day_off")
+        .select("dateKey")
+        .get();
+      const set = new Set<string>();
+      for (const d of snap.docs) {
+        const k = (d.data() as any)?.dateKey;
+        if (typeof k === "string") set.add(k);
+      }
+      return set;
+    };
+
     // ---- 並列実行 ----
-    const [allLogs, total] = await Promise.all([
+    const [allLogs, total, skippedDayOffSet] = await Promise.all([
       fetchAllLogs().catch((e: any) => {
         console.error("[stats] allLogs failed:", e);
         partialErrors.push(isIndexError(e) ? "allLogs_requires_index" : "allLogs_failed");
@@ -194,6 +221,11 @@ export async function GET(req: Request) {
         console.error("[stats] totalStudyLogs failed:", e);
         partialErrors.push("totalStudyLogs_failed");
         return 0;
+      }),
+      fetchSkippedDayOff().catch((e: any) => {
+        console.error("[stats] skippedDayOff failed:", e);
+        partialErrors.push("skippedDayOff_failed");
+        return new Set<string>();
       }),
     ]);
 
