@@ -247,11 +247,15 @@ export default function SettingsPage() {
     try {
       const ref = doc(db, "users", user.uid);
       const daysArray = deliveryDays.map((on, i) => on ? i : -1).filter(i => i >= 0);
+      const daysActuallyChanged = deliveryDays.some((v, i) => v !== savedDeliveryDays[i]);
       const updateData: Record<string, any> = {
         sendTime,
         deliveryDays: daysArray,
         updatedAt: serverTimestamp(),
       };
+      if (daysActuallyChanged) {
+        updateData.deliveryDaysUpdatedAt = serverTimestamp();
+      }
       if (legacyPaused) {
         updateData.deliveryPaused = false;
         updateData.pausedAt = deleteField();

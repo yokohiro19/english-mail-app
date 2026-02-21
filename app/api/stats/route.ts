@@ -95,6 +95,15 @@ export async function GET(req: Request) {
     const pausedAt = userData?.pausedAt as string | null;
     const deliveryDays: number[] = Array.isArray(userData?.deliveryDays) ? userData.deliveryDays : [0,1,2,3,4,5,6];
 
+    // deliveryDays の最終更新日（論理日）
+    let deliveryDaysUpdatedAtKey: string | null = null;
+    const rawDaysUpdatedAt = userData?.deliveryDaysUpdatedAt;
+    if (rawDaysUpdatedAt) {
+      const ts = rawDaysUpdatedAt.toDate ? rawDaysUpdatedAt.toDate() : new Date(rawDaysUpdatedAt);
+      const logical = new Date(ts.getTime() + 5 * 60 * 60 * 1000);
+      deliveryDaysUpdatedAtKey = dateKeyFromJst(logical);
+    }
+
     // 指定期間内の一時停止日数を計算するヘルパー（Setで重複排除）
     function countPausedDaysInRange(rangeStart: string, rangeEnd: string): number {
       const pausedDateSet = new Set<string>();
@@ -124,13 +133,16 @@ export async function GET(req: Request) {
         }
       }
 
-      // 配信曜日に含まれない日も停止日としてカウント（今日以降）
+      // 配信曜日に含まれない日も停止日としてカウント
+      // - 明日以降: 常に適用
+      // - 今日: 前日以前に設定済みの場合のみ適用
       if (deliveryDays.length < 7) {
         const rs = new Date(rangeStart + "T00:00:00Z");
         const re = new Date(rangeEnd + "T00:00:00Z");
         for (let d = new Date(rs); d <= re; d.setUTCDate(d.getUTCDate() + 1)) {
           const dk = dateKeyFromJst(d);
           if (dk < todayKey) continue;
+          if (dk === todayKey && deliveryDaysUpdatedAtKey && deliveryDaysUpdatedAtKey >= todayKey) continue;
           const dow = (d.getUTCDay() + 6) % 7; // 0=月, 6=日
           if (!deliveryDays.includes(dow)) {
             pausedDateSet.add(dk);
@@ -142,12 +154,14 @@ export async function GET(req: Request) {
       for (const dk of allDateKeys) {
         pausedDateSet.delete(dk);
       }
-      // 配信停止が解除されている場合、配信曜日に含まれる今日は停止日としてカウントしない
+      // 配信停止が解除されている場合、今日は停止日としてカウントしない
+      // ただし前日以前に設定済みの非配信曜日は維持
       if (!currentlyPaused) {
         const todayDateObj = new Date(todayKey + "T00:00:00Z");
         const todayDow = (todayDateObj.getUTCDay() + 6) % 7;
-        const isTodayNonDelivery = deliveryDays.length < 7 && !deliveryDays.includes(todayDow);
-        if (!isTodayNonDelivery) {
+        const isTodayNonDeliveryApplied = deliveryDays.length < 7 && !deliveryDays.includes(todayDow)
+          && (!deliveryDaysUpdatedAtKey || deliveryDaysUpdatedAtKey < todayKey);
+        if (!isTodayNonDeliveryApplied) {
           pausedDateSet.delete(todayKey);
         }
       }
@@ -157,11 +171,16 @@ export async function GET(req: Request) {
     // 指定日が一時停止中かどうかを判定（学習した日は停止扱いしない）
     function isDatePaused(dateKey: string): boolean {
       if (allDateKeys.has(dateKey)) return false;
-      // 配信曜日チェック（今日以降）
-      if (deliveryDays.length < 7 && dateKey >= todayKey) {
+      // 配信曜日チェック
+      // - 明日以降: 常に適用
+      // - 今日: 前日以前に設定済みの場合のみ適用
+      if (deliveryDays.length < 7) {
         const d = new Date(dateKey + "T00:00:00Z");
         const dow = (d.getUTCDay() + 6) % 7;
-        if (!deliveryDays.includes(dow)) return true;
+        if (!deliveryDays.includes(dow)) {
+          if (dateKey > todayKey) return true;
+          if (dateKey === todayKey && (!deliveryDaysUpdatedAtKey || deliveryDaysUpdatedAtKey < todayKey)) return true;
+        }
       }
       if (!currentlyPaused && dateKey === todayKey) return false;
       for (const period of pausedPeriods) {
