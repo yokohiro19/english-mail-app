@@ -124,13 +124,13 @@ export async function GET(req: Request) {
         }
       }
 
-      // 配信曜日に含まれない日も停止日としてカウント（今日以降のみ）
+      // 配信曜日に含まれない日も停止日としてカウント（今日以降）
       if (deliveryDays.length < 7) {
         const rs = new Date(rangeStart + "T00:00:00Z");
         const re = new Date(rangeEnd + "T00:00:00Z");
         for (let d = new Date(rs); d <= re; d.setUTCDate(d.getUTCDate() + 1)) {
           const dk = dateKeyFromJst(d);
-          if (dk <= todayKey) continue;
+          if (dk < todayKey) continue;
           const dow = (d.getUTCDay() + 6) % 7; // 0=月, 6=日
           if (!deliveryDays.includes(dow)) {
             pausedDateSet.add(dk);
@@ -142,9 +142,14 @@ export async function GET(req: Request) {
       for (const dk of allDateKeys) {
         pausedDateSet.delete(dk);
       }
-      // 配信停止が解除されている場合、今日は停止日としてカウントしない
+      // 配信停止が解除されている場合、配信曜日に含まれる今日は停止日としてカウントしない
       if (!currentlyPaused) {
-        pausedDateSet.delete(todayKey);
+        const todayDateObj = new Date(todayKey + "T00:00:00Z");
+        const todayDow = (todayDateObj.getUTCDay() + 6) % 7;
+        const isTodayNonDelivery = deliveryDays.length < 7 && !deliveryDays.includes(todayDow);
+        if (!isTodayNonDelivery) {
+          pausedDateSet.delete(todayKey);
+        }
       }
       return pausedDateSet.size;
     }
@@ -152,13 +157,13 @@ export async function GET(req: Request) {
     // 指定日が一時停止中かどうかを判定（学習した日は停止扱いしない）
     function isDatePaused(dateKey: string): boolean {
       if (allDateKeys.has(dateKey)) return false;
-      if (!currentlyPaused && dateKey === todayKey) return false;
-      // 配信曜日チェック（明日以降のみ）
-      if (deliveryDays.length < 7 && dateKey > todayKey) {
+      // 配信曜日チェック（今日以降）
+      if (deliveryDays.length < 7 && dateKey >= todayKey) {
         const d = new Date(dateKey + "T00:00:00Z");
         const dow = (d.getUTCDay() + 6) % 7;
         if (!deliveryDays.includes(dow)) return true;
       }
+      if (!currentlyPaused && dateKey === todayKey) return false;
       for (const period of pausedPeriods) {
         if (dateKey >= period.start && dateKey <= period.end) return true;
       }

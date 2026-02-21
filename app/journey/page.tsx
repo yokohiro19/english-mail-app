@@ -197,11 +197,6 @@ export default function DashboardPage() {
           paused.add(key);
         }
       }
-      // 前日までに配信停止設定をしていた場合は本日もグレーに
-      if (json.currentlyPaused && json.pausedAt && json.pausedAt < todayKey) {
-        paused.add(todayKey);
-      }
-
       // deliveryDays をステートに保存（CalendarHeatmap 側で全月に対応）
       const dDays: number[] = json.deliveryDays ?? [0,1,2,3,4,5,6];
       setDeliveryDays(dDays);
@@ -477,7 +472,8 @@ function CalendarHeatmap({
     const colIdx = (leading + day - 1) % 7; // 0=Mon ... 5=Sat, 6=Sun
     // 配信曜日OFFによるグレー表示は本日以降のみ（過去は実際のpause記録で判定）
     const dow = (date.getDay() + 6) % 7; // 0=Mon, 6=Sun
-    const isNonDelivery = key > todayKey && deliveryDays.length < 7 && !deliveryDays.includes(dow);
+    // 配信曜日OFFによるグレー表示は本日以降（前日までに設定済みの配信停止曜日を反映）
+    const isNonDelivery = key >= todayKey && deliveryDays.length < 7 && !deliveryDays.includes(dow);
     const paused = pausedSet.has(key) || isNonDelivery;
     cells.push({ key, day, studied: studiedSet.has(key), paused, beforeReg, isToday: key === todayKey, colIdx });
   }
