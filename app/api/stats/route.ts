@@ -89,45 +89,16 @@ export async function GET(req: Request) {
       createdAtKey = dateKeyFromJst(createdLogical);
     }
 
-    // 一時停止期間を取得
-    const pausedPeriods = (userData?.pausedPeriods ?? []) as Array<{ start: string; end: string }>;
-    const currentlyPaused = Boolean(userData?.deliveryPaused);
-    const pausedAt = userData?.pausedAt as string | null;
     const deliveryDays: number[] = Array.isArray(userData?.deliveryDays) ? userData.deliveryDays : [0,1,2,3,4,5,6];
 
     // 曜日ごとの配信停止開始日
     const deliveryDayOffSince = (userData?.deliveryDayOffSince ?? {}) as Record<string, string>;
 
-    // 指定期間内の一時停止日数を計算するヘルパー（Setで重複排除）
+    // 指定期間内の配信対象外日数を計算するヘルパー
     function countPausedDaysInRange(rangeStart: string, rangeEnd: string): number {
       const pausedDateSet = new Set<string>();
 
-      for (const period of pausedPeriods) {
-        const pStart = period.start > rangeStart ? period.start : rangeStart;
-        const pEnd = period.end < rangeEnd ? period.end : rangeEnd;
-        if (pStart <= pEnd) {
-          const s = new Date(pStart + "T00:00:00Z");
-          const e = new Date(pEnd + "T00:00:00Z");
-          for (let d = new Date(s); d <= e; d.setUTCDate(d.getUTCDate() + 1)) {
-            pausedDateSet.add(dateKeyFromJst(d));
-          }
-        }
-      }
-
-      // 現在一時停止中の場合
-      if (currentlyPaused && pausedAt) {
-        const pStart = pausedAt > rangeStart ? pausedAt : rangeStart;
-        const pEnd = rangeEnd;
-        if (pStart <= pEnd) {
-          const s = new Date(pStart + "T00:00:00Z");
-          const e = new Date(pEnd + "T00:00:00Z");
-          for (let d = new Date(s); d <= e; d.setUTCDate(d.getUTCDate() + 1)) {
-            pausedDateSet.add(dateKeyFromJst(d));
-          }
-        }
-      }
-
-      // 配信曜日に含まれない日も停止日としてカウント
+      // 配信曜日に含まれない日を停止日としてカウント
       // - 明日以降: 常に適用
       // - 今日: 前日以前に設定済みの場合のみ適用
       if (deliveryDays.length < 7) {
@@ -138,7 +109,6 @@ export async function GET(req: Request) {
           if (dk < todayKey) continue;
           const dow = (d.getUTCDay() + 6) % 7; // 0=月, 6=日
           if (!deliveryDays.includes(dow)) {
-            // 今日の場合、その曜日が前日以前に停止設定済みの場合のみ適用
             if (dk === todayKey) {
               const offSince = deliveryDayOffSince[String(dow)];
               if (offSince && offSince >= todayKey) continue;
@@ -152,27 +122,21 @@ export async function GET(req: Request) {
       for (const dk of allDateKeys) {
         pausedDateSet.delete(dk);
       }
-      // 配信停止が解除されている場合、今日は停止日としてカウントしない
-      // ただし前日以前に設定済みの非配信曜日は維持
-      if (!currentlyPaused) {
-        const todayDateObj = new Date(todayKey + "T00:00:00Z");
-        const todayDow = (todayDateObj.getUTCDay() + 6) % 7;
-        const offSince = deliveryDayOffSince[String(todayDow)];
-        const isTodayNonDeliveryApplied = deliveryDays.length < 7 && !deliveryDays.includes(todayDow)
-          && (!offSince || offSince < todayKey);
-        if (!isTodayNonDeliveryApplied) {
-          pausedDateSet.delete(todayKey);
-        }
+      // 今日が配信対象外でなければ停止日から除外
+      const todayDateObj = new Date(todayKey + "T00:00:00Z");
+      const todayDow = (todayDateObj.getUTCDay() + 6) % 7;
+      const offSince = deliveryDayOffSince[String(todayDow)];
+      const isTodayNonDelivery = deliveryDays.length < 7 && !deliveryDays.includes(todayDow)
+        && (!offSince || offSince < todayKey);
+      if (!isTodayNonDelivery) {
+        pausedDateSet.delete(todayKey);
       }
       return pausedDateSet.size;
     }
 
-    // 指定日が一時停止中かどうかを判定（学習した日は停止扱いしない）
+    // 指定日が配信対象外かどうかを判定（学習した日は対象外扱いしない）
     function isDatePaused(dateKey: string): boolean {
       if (allDateKeys.has(dateKey)) return false;
-      // 配信曜日チェック
-      // - 明日以降: 常に適用
-      // - 今日: 前日以前に設定済みの場合のみ適用
       if (deliveryDays.length < 7) {
         const d = new Date(dateKey + "T00:00:00Z");
         const dow = (d.getUTCDay() + 6) % 7;
@@ -184,11 +148,6 @@ export async function GET(req: Request) {
           }
         }
       }
-      if (!currentlyPaused && dateKey === todayKey) return false;
-      for (const period of pausedPeriods) {
-        if (dateKey >= period.start && dateKey <= period.end) return true;
-      }
-      if (currentlyPaused && pausedAt && dateKey >= pausedAt) return true;
       return false;
     }
 

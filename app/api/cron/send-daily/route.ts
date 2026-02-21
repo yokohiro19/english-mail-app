@@ -107,7 +107,7 @@ async function safeWriteOpsCronRun(params: {
   targetHHMM: string;
   attempted: number;
   sent: number;
-  skipped: { noEmail: number; alreadySent: number; billing: number; disabled: number; unverified: number; paused: number };
+  skipped: { noEmail: number; alreadySent: number; billing: number; disabled: number; unverified: number; dayOff: number };
   billingSkipReasons: Record<string, number>;
   errorsCount: number;
   durationMs: number;
@@ -217,7 +217,7 @@ export async function GET(req: Request) {
     let skippedBilling = 0;
     let skippedDisabled = 0;
     let skippedUnverified = 0;
-    let skippedPaused = 0;
+    let skippedDayOff = 0;
 
     const billingSkipReasons: Record<string, number> = {};
 
@@ -241,12 +241,6 @@ export async function GET(req: Request) {
         continue;
       }
 
-      // ===== Delivery Pause Guard =====
-      if (u.deliveryPaused === true) {
-        skippedPaused++;
-        continue;
-      }
-
       // ===== Delivery Days Guard (曜日チェック) =====
       // 今日設定した配信停止は明日から反映（今日はまだ送る）
       const deliveryDays: number[] = Array.isArray(u.deliveryDays) ? u.deliveryDays : [0,1,2,3,4,5,6];
@@ -255,7 +249,7 @@ export async function GET(req: Request) {
         const offSince = (u.deliveryDayOffSince ?? {})[String(jstDow)] as string | undefined;
         if (!offSince || offSince < today) {
           // 前日以前に設定済み → 配信しない
-          skippedPaused++;
+          skippedDayOff++;
           continue;
         }
         // offSince >= today → 今日設定した → 今日はまだ送る
@@ -403,7 +397,7 @@ export async function GET(req: Request) {
         billing: skippedBilling,
         disabled: skippedDisabled,
         unverified: skippedUnverified,
-        paused: skippedPaused,
+        dayOff: skippedDayOff,
       },
       billingSkipReasons,
       errorsCount: errors.length,
@@ -424,7 +418,7 @@ export async function GET(req: Request) {
         billing: skippedBilling,
         disabled: skippedDisabled,
         unverified: skippedUnverified,
-        paused: skippedPaused,
+        dayOff: skippedDayOff,
       },
       billingSkipReasons,
       billingSkips: billingSkipsSample,

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { doc, getDoc, setDoc, serverTimestamp, deleteField } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../../src/lib/firebase";
 import { useRouter } from "next/navigation";
 import "../app.css";
@@ -129,10 +129,6 @@ export default function SettingsPage() {
   const [deliveryDays, setDeliveryDays] = useState<boolean[]>(defaultDays);
   const [savedDeliveryDays, setSavedDeliveryDays] = useState<boolean[]>(defaultDays);
 
-  // Legacy pause migration
-  const [legacyPaused, setLegacyPaused] = useState(false);
-  const [legacyPausedAt, setLegacyPausedAt] = useState<string | null>(null);
-
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
       setUser(u);
@@ -215,9 +211,6 @@ export default function SettingsPage() {
       const loadedDays = [0,1,2,3,4,5,6].map(i => rawDays.includes(i));
       setDeliveryDays(loadedDays);
       setSavedDeliveryDays(loadedDays);
-      // Legacy pause
-      setLegacyPaused(Boolean((data as any).deliveryPaused));
-      setLegacyPausedAt((data as any).pausedAt ?? null);
     } else {
       // New user - use defaults
       setDeliveryEmail(u.email ?? "");
@@ -252,12 +245,6 @@ export default function SettingsPage() {
         deliveryDays: daysArray,
         updatedAt: serverTimestamp(),
       };
-      if (legacyPaused) {
-        updateData.deliveryPaused = false;
-        updateData.pausedAt = deleteField();
-        setLegacyPaused(false);
-        setLegacyPausedAt(null);
-      }
       await setDoc(ref, updateData, { merge: true });
       // 曜日ごとの配信停止日をAPI経由で保存（Admin SDK でルール回避）
       const changes: Record<string, string | null> = {};

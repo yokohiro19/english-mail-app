@@ -31,12 +31,8 @@ export async function GET(req: Request) {
     // ユニーク化
     const unique = Array.from(new Set(dateKeys));
 
-    // ユーザーのpausedPeriodsを取得
     const userSnap = await db.collection("users").doc(uid).get();
     const userData = userSnap.exists ? (userSnap.data() as any) : null;
-    const pausedPeriods = (userData?.pausedPeriods ?? []) as Array<{ start: string; end: string }>;
-    const currentlyPaused = Boolean(userData?.deliveryPaused);
-    const pausedAt = userData?.pausedAt as string | null;
 
     const deliveryDays: number[] = Array.isArray(userData?.deliveryDays) ? userData.deliveryDays : [0,1,2,3,4,5,6];
 
@@ -47,9 +43,6 @@ export async function GET(req: Request) {
       ok: true,
       count: unique.length,
       dateKeys: unique,
-      pausedPeriods,
-      currentlyPaused,
-      pausedAt,
       deliveryDays,
       deliveryDayOffSince,
     });

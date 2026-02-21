@@ -32,10 +32,8 @@ type Stats = {
   items?: any[];
 };
 
-type PausedPeriod = { start: string; end: string };
-
 type CalendarResp =
-  | { ok: true; count: number; dateKeys: string[]; pausedPeriods?: PausedPeriod[]; currentlyPaused?: boolean; pausedAt?: string | null; deliveryDays?: number[]; deliveryDayOffSince?: Record<string, string> }
+  | { ok: true; count: number; dateKeys: string[]; deliveryDays?: number[]; deliveryDayOffSince?: Record<string, string> }
   | { ok: false; error: string };
 
 function pct(v: number) {
@@ -76,7 +74,6 @@ export default function DashboardPage() {
 
   const [loadingCalendar, setLoadingCalendar] = useState(false);
   const [calendarSet, setCalendarSet] = useState<Set<string>>(new Set());
-  const [pausedSet, setPausedSet] = useState<Set<string>>(new Set());
   const [calendarCount, setCalendarCount] = useState<number>(0);
   const [calendarError, setCalendarError] = useState<string | null>(null);
   const [deliveryDays, setDeliveryDays] = useState<number[]>([0,1,2,3,4,5,6]);
@@ -155,7 +152,7 @@ export default function DashboardPage() {
       if (!res.ok) {
         setCalendarError("カレンダーの取得に失敗しました。");
         setCalendarSet(new Set());
-        setPausedSet(new Set());
+
         setCalendarCount(0);
         return;
       }
@@ -165,7 +162,7 @@ export default function DashboardPage() {
       if (!json.ok) {
         setCalendarError("カレンダーの取得に失敗しました。");
         setCalendarSet(new Set());
-        setPausedSet(new Set());
+
         setCalendarCount(0);
         return;
       }
@@ -176,40 +173,12 @@ export default function DashboardPage() {
         if (k) set.add(k);
       }
 
-      // Build paused dates set
-      const paused = new Set<string>();
-      const periods = json.pausedPeriods ?? [];
-      for (const p of periods) {
-        const start = new Date(p.start + "T00:00:00Z");
-        const end = new Date(p.end + "T00:00:00Z");
-        for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
-          const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
-          paused.add(key);
-        }
-      }
-      // Currently paused
-      const today = new Date();
-      const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-      if (json.currentlyPaused && json.pausedAt) {
-        const start = new Date(json.pausedAt + "T00:00:00Z");
-        const end = new Date(todayKey + "T00:00:00Z");
-        for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
-          const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
-          paused.add(key);
-        }
-      }
       // deliveryDays をステートに保存（CalendarHeatmap 側で全月に対応）
       const dDays: number[] = json.deliveryDays ?? [0,1,2,3,4,5,6];
       setDeliveryDays(dDays);
       setDeliveryDayOffSince(json.deliveryDayOffSince ?? {});
 
-      // 今日は currentlyPaused の状態をリアルタイムに反映
-      if (!json.currentlyPaused) {
-        paused.delete(todayKey);
-      }
-
       setCalendarSet(set);
-      setPausedSet(paused);
       setCalendarCount(set.size);
     } finally {
       setLoadingCalendar(false);
@@ -373,7 +342,6 @@ export default function DashboardPage() {
               {/* Calendar */}
               <CalendarHeatmap
                 studiedSet={calendarSet}
-                pausedSet={pausedSet}
                 deliveryDays={deliveryDays}
                 deliveryDayOffSince={deliveryDayOffSince}
                 cursor={calendarCursor}
@@ -441,7 +409,6 @@ function addMonths(d: Date, n: number) {
 
 function CalendarHeatmap({
   studiedSet,
-  pausedSet,
   deliveryDays,
   deliveryDayOffSince,
   cursor,
@@ -451,7 +418,6 @@ function CalendarHeatmap({
   todayKey,
 }: {
   studiedSet: Set<string>;
-  pausedSet: Set<string>;
   deliveryDays: number[];
   deliveryDayOffSince: Record<string, string>;
   cursor: Date;
@@ -467,7 +433,7 @@ function CalendarHeatmap({
   // Monday-start: Sun(0)→6, Mon(1)→0, Tue(2)→1, ...
   const leading = (first.getDay() + 6) % 7;
 
-  const cells: Array<{ key: string; day: number; studied: boolean; paused: boolean; beforeReg: boolean; isToday: boolean; colIdx: number } | null> = [];
+  const cells: Array<{ key: string; day: number; studied: boolean; nonDelivery: boolean; beforeReg: boolean; isToday: boolean; colIdx: number } | null> = [];
   for (let i = 0; i < leading; i++) cells.push(null);
 
   for (let day = 1; day <= daysInMonth; day++) {
@@ -480,17 +446,16 @@ function CalendarHeatmap({
     // - 明日以降: 常に適用
     // - 今日: その曜日が前日以前に停止設定済みの場合のみ適用
     const isExcludedDay = deliveryDays.length < 7 && !deliveryDays.includes(dow);
-    let isNonDelivery = false;
+    let nonDelivery = false;
     if (isExcludedDay) {
       if (key > todayKey) {
-        isNonDelivery = true;
+        nonDelivery = true;
       } else if (key === todayKey) {
         const offSince = deliveryDayOffSince[String(dow)];
-        isNonDelivery = !offSince || offSince < todayKey;
+        nonDelivery = !offSince || offSince < todayKey;
       }
     }
-    const paused = pausedSet.has(key) || isNonDelivery;
-    cells.push({ key, day, studied: studiedSet.has(key), paused, beforeReg, isToday: key === todayKey, colIdx });
+    cells.push({ key, day, studied: studiedSet.has(key), nonDelivery, beforeReg, isToday: key === todayKey, colIdx });
   }
 
   while (cells.length < 42) cells.push(null);
@@ -536,7 +501,7 @@ function CalendarHeatmap({
 
           const isSat = c.colIdx === 5;
           const isSun = c.colIdx === 6;
-          const bg = c.isToday ? "#FFF9E0" : c.paused ? "#F9FAFB" : isSat ? "#F0F5FB" : isSun ? "#FBF0F0" : "#fff";
+          const bg = c.isToday ? "#FFF9E0" : c.nonDelivery ? "#F9FAFB" : isSat ? "#F0F5FB" : isSun ? "#FBF0F0" : "#fff";
 
           return (
             <div
@@ -551,7 +516,7 @@ function CalendarHeatmap({
                 alignItems: "center",
                 justifyContent: "center",
               }}
-              title={c.beforeReg ? `${c.key}（登録前）` : c.paused ? `${c.key}（配信停止中）` : c.key}
+              title={c.beforeReg ? `${c.key}（登録前）` : c.nonDelivery ? `${c.key}（配信対象外）` : c.key}
             >
               <div style={{ position: "absolute", left: 4, top: 3, fontSize: 10, color: "#6B7280" }}>{c.day}</div>
               {c.beforeReg ? (
@@ -559,7 +524,7 @@ function CalendarHeatmap({
               ) : (
                 <>
                   {c.studied && <div className="calendar-dot" />}
-                  {c.paused && !c.studied && (
+                  {c.nonDelivery && !c.studied && (
                     <div style={{
                       height: 20,
                       width: 20,
