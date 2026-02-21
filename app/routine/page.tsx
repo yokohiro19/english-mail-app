@@ -252,23 +252,6 @@ export default function SettingsPage() {
         deliveryDays: daysArray,
         updatedAt: serverTimestamp(),
       };
-      // 曜日ごとの配信停止日を管理
-      const logical = new Date(Date.now() + 5 * 60 * 60 * 1000);
-      const logicalKey = `${logical.getUTCFullYear()}-${String(logical.getUTCMonth() + 1).padStart(2, "0")}-${String(logical.getUTCDate()).padStart(2, "0")}`;
-      const offSinceUpdate: Record<string, any> = {};
-      let hasOffSinceChange = false;
-      for (let i = 0; i < 7; i++) {
-        if (savedDeliveryDays[i] && !deliveryDays[i]) {
-          offSinceUpdate[String(i)] = logicalKey;
-          hasOffSinceChange = true;
-        } else if (!savedDeliveryDays[i] && deliveryDays[i]) {
-          offSinceUpdate[String(i)] = deleteField();
-          hasOffSinceChange = true;
-        }
-      }
-      if (hasOffSinceChange) {
-        updateData.deliveryDayOffSince = offSinceUpdate;
-      }
       if (legacyPaused) {
         updateData.deliveryPaused = false;
         updateData.pausedAt = deleteField();
@@ -276,6 +259,26 @@ export default function SettingsPage() {
         setLegacyPausedAt(null);
       }
       await setDoc(ref, updateData, { merge: true });
+      // 曜日ごとの配信停止日をAPI経由で保存（Admin SDK でルール回避）
+      const changes: Record<string, string | null> = {};
+      let hasOffSinceChange = false;
+      for (let i = 0; i < 7; i++) {
+        if (savedDeliveryDays[i] && !deliveryDays[i]) {
+          changes[String(i)] = "set";
+          hasOffSinceChange = true;
+        } else if (!savedDeliveryDays[i] && deliveryDays[i]) {
+          changes[String(i)] = "remove";
+          hasOffSinceChange = true;
+        }
+      }
+      if (hasOffSinceChange) {
+        const idToken = await user.getIdToken();
+        await fetch("/api/delivery-days-off-since", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
+          body: JSON.stringify({ changes }),
+        });
+      }
       setSavedSendTime(sendTime);
       setSavedDeliveryDays([...deliveryDays]);
       setDeliverySaveMsg({ text: "保存しました", type: "success" });
