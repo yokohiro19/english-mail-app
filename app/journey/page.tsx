@@ -324,9 +324,11 @@ export default function DashboardPage() {
               <div className="stats-grid">
                 <div className="stat-card">
                   <div className="stat-label">これまでの学習日数</div>
-                  <div style={{ flex: 1, display: "flex", alignItems: "baseline", justifyContent: "center", gap: 4 }}>
-                    <span className="stat-value stat-value-lg">{calendarCount}</span>
-                    <span className="stat-unit">日</span>
+                  <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+                      <span className="stat-value stat-value-lg">{calendarCount}</span>
+                      <span className="stat-unit">日</span>
+                    </div>
                   </div>
                 </div>
 
