@@ -283,6 +283,10 @@
   color: var(--dark-navy);
 }
 
+.stat-value-lg {
+  font-size: 40px;
+}
+
 .stat-unit {
   font-size: 14px;
   color: var(--text-gray);
@@ -457,6 +461,10 @@
 
   .stat-value {
     font-size: 22px;
+  }
+
+  .stat-value-lg {
+    font-size: 28px;
   }
 
   .stat-unit {
