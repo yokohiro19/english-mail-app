@@ -48,20 +48,11 @@ export function mapExamToCEFR(examType: string, examLevel: string): string {
 }
 
 export async function pickRandomTopic(db: FirebaseFirestore.Firestore) {
-  const r = Math.random();
-  let snap = await db
-    .collection("topics")
-    .where("rand", ">=", r)
-    .orderBy("rand", "asc")
-    .limit(1)
-    .get();
-
-  if (snap.empty) {
-    snap = await db.collection("topics").orderBy("rand", "asc").limit(1).get();
-  }
+  const snap = await db.collection("topics").select("category", "title", "promptSeed").get();
   if (snap.empty) throw new Error("No topics found.");
 
-  const doc = snap.docs[0];
+  const idx = Math.floor(Math.random() * snap.size);
+  const doc = snap.docs[idx];
   const data = doc.data() as any;
   return { id: doc.id, category: data.category, title: data.title, promptSeed: data.promptSeed };
 }

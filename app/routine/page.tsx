@@ -928,6 +928,16 @@ export default function SettingsPage() {
                   {trialMsg.text}
                 </div>
               )}
+              <div
+                style={{
+                  marginTop: 14,
+                  fontSize: 12,
+                  color: "#6B7280",
+                  lineHeight: 1.7,
+                }}
+              >
+                ※送信しても受信BOXにメールが来ない場合は、お使いのメール環境の「その他」や「サブフォルダ」等をご確認ください。一度受信トレイへ移動いただくと、明日から確実に届くようになります。
+              </div>
             </div>
           )}
 
