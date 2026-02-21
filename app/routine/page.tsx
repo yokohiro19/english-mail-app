@@ -371,7 +371,7 @@ export default function SettingsPage() {
         body: JSON.stringify({
           trialDays: 7,
           successPath: "/routine?billing=success",
-          cancelPath: "/billing?billing=cancel",
+          cancelPath: "/routine?billing=cancel",
           consent: {
             agreedAt: new Date().toISOString(),
             termsVersion: "2026-02-20",

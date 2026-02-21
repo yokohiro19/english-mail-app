@@ -162,8 +162,8 @@ export async function POST(req: Request) {
     const consentData = body.consent;
     const requestedTrialDays = clampTrialDays(body.trialDays, 7);
 
-    const successPath = body.successPath ?? "/billing?billing=success";
-    const cancelPath = body.cancelPath ?? "/billing?billing=cancel";
+    const successPath = body.successPath ?? "/routine?billing=success";
+    const cancelPath = body.cancelPath ?? "/routine?billing=cancel";
 
     const appUrl = getAppUrl(req);
     const successUrl = `${appUrl}${successPath.startsWith("/") ? "" : "/"}${successPath}`;
