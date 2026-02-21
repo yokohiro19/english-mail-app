@@ -98,15 +98,14 @@ export async function GET(req: Request) {
     function countPausedDaysInRange(rangeStart: string, rangeEnd: string): number {
       const pausedDateSet = new Set<string>();
 
-      // 配信曜日に含まれない日を停止日としてカウント
-      // - 明日以降: 常に適用
+      // 配信曜日に含まれない日を停止日としてカウント（過去も遡及）
       // - 今日: 前日以前に設定済みの場合のみ適用
+      // - 過去・未来: 常に適用
       if (deliveryDays.length < 7) {
         const rs = new Date(rangeStart + "T00:00:00Z");
         const re = new Date(rangeEnd + "T00:00:00Z");
         for (let d = new Date(rs); d <= re; d.setUTCDate(d.getUTCDate() + 1)) {
           const dk = dateKeyFromJst(d);
-          if (dk < todayKey) continue;
           const dow = (d.getUTCDay() + 6) % 7; // 0=月, 6=日
           if (!deliveryDays.includes(dow)) {
             if (dk === todayKey) {
@@ -122,15 +121,6 @@ export async function GET(req: Request) {
       for (const dk of allDateKeys) {
         pausedDateSet.delete(dk);
       }
-      // 今日が配信対象外でなければ停止日から除外
-      const todayDateObj = new Date(todayKey + "T00:00:00Z");
-      const todayDow = (todayDateObj.getUTCDay() + 6) % 7;
-      const offSince = deliveryDayOffSince[String(todayDow)];
-      const isTodayNonDelivery = deliveryDays.length < 7 && !deliveryDays.includes(todayDow)
-        && (!offSince || offSince < todayKey);
-      if (!isTodayNonDelivery) {
-        pausedDateSet.delete(todayKey);
-      }
       return pausedDateSet.size;
     }
 
@@ -141,11 +131,11 @@ export async function GET(req: Request) {
         const d = new Date(dateKey + "T00:00:00Z");
         const dow = (d.getUTCDay() + 6) % 7;
         if (!deliveryDays.includes(dow)) {
-          if (dateKey > todayKey) return true;
           if (dateKey === todayKey) {
             const offSince = deliveryDayOffSince[String(dow)];
-            if (!offSince || offSince < todayKey) return true;
+            return !offSince || offSince < todayKey;
           }
+          return true;
         }
       }
       return false;

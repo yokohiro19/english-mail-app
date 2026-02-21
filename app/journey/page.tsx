@@ -443,16 +443,16 @@ function CalendarHeatmap({
     const colIdx = (leading + day - 1) % 7; // 0=Mon ... 5=Sat, 6=Sun
     const dow = (date.getDay() + 6) % 7; // 0=Mon, 6=Sun
     // 配信曜日OFFによるグレー表示：
-    // - 明日以降: 常に適用
+    // - 過去・未来: 常に適用（過去も遡及）
     // - 今日: その曜日が前日以前に停止設定済みの場合のみ適用
     const isExcludedDay = deliveryDays.length < 7 && !deliveryDays.includes(dow);
     let nonDelivery = false;
     if (isExcludedDay) {
-      if (key > todayKey) {
-        nonDelivery = true;
-      } else if (key === todayKey) {
+      if (key === todayKey) {
         const offSince = deliveryDayOffSince[String(dow)];
         nonDelivery = !offSince || offSince < todayKey;
+      } else {
+        nonDelivery = true;
       }
     }
     cells.push({ key, day, studied: studiedSet.has(key), nonDelivery, beforeReg, isToday: key === todayKey, colIdx });
