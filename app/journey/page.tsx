@@ -197,12 +197,16 @@ export default function DashboardPage() {
           paused.add(key);
         }
       }
+      // 前日までに配信停止設定をしていた場合は本日もグレーに
+      if (json.currentlyPaused && json.pausedAt && json.pausedAt < todayKey) {
+        paused.add(todayKey);
+      }
 
       // deliveryDays をステートに保存（CalendarHeatmap 側で全月に対応）
       const dDays: number[] = json.deliveryDays ?? [0,1,2,3,4,5,6];
       setDeliveryDays(dDays);
 
-      // 今日は currentlyPaused の状態をリアルタイムに反映（旧pause）
+      // 今日は currentlyPaused の状態をリアルタイムに反映
       if (!json.currentlyPaused) {
         paused.delete(todayKey);
       }
