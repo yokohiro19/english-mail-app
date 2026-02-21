@@ -548,7 +548,9 @@ export default function SettingsPage() {
                       try {
                         const d = typeof currentPeriodEnd?.toDate === "function" ? currentPeriodEnd.toDate() : currentPeriodEnd instanceof Date ? currentPeriodEnd : new Date(currentPeriodEnd);
                         if (Number.isNaN(d.getTime())) return "-";
-                        return d.toLocaleDateString("ja-JP");
+                        const h = String(d.getHours()).padStart(2, "0");
+                        const m = String(d.getMinutes()).padStart(2, "0");
+                        return `${d.toLocaleDateString("ja-JP")} ${h}:${m}`;
                       } catch { return "-"; }
                     })()} に終了します
                   </p>
