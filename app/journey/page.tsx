@@ -70,6 +70,7 @@ export default function DashboardPage() {
   const [sendingVerify, setSendingVerify] = useState(false);
 
   const [loadingStats, setLoadingStats] = useState(false);
+  const [showLegend, setShowLegend] = useState(false);
   const [stats, setStats] = useState<Stats | null>(null);
   const [createdAtKey, setCreatedAtKey] = useState<string | null>(null);
 
@@ -333,7 +334,7 @@ export default function DashboardPage() {
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div className="stat-label">今週の達成率</div>
                     {stats.thisWeek?.rank && (
-                      <span className={`rank-badge rank-${stats.thisWeek.rank}`}>{stats.thisWeek.rank}</span>
+                      <span className={`rank-badge rank-${stats.thisWeek.rank}`} onClick={() => setShowLegend(v => !v)} style={{ cursor: "pointer" }}>{stats.thisWeek.rank}</span>
                     )}
                   </div>
                   <div className="stat-value" style={{ marginTop: 4 }}>
@@ -342,7 +343,7 @@ export default function DashboardPage() {
                   <div className="stat-sub">
                     {stats.thisWeek?.hit ?? 0}/{stats.thisWeek?.days ?? 0} 日
                   </div>
-                  <div className="stat-legend">
+                  <div className={`stat-legend${showLegend ? " stat-legend-show" : ""}`}>
                     S: 100% / A: 80% / B: 50% / C: 50%未満
                   </div>
                 </div>
@@ -351,7 +352,7 @@ export default function DashboardPage() {
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div className="stat-label">今月の達成率</div>
                     {stats.thisMonth?.rank && (
-                      <span className={`rank-badge rank-${stats.thisMonth.rank}`}>{stats.thisMonth.rank}</span>
+                      <span className={`rank-badge rank-${stats.thisMonth.rank}`} onClick={() => setShowLegend(v => !v)} style={{ cursor: "pointer" }}>{stats.thisMonth.rank}</span>
                     )}
                   </div>
                   <div className="stat-value" style={{ marginTop: 4 }}>
@@ -360,7 +361,7 @@ export default function DashboardPage() {
                   <div className="stat-sub">
                     {stats.thisMonth?.hit ?? 0}/{stats.thisMonth?.days ?? 0} 日
                   </div>
-                  <div className="stat-legend">
+                  <div className={`stat-legend${showLegend ? " stat-legend-show" : ""}`}>
                     S: 100% / A: 80% / B: 50% / C: 50%未満
                   </div>
                 </div>

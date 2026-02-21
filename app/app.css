@@ -476,6 +476,13 @@
     display: none;
   }
 
+  .stat-legend.stat-legend-show {
+    display: block;
+    font-size: 9px;
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+
   .auth-card {
     padding: 28px 20px;
   }
