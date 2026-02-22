@@ -80,7 +80,13 @@ export default function VerifyEmailPage() {
     if (!window.confirm("アカウントを削除して、新規登録からやり直しますか？")) return;
     setDeleting(true);
     try {
-      await user.delete();
+      const idToken = await user.getIdToken();
+      const res = await fetch("/api/delete-account", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${idToken}` },
+      });
+      if (!res.ok) throw new Error("delete failed");
+      await auth.signOut();
       router.replace("/signup");
     } catch {
       setMessage({ text: "削除に失敗しました。しばらくしてから再度お試しください。", type: "error" });
