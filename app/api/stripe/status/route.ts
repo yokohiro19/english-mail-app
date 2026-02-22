@@ -80,11 +80,14 @@ export async function GET(req: Request) {
     const status = sub.status;
 
     // 終了日: cancel_at > current_period_end の優先順位で取得
+    // 新Stripe APIでは current_period_end が items.data[0] に移動
+    const itemPeriodEnd = (sub as any).items?.data?.[0]?.current_period_end;
+    const subPeriodEnd = (sub as any).current_period_end;
+    const periodEndValue = typeof subPeriodEnd === "number" ? subPeriodEnd
+      : typeof itemPeriodEnd === "number" ? itemPeriodEnd : null;
     const endTimestamp = typeof rawCancelAt === "number" && rawCancelAt > 0
       ? rawCancelAt
-      : typeof (sub as any).current_period_end === "number"
-        ? (sub as any).current_period_end
-        : null;
+      : periodEndValue;
     const currentPeriodEnd = typeof endTimestamp === "number"
       ? new Date(endTimestamp * 1000)
       : null;

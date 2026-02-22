@@ -28,8 +28,14 @@ export const runtime = "nodejs";
 // apiVersionは固定しない（Stripeアカウントのデフォルトに従う）
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
-function hasCurrentPeriodEnd(obj: any): obj is { current_period_end: number } {
-  return obj && typeof obj.current_period_end === "number";
+/** current_period_end を取得（新API: items.data[0] / 旧API: subscription直下） */
+function getCurrentPeriodEnd(sub: any): number | null {
+  // 旧APIバージョン: subscription直下
+  if (typeof sub?.current_period_end === "number") return sub.current_period_end;
+  // 新APIバージョン: items.data[0] に移動
+  const item = sub?.items?.data?.[0];
+  if (typeof item?.current_period_end === "number") return item.current_period_end;
+  return null;
 }
 
 function getUidFromMetadata(obj: any): string | null {
@@ -113,8 +119,11 @@ function buildPatchFromSubscription(sub: any, fallbackUid?: string | null) {
   // 終了日: cancel_at > current_period_end の優先順位
   if (cancelAt !== null) {
     patch.currentPeriodEnd = new Date(cancelAt * 1000);
-  } else if (hasCurrentPeriodEnd(sub)) {
-    patch.currentPeriodEnd = new Date(sub.current_period_end * 1000);
+  } else {
+    const periodEnd = getCurrentPeriodEnd(sub);
+    if (periodEnd !== null) {
+      patch.currentPeriodEnd = new Date(periodEnd * 1000);
+    }
   }
 
   if (typeof sub?.trial_end === "number") {
@@ -413,7 +422,7 @@ async function handleSubscriptionUpsert(event: Stripe.Event) {
       cancel_at: typeof truth?.cancel_at === "number" ? truth.cancel_at : null,
       canceled_at: typeof truth?.canceled_at === "number" ? truth.canceled_at : null,
       trial_end: typeof truth?.trial_end === "number" ? truth.trial_end : null,
-      current_period_end: typeof truth?.current_period_end === "number" ? truth.current_period_end : null,
+      current_period_end: getCurrentPeriodEnd(truth),
     },
   });
 
@@ -505,8 +514,9 @@ async function handleInvoicePaidLike(event: Stripe.Event) {
     patch.stripeSubscriptionId = stripeSubscriptionId;
     try {
       const sub: any = await stripe.subscriptions.retrieve(stripeSubscriptionId);
-      if (hasCurrentPeriodEnd(sub)) {
-        patch.currentPeriodEnd = new Date(sub.current_period_end * 1000);
+      const periodEnd = getCurrentPeriodEnd(sub);
+      if (periodEnd !== null) {
+        patch.currentPeriodEnd = new Date(periodEnd * 1000);
       }
     } catch {}
   }
@@ -671,7 +681,7 @@ export async function POST(req: Request) {
             status: subscription?.status ?? null,
             cancel_at_period_end: Boolean(subscription?.cancel_at_period_end),
             trial_end: typeof subscription?.trial_end === "number" ? subscription.trial_end : null,
-            current_period_end: typeof subscription?.current_period_end === "number" ? subscription.current_period_end : null,
+            current_period_end: getCurrentPeriodEnd(subscription),
           },
         });
 
