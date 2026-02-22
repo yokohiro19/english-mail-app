@@ -494,15 +494,28 @@ async function handleInvoicePaidLike(event: Stripe.Event) {
     return;
   }
 
+  // サブスクリプションを取得して完全なデータを書き込む
+  const patch: any = {
+    plan: "standard",
+    subscriptionStatus: "active",
+    updatedAt: new Date(),
+  };
+
+  if (stripeSubscriptionId) {
+    patch.stripeSubscriptionId = stripeSubscriptionId;
+    try {
+      const sub: any = await stripe.subscriptions.retrieve(stripeSubscriptionId);
+      if (hasCurrentPeriodEnd(sub)) {
+        patch.currentPeriodEnd = new Date(sub.current_period_end * 1000);
+      }
+    } catch {}
+  }
+  if (stripeCustomerId) {
+    patch.stripeCustomerId = stripeCustomerId;
+  }
+
   const db = getAdminDb();
-  await db.collection("users").doc(uid).set(
-    {
-      plan: "standard",
-      subscriptionStatus: "active",
-      updatedAt: new Date(),
-    },
-    { merge: true }
-  );
+  await db.collection("users").doc(uid).set(patch, { merge: true });
 
   await safeUpsertOpsStripeEvent({
     event,
