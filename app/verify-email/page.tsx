@@ -14,6 +14,7 @@ export default function VerifyEmailPage() {
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
   const [checking, setChecking] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
@@ -71,6 +72,19 @@ export default function VerifyEmailPage() {
       setMessage({ text: "確認に失敗しました。", type: "error" });
     } finally {
       setChecking(false);
+    }
+  };
+
+  const deleteAndRestart = async () => {
+    if (!user) return;
+    if (!window.confirm("アカウントを削除して、新規登録からやり直しますか？")) return;
+    setDeleting(true);
+    try {
+      await user.delete();
+      router.replace("/signup");
+    } catch {
+      setMessage({ text: "削除に失敗しました。しばらくしてから再度お試しください。", type: "error" });
+      setDeleting(false);
     }
   };
 
@@ -133,6 +147,24 @@ export default function VerifyEmailPage() {
 
           <p style={{ marginTop: 24, fontSize: 13, color: "#9CA3AF" }}>
             メールが届かない場合は、迷惑メールフォルダを確認してください。
+          </p>
+
+          <p style={{ marginTop: 16, fontSize: 13 }}>
+            <button
+              onClick={deleteAndRestart}
+              disabled={deleting}
+              style={{
+                background: "none",
+                border: "none",
+                color: "#9CA3AF",
+                fontSize: 13,
+                cursor: "pointer",
+                textDecoration: "underline",
+                padding: 0,
+              }}
+            >
+              {deleting ? "処理中..." : "メールアドレスを間違えた方はこちら"}
+            </button>
           </p>
         </div>
       </main>
