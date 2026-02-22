@@ -202,17 +202,18 @@ function buildReadPage(dateKey: string, appBaseUrl: string, nickname: string) {
     .guide-item {
       background: #F5F7FA;
       border-radius: 12px;
-      padding: 14px 16px;
+      padding: 14px 18px;
       font-size: 13px;
       line-height: 1.5;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 14px;
     }
     .guide-icon {
       width: 18px;
       height: 18px;
       flex-shrink: 0;
+      margin-left: 2px;
     }
     .guide-text {
       flex: 1;
