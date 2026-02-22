@@ -13,10 +13,9 @@ type Plan = "free" | "standard";
 function formatTs(ts: any) {
   try {
     if (!ts) return "-";
-    if (typeof ts?.toDate === "function") return ts.toDate().toLocaleString("ja-JP");
-    const d = ts instanceof Date ? ts : new Date(ts);
+    const d = typeof ts?.toDate === "function" ? ts.toDate() : ts instanceof Date ? ts : new Date(ts);
     if (Number.isNaN(d.getTime())) return "-";
-    return d.toLocaleString("ja-JP");
+    return d.toLocaleDateString("ja-JP") + " " + d.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
   } catch {
     return "-";
   }
