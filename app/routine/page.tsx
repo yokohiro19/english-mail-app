@@ -187,7 +187,7 @@ export default function SettingsPage() {
           .catch(() => {});
       }
       // standard会員: Stripeの実状態と同期
-      if (loadedPlan === "standard" && (data as any).stripeSubscriptionId) {
+      if (loadedPlan === "standard" && ((data as any).stripeSubscriptionId || (data as any).stripeCustomerId)) {
         try {
           const idToken = await u.getIdToken();
           const statusRes = await fetch("/api/stripe/status", { headers: { Authorization: `Bearer ${idToken}` } });

@@ -106,7 +106,7 @@ export default function BillingPage() {
           setCancelAtPeriodEnd(Boolean(data.cancelAtPeriodEnd));
 
           // standard会員: Stripeの実状態と同期（完了を待つ）
-          if ((data.plan as Plan) === "standard" && data.stripeSubscriptionId) {
+          if ((data.plan as Plan) === "standard" && (data.stripeSubscriptionId || data.stripeCustomerId)) {
             try {
               const idToken = await user.getIdToken();
               const statusRes = await fetch("/api/stripe/status", { headers: { Authorization: `Bearer ${idToken}` } });

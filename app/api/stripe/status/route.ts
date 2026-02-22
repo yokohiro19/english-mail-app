@@ -23,7 +23,41 @@ export async function GET(req: Request) {
     const userSnap = await db.collection("users").doc(uid).get();
     const user = userSnap.exists ? (userSnap.data() as any) : null;
 
-    const subId = user?.stripeSubscriptionId as string | undefined;
+    let subId = user?.stripeSubscriptionId as string | undefined;
+
+    // stripeSubscriptionId が未設定の場合、stripeCustomerId からアクティブなサブスクを検索
+    if (!subId && user?.stripeCustomerId) {
+      try {
+        const subs = await stripe.subscriptions.list({
+          customer: user.stripeCustomerId,
+          status: "active",
+          limit: 1,
+        });
+        if (subs.data.length > 0) {
+          subId = subs.data[0].id;
+          // Firestoreにも保存して次回以降は直接取得
+          await db.collection("users").doc(uid).set(
+            { stripeSubscriptionId: subId, updatedAt: new Date() },
+            { merge: true }
+          );
+        } else {
+          // trialing もチェック
+          const trialSubs = await stripe.subscriptions.list({
+            customer: user.stripeCustomerId,
+            status: "trialing",
+            limit: 1,
+          });
+          if (trialSubs.data.length > 0) {
+            subId = trialSubs.data[0].id;
+            await db.collection("users").doc(uid).set(
+              { stripeSubscriptionId: subId, updatedAt: new Date() },
+              { merge: true }
+            );
+          }
+        }
+      } catch {}
+    }
+
     if (!subId) {
       return NextResponse.json({ ok: true, synced: false, reason: "no_subscription" });
     }
@@ -55,11 +89,13 @@ export async function GET(req: Request) {
       ? new Date(endTimestamp * 1000)
       : null;
 
-    // Firestoreと差分があれば同期
+    // Firestoreと差分があれば同期（currentPeriodEnd も常にチェック）
     const firestoreCancelAtPeriodEnd = Boolean(user?.cancelAtPeriodEnd);
     const firestoreStatus = user?.subscriptionStatus ?? null;
+    const firestoreCurrentPeriodEnd = user?.currentPeriodEnd ?? null;
+    const hasCurrentPeriodEndDiff = currentPeriodEnd && !firestoreCurrentPeriodEnd;
 
-    if (firestoreCancelAtPeriodEnd !== cancelScheduled || firestoreStatus !== status) {
+    if (firestoreCancelAtPeriodEnd !== cancelScheduled || firestoreStatus !== status || hasCurrentPeriodEndDiff) {
       const patch: any = {
         cancelAtPeriodEnd: cancelScheduled,
         subscriptionStatus: status,
