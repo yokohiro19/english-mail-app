@@ -206,14 +206,13 @@ function buildReadPage(dateKey: string, appBaseUrl: string, nickname: string) {
       font-size: 13px;
       line-height: 1.5;
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       gap: 10px;
     }
     .guide-icon {
-      width: 32px;
-      height: 32px;
+      width: 18px;
+      height: 18px;
       flex-shrink: 0;
-      margin-top: 2px;
     }
     .guide-text {
       flex: 1;
