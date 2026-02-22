@@ -22,7 +22,7 @@ const nextConfig: NextConfig = {
               "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://connect.facebook.net",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
-              "img-src 'self' data: https://www.facebook.com",
+              "img-src 'self' data: https://tapsmart.jp https://www.tapsmart.jp https://www.facebook.com",
               "connect-src 'self' https://*.firebaseio.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://api.stripe.com https://www.facebook.com",
               "frame-src 'self' https://checkout.stripe.com https://billing.stripe.com",
               "form-action 'self'",
