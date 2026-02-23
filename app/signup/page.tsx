@@ -73,9 +73,17 @@ export default function SignupPage() {
         if (utm) localStorage.removeItem("utm_data");
       } catch {}
 
-      // Meta Pixel: StartTrial イベント
-      if (typeof window !== "undefined" && typeof (window as any).fbq === "function") {
-        (window as any).fbq("track", "StartTrial", { currency: "JPY", value: 0 });
+      // Google Ads: 拡張コンバージョン + Registration
+      const registrationLabel = process.env.NEXT_PUBLIC_GA_LABEL_REGISTRATION;
+      if (registrationLabel && typeof (window as any).gtag === "function") {
+        (window as any).gtag("set", "user_data", {
+          email: email.trim().toLowerCase(),
+        });
+        (window as any).gtag("event", "conversion", {
+          send_to: `${process.env.NEXT_PUBLIC_GOOGLE_ADS_ID}/${registrationLabel}`,
+          value: 0,
+          currency: "JPY",
+        });
       }
 
       router.push("/verify-email");

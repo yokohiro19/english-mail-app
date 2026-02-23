@@ -23,7 +23,7 @@ export default function PrivacyPage() {
         <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 32, fontWeight: 800, marginBottom: 8, color: "var(--dark-navy)" }}>
           プライバシーポリシー
         </h1>
-        <p style={{ fontSize: 13, color: "#9CA3AF", marginBottom: 40 }}>最終更新日: 2026年2月20日</p>
+        <p style={{ fontSize: 13, color: "#9CA3AF", marginBottom: 40 }}>最終更新日: 2026年2月6日</p>
 
         <div style={{ fontSize: 15, lineHeight: 1.9, color: "#374151" }}>
           <p>TapSmart English（以下「当社」）は、TapSmart Englishが提供する各種サービス（以下「本サービス」）における個人情報の取扱いについて、以下のとおり定めます。</p>
@@ -60,7 +60,7 @@ export default function PrivacyPage() {
             <li>決済処理（Stripe, Inc.）</li>
             <li>AI関連サービス（OpenAI API 等）</li>
             <li>サーバーおよびインフラ管理（Vercel Inc.、Google LLC（Firebase））</li>
-            <li>広告配信・効果測定（Meta Platforms, Inc.）</li>
+            <li>広告配信・効果測定（Google LLC）</li>
             <li>メール配信、システム運用等</li>
           </ul>
           <p>これらの委託先には、日本国外（主に米国）に所在する事業者が含まれる場合があり、ユーザーの個人情報が国外で取り扱われることがあります。</p>
@@ -75,7 +75,8 @@ export default function PrivacyPage() {
           <p>18歳未満のユーザーが本サービスを利用する場合、事前に法定代理人（保護者等）の同意を得た上で利用するものとします。</p>
 
           <h2 style={h2Style}>7. Cookie等の利用</h2>
-          <p>当社は、本サービスの提供および利便性向上のため、Cookie等の技術を使用します。また、広告配信および効果測定のため、Meta Pixel等のトラッキング技術を使用し、ユーザーのアクセス情報が広告配信事業者に送信されることがあります。</p>
+          <p>当社は、本サービスの提供および利便性向上のため、Cookie等の技術を使用します。また、広告配信および効果測定のため、Google広告（gtag.js）等のトラッキング技術を使用し、ユーザーのアクセス情報が広告配信事業者に送信されることがあります。</p>
+          <p>また、広告の効果測定精度を向上させるため、ユーザーのメールアドレス等の識別情報をハッシュ化（不可逆的な暗号化処理）した上で広告配信事業者に送信し、照合を行うことがあります。</p>
           <p>ユーザーは、ブラウザの設定によりCookieを無効化することができますが、その場合、本サービスの一部機能が利用できないことがあります。</p>
 
           <h2 style={h2Style}>8. 安全管理</h2>

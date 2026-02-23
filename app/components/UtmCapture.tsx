@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-const UTM_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "ad_id"] as const;
+const UTM_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "ad_id", "gclid"] as const;
 const STORAGE_KEY = "utm_data";
 
 export default function UtmCapture() {

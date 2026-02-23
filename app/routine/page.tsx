@@ -71,9 +71,18 @@ export default function SettingsPage() {
       }
       if (params.get("billing") === "success") {
         setBillingBanner("__billing_success__");
-        // Meta Pixel: Subscribe イベント
-        if (typeof (window as any).fbq === "function") {
-          (window as any).fbq("track", "Subscribe");
+        // Google Ads: Subscription コンバージョン（二重発火防止）
+        const subscriptionLabel = process.env.NEXT_PUBLIC_GA_LABEL_SUBSCRIPTION;
+        if (subscriptionLabel && typeof (window as any).gtag === "function" && !sessionStorage.getItem("purchase_fired")) {
+          const convData: Record<string, any> = {
+            send_to: `${process.env.NEXT_PUBLIC_GOOGLE_ADS_ID}/${subscriptionLabel}`,
+            value: 500,
+            currency: "JPY",
+          };
+          const sessionId = params.get("session_id");
+          if (sessionId) convData.transaction_id = sessionId;
+          (window as any).gtag("event", "conversion", convData);
+          sessionStorage.setItem("purchase_fired", "1");
         }
         const t = setTimeout(() => setBillingBanner(null), 6000);
         return () => clearTimeout(t);
