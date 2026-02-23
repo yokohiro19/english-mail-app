@@ -71,17 +71,30 @@ export default function SettingsPage() {
       }
       if (params.get("billing") === "success") {
         setBillingBanner("__billing_success__");
-        // Google Ads: Subscription コンバージョン（二重発火防止）
-        const subscriptionLabel = process.env.NEXT_PUBLIC_GA_LABEL_SUBSCRIPTION;
-        if (subscriptionLabel && typeof (window as any).gtag === "function" && !sessionStorage.getItem("purchase_fired")) {
-          const convData: Record<string, any> = {
-            send_to: `${process.env.NEXT_PUBLIC_GOOGLE_ADS_ID}/${subscriptionLabel}`,
-            value: 500,
-            currency: "JPY",
-          };
+        // Google Ads: Registration + Subscription コンバージョン（二重発火防止）
+        const gadsId = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID;
+        const isGtag = typeof (window as any).gtag === "function";
+        if (isGtag && !sessionStorage.getItem("purchase_fired")) {
           const sessionId = params.get("session_id");
-          if (sessionId) convData.transaction_id = sessionId;
-          (window as any).gtag("event", "conversion", convData);
+
+          const registrationLabel = process.env.NEXT_PUBLIC_GA_LABEL_REGISTRATION;
+          if (registrationLabel) {
+            (window as any).gtag("event", "conversion", {
+              send_to: `${gadsId}/${registrationLabel}`,
+            });
+          }
+
+          const subscriptionLabel = process.env.NEXT_PUBLIC_GA_LABEL_SUBSCRIPTION;
+          if (subscriptionLabel) {
+            const convData: Record<string, any> = {
+              send_to: `${gadsId}/${subscriptionLabel}`,
+              value: 500,
+              currency: "JPY",
+            };
+            if (sessionId) convData.transaction_id = sessionId;
+            (window as any).gtag("event", "conversion", convData);
+          }
+
           sessionStorage.setItem("purchase_fired", "1");
         }
         const t = setTimeout(() => setBillingBanner(null), 6000);
