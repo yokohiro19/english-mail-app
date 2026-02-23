@@ -118,6 +118,7 @@ export function buildSystemPrompt(cefr: string): string {
     "Email signatures MUST only contain a fictional name and job title (2 lines max). NEVER include company names, email addresses, phone numbers, URLs, or physical addresses in signatures.",
     "Return output as JSON that strictly matches the schema.",
     "The email must be practical and natural, like a short work email.",
+    "NEVER end the email by proposing a meeting or call (e.g., 'Let's discuss this in a meeting'). The closing must be specific to the topic and add substance — avoid generic sign-offs that could apply to any email.",
     "",
     "=== DIFFICULTY LEVEL (STRICTLY FOLLOW) ===",
     levelGuide,
