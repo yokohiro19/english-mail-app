@@ -87,10 +87,10 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
-      setUser(u);
-      setLoadingAuth(false);
       if (!u) { router.replace("/login"); return; }
       if (!u.emailVerified) { router.replace("/verify-email"); return; }
+      setUser(u);
+      setLoadingAuth(false);
       setEmailVerified(u.emailVerified);
     });
     return () => unsub();

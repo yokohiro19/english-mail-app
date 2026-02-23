@@ -131,10 +131,10 @@ export default function SettingsPage() {
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
-      setUser(u);
-      setLoadingAuth(false);
       if (!u) { router.replace("/login"); return; }
       if (!u.emailVerified) { router.replace("/verify-email"); return; }
+      setUser(u);
+      setLoadingAuth(false);
     });
     return () => unsub();
   }, [router]);
