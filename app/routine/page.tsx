@@ -69,22 +69,29 @@ export default function SettingsPage() {
         const t = setTimeout(() => setAlreadyReadBanner(false), 4000);
         return () => clearTimeout(t);
       }
+      console.log("[GAds Debug] billing param:", params.get("billing"));
       if (params.get("billing") === "success") {
         setBillingBanner("__billing_success__");
         // Google Ads: Registration + Subscription コンバージョン（二重発火防止）
         const gadsId = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID;
+        const registrationLabel = process.env.NEXT_PUBLIC_GA_LABEL_REGISTRATION;
+        const subscriptionLabel = process.env.NEXT_PUBLIC_GA_LABEL_SUBSCRIPTION;
         const isGtag = typeof (window as any).gtag === "function";
+        console.log("[GAds Debug] gadsId:", gadsId);
+        console.log("[GAds Debug] registrationLabel:", registrationLabel);
+        console.log("[GAds Debug] subscriptionLabel:", subscriptionLabel);
+        console.log("[GAds Debug] gtag available:", isGtag);
+        console.log("[GAds Debug] purchase_fired:", sessionStorage.getItem("purchase_fired"));
         if (isGtag && !sessionStorage.getItem("purchase_fired")) {
           const sessionId = params.get("session_id");
 
-          const registrationLabel = process.env.NEXT_PUBLIC_GA_LABEL_REGISTRATION;
           if (registrationLabel) {
+            console.log("[GAds Debug] Google Ads Conversion Firing... Registration");
             (window as any).gtag("event", "conversion", {
               send_to: `${gadsId}/${registrationLabel}`,
             });
           }
 
-          const subscriptionLabel = process.env.NEXT_PUBLIC_GA_LABEL_SUBSCRIPTION;
           if (subscriptionLabel) {
             const convData: Record<string, any> = {
               send_to: `${gadsId}/${subscriptionLabel}`,
@@ -92,10 +99,15 @@ export default function SettingsPage() {
               currency: "JPY",
             };
             if (sessionId) convData.transaction_id = sessionId;
+            console.log("[GAds Debug] Google Ads Conversion Firing... Subscription", convData);
             (window as any).gtag("event", "conversion", convData);
           }
 
           sessionStorage.setItem("purchase_fired", "1");
+        } else if (!isGtag) {
+          console.log("[GAds Debug] Conversion skip: gtag not available");
+        } else {
+          console.log("[GAds Debug] Conversion skip: already fired");
         }
         const t = setTimeout(() => setBillingBanner(null), 6000);
         return () => clearTimeout(t);
@@ -863,7 +875,8 @@ export default function SettingsPage() {
 
             <p style={{ marginTop: 16, fontSize: 13, color: "#1d1f42", lineHeight: 1.7, fontWeight: 600 }}>
               英文のテーマはビジネス関連のトピックからランダムに選出されます。<br />
-              同じようなテーマが連続で届く場合もありますので、あらかじめご了承ください。
+              同じようなテーマが連続で届く場合もありますので、あらかじめご了承ください。<br />
+              また、届く英文はAIにより生成されているため、内容に誤りが含まれる場合があります。
             </p>
 
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 20 }}>

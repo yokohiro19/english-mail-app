@@ -119,6 +119,7 @@ export function buildSystemPrompt(cefr: string): string {
     "Return output as JSON that strictly matches the schema.",
     "The email must be practical and natural, like a short work email.",
     "NEVER end the email by proposing a meeting or call (e.g., 'Let's discuss this in a meeting'). The closing must be specific to the topic and add substance — avoid generic sign-offs that could apply to any email.",
+    "When mentioning facts, statistics, dates, or named entities, only include information you are confident is accurate. Do not fabricate specific numbers, studies, or real-world events. If the topic requires concrete details, use clearly fictional but plausible examples rather than presenting made-up data as real.",
     "",
     "=== DIFFICULTY LEVEL (STRICTLY FOLLOW) ===",
     levelGuide,
