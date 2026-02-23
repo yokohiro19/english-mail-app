@@ -375,7 +375,7 @@ export default function SettingsPage() {
           consent: {
             agreedAt: new Date().toISOString(),
             termsVersion: "2026-02-20",
-            privacyVersion: "2026-02-20",
+            privacyVersion: "2026-02-06",
             displayedTerms: [
               "月額500円（税込）",
               showFreeTrialLabel ? "初回7日間無料" : null,
@@ -419,7 +419,7 @@ export default function SettingsPage() {
         bodyData.consent = {
           agreedAt: new Date().toISOString(),
           termsVersion: "2026-02-20",
-          privacyVersion: "2026-02-20",
+          privacyVersion: "2026-02-06",
           displayedTerms: [
             "月額500円（税込）",
             "解約しない限り毎月自動更新",
