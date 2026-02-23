@@ -69,21 +69,22 @@ export default function SettingsPage() {
         const t = setTimeout(() => setAlreadyReadBanner(false), 4000);
         return () => clearTimeout(t);
       }
-      console.log("[GAds Debug] billing param:", params.get("billing"));
       if (params.get("billing") === "success") {
         setBillingBanner("__billing_success__");
-        // Google Ads: Registration + Subscription コンバージョン（二重発火防止）
-        const gadsId = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID;
-        const registrationLabel = process.env.NEXT_PUBLIC_GA_LABEL_REGISTRATION;
-        const subscriptionLabel = process.env.NEXT_PUBLIC_GA_LABEL_SUBSCRIPTION;
-        const isGtag = typeof (window as any).gtag === "function";
-        console.log("[GAds Debug] gadsId:", gadsId);
-        console.log("[GAds Debug] registrationLabel:", registrationLabel);
-        console.log("[GAds Debug] subscriptionLabel:", subscriptionLabel);
-        console.log("[GAds Debug] gtag available:", isGtag);
-        console.log("[GAds Debug] purchase_fired:", sessionStorage.getItem("purchase_fired"));
-        if (isGtag && !sessionStorage.getItem("purchase_fired")) {
-          const sessionId = params.get("session_id");
+        // Google Ads: Registration + Subscription コンバージョン
+        // gtag のロードを待ってから発火（afterInteractive のレースコンディション対策）
+        const fireConversion = () => {
+          if (sessionStorage.getItem("purchase_fired")) {
+            console.log("[GAds Debug] Conversion skip: already fired");
+            return;
+          }
+          const gadsId = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID;
+          const registrationLabel = process.env.NEXT_PUBLIC_GA_LABEL_REGISTRATION;
+          const subscriptionLabel = process.env.NEXT_PUBLIC_GA_LABEL_SUBSCRIPTION;
+          console.log("[GAds Debug] gadsId:", gadsId);
+          console.log("[GAds Debug] registrationLabel:", registrationLabel);
+          console.log("[GAds Debug] subscriptionLabel:", subscriptionLabel);
+          const sessionId = new URLSearchParams(window.location.search).get("session_id");
 
           if (registrationLabel) {
             console.log("[GAds Debug] Google Ads Conversion Firing... Registration");
@@ -104,10 +105,20 @@ export default function SettingsPage() {
           }
 
           sessionStorage.setItem("purchase_fired", "1");
-        } else if (!isGtag) {
-          console.log("[GAds Debug] Conversion skip: gtag not available");
+        };
+
+        if (typeof (window as any).gtag === "function") {
+          fireConversion();
         } else {
-          console.log("[GAds Debug] Conversion skip: already fired");
+          console.log("[GAds Debug] gtag not ready, waiting...");
+          const interval = setInterval(() => {
+            if (typeof (window as any).gtag === "function") {
+              clearInterval(interval);
+              console.log("[GAds Debug] gtag now available, firing");
+              fireConversion();
+            }
+          }, 200);
+          setTimeout(() => clearInterval(interval), 10000);
         }
         const t = setTimeout(() => setBillingBanner(null), 6000);
         return () => clearTimeout(t);
