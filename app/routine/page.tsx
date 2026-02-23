@@ -71,6 +71,10 @@ export default function SettingsPage() {
       }
       if (params.get("billing") === "success") {
         setBillingBanner("__billing_success__");
+        // Meta Pixel: Subscribe イベント
+        if (typeof (window as any).fbq === "function") {
+          (window as any).fbq("track", "Subscribe");
+        }
         const t = setTimeout(() => setBillingBanner(null), 6000);
         return () => clearTimeout(t);
       }

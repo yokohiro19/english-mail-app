@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { createUserWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
-import { auth } from "../../src/lib/firebase";
+import { auth, db } from "../../src/lib/firebase";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import "../app.css";
 import AppHeader from "../components/AppHeader";
@@ -61,6 +62,22 @@ export default function SignupPage() {
         method: "POST",
         headers: { Authorization: `Bearer ${idToken}` },
       }).catch(() => {});
+
+      // UTM パラメータを Firestore に保存
+      try {
+        const raw = localStorage.getItem("utm_data");
+        const utm = raw ? JSON.parse(raw) : null;
+        const userData: Record<string, any> = { email, createdAt: serverTimestamp() };
+        if (utm && typeof utm === "object") userData.utm = utm;
+        await setDoc(doc(db, "users", cred.user.uid), userData, { merge: true });
+        if (utm) localStorage.removeItem("utm_data");
+      } catch {}
+
+      // Meta Pixel: StartTrial イベント
+      if (typeof window !== "undefined" && typeof (window as any).fbq === "function") {
+        (window as any).fbq("track", "StartTrial", { currency: "JPY", value: 0 });
+      }
+
       router.push("/verify-email");
     } catch (err: any) {
       setError(firebaseErrorJa(err));
