@@ -45,8 +45,8 @@ export default function Home() {
               だから、明日も読みたくなる。
             </h2>
             <p className="hero-subtitle">
-              いつものメールボックスで、毎日タップするだけ。<br />
-              「気づけば継続している」に特化した、新しい英語学習。
+              「気づけば継続している」に特化した、新しい英語学習。<br />
+              いつものメールボックスで、１日１分、タップするだけ。
             </p>
             <div className="hero-cta">
               <a href="/signup" className="btn-primary">

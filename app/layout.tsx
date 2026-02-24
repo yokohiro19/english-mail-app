@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "TapSmart English - ちょうど楽しい難易度。だから、明日も読みたくなる。",
-  description: "いつものメールボックスで、毎日タップするだけ。「気づけば継続している」に特化した、新しい英語学習。月額500円、初回7日間無料。",
+  description: "「気づけば継続している」に特化した、新しい英語学習。いつものメールボックスで、１日１分、タップするだけ。月額500円、初回7日間無料。",
   manifest: "/manifest.json",
 };
 
