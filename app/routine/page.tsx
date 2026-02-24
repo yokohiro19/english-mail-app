@@ -74,20 +74,13 @@ export default function SettingsPage() {
         // Google Ads: Registration + Subscription コンバージョン
         // gtag のロードを待ってから発火（afterInteractive のレースコンディション対策）
         const fireConversion = () => {
-          if (sessionStorage.getItem("purchase_fired")) {
-            console.log("[GAds Debug] Conversion skip: already fired");
-            return;
-          }
+          if (sessionStorage.getItem("purchase_fired")) return;
           const gadsId = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID;
           const registrationLabel = process.env.NEXT_PUBLIC_GA_LABEL_REGISTRATION;
           const subscriptionLabel = process.env.NEXT_PUBLIC_GA_LABEL_SUBSCRIPTION;
-          console.log("[GAds Debug] gadsId:", gadsId);
-          console.log("[GAds Debug] registrationLabel:", registrationLabel);
-          console.log("[GAds Debug] subscriptionLabel:", subscriptionLabel);
           const sessionId = new URLSearchParams(window.location.search).get("session_id");
 
           if (registrationLabel) {
-            console.log("[GAds Debug] Google Ads Conversion Firing... Registration");
             (window as any).gtag("event", "conversion", {
               send_to: `${gadsId}/${registrationLabel}`,
             });
@@ -100,7 +93,6 @@ export default function SettingsPage() {
               currency: "JPY",
             };
             if (sessionId) convData.transaction_id = sessionId;
-            console.log("[GAds Debug] Google Ads Conversion Firing... Subscription", convData);
             (window as any).gtag("event", "conversion", convData);
           }
 
@@ -110,11 +102,9 @@ export default function SettingsPage() {
         if (typeof (window as any).gtag === "function") {
           fireConversion();
         } else {
-          console.log("[GAds Debug] gtag not ready, waiting...");
           const interval = setInterval(() => {
             if (typeof (window as any).gtag === "function") {
               clearInterval(interval);
-              console.log("[GAds Debug] gtag now available, firing");
               fireConversion();
             }
           }, 200);
