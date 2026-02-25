@@ -720,15 +720,25 @@
 
   .hero-cta {
     flex-direction: column;
-    align-items: stretch;
+    align-items: flex-start;
+  }
+
+  .hero-cta .btn-secondary {
+    align-self: stretch;
+    text-align: center;
+  }
+
+  .hero-cta-main {
+    align-self: stretch;
+    align-items: flex-start;
+  }
+
+  .hero-cta-main .btn-primary {
+    width: 100%;
   }
 
   .hero-balloon {
     margin-left: 38px;
-  }
-
-  .hero-cta-main {
-    align-items: flex-start;
   }
 }
 
