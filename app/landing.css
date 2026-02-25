@@ -724,12 +724,7 @@
   }
 
   .hero-cta-main {
-    align-items: center;
-  }
-
-  .hero-balloon::after {
-    left: 50%;
-    transform: translateX(-50%) rotate(45deg);
+    align-items: flex-start;
   }
 }
 
