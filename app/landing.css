@@ -189,7 +189,8 @@
   border-radius: 20px;
   position: relative;
   display: inline-block;
-  margin-bottom: 8px;
+  margin-bottom: -2px;
+  z-index: 1;
 }
 
 .hero-balloon::after {
