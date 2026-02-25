@@ -735,6 +735,7 @@
 
   .hero-cta-main .btn-primary {
     width: 100%;
+    text-align: center;
   }
 
   .hero-balloon {
