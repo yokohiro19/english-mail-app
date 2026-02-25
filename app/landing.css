@@ -169,6 +169,7 @@
 .hero-cta {
   display: flex;
   gap: 20px;
+  align-items: flex-end;
   animation: fadeInUp 0.8s ease 0.4s both;
 }
 
@@ -717,7 +718,7 @@
 
   .hero-cta {
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
   }
 
   .hero-cta-main {
