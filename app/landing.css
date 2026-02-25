@@ -172,6 +172,13 @@
   animation: fadeInUp 0.8s ease 0.4s both;
 }
 
+.hero-cta-main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+}
+
 .hero-balloon {
   background: var(--dark-navy);
   color: #fff;
@@ -181,13 +188,13 @@
   border-radius: 20px;
   position: relative;
   display: inline-block;
-  align-self: flex-start;
+  margin-bottom: 8px;
 }
 
 .hero-balloon::after {
   content: "";
   position: absolute;
-  bottom: -6px;
+  bottom: -5px;
   left: 24px;
   width: 10px;
   height: 10px;
@@ -713,8 +720,8 @@
     align-items: center;
   }
 
-  .hero-balloon {
-    align-self: center;
+  .hero-cta-main {
+    align-items: center;
   }
 
   .hero-balloon::after {

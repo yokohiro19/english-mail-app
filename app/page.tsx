@@ -49,11 +49,13 @@ export default function Home() {
               いつものメールボックスで、１日１分、タップするだけ。
             </p>
             <div className="hero-cta">
-              <div className="hero-balloon">登録はメールアドレスのみ</div>
-              <a href="/signup" className="btn-primary">
-                今すぐ無料で始める
-                <span className="price-note">月額500円（初回7日間無料）</span>
-              </a>
+              <div className="hero-cta-main">
+                <div className="hero-balloon">登録はメールアドレスのみ</div>
+                <a href="/signup" className="btn-primary">
+                  今すぐ無料で始める
+                  <span className="price-note">月額500円（初回7日間無料）</span>
+                </a>
+              </div>
               <a href="#how" className="btn-secondary">使い方を見る</a>
             </div>
           </div>
