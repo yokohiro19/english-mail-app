@@ -742,6 +742,10 @@
     margin-left: 38px;
   }
 
+  .landing header {
+    position: sticky;
+  }
+
   /* Hero: text overlaid on image */
   .hero {
     margin-top: 0;
