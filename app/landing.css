@@ -723,6 +723,10 @@
     align-items: stretch;
   }
 
+  .hero-balloon {
+    margin-left: 16px;
+  }
+
   .hero-cta-main {
     align-items: flex-start;
   }
