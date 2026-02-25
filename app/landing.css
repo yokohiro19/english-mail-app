@@ -172,6 +172,29 @@
   animation: fadeInUp 0.8s ease 0.4s both;
 }
 
+.hero-balloon {
+  background: var(--dark-navy);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 16px;
+  border-radius: 20px;
+  position: relative;
+  display: inline-block;
+  align-self: flex-start;
+}
+
+.hero-balloon::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  left: 24px;
+  width: 10px;
+  height: 10px;
+  background: var(--dark-navy);
+  transform: rotate(45deg);
+}
+
 .btn-primary {
   background: var(--primary-cyan);
   color: var(--dark-navy);
@@ -687,6 +710,16 @@
 
   .hero-cta {
     flex-direction: column;
+    align-items: center;
+  }
+
+  .hero-balloon {
+    align-self: center;
+  }
+
+  .hero-balloon::after {
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
   }
 }
 
