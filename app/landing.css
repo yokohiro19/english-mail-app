@@ -133,8 +133,8 @@
 
 .hero-text h2 {
   font-family: 'Outfit', sans-serif;
-  font-size: 44px;
-  font-weight: 800;
+  font-size: 40px;
+  font-weight: 700;
   color: var(--white);
   line-height: 1.2;
   margin-bottom: 20px;
@@ -161,7 +161,7 @@
 }
 
 .hero-subtitle {
-  font-size: 22px;
+  font-size: 19px;
   font-weight: 600;
   margin-bottom: 20px;
 }
@@ -707,7 +707,7 @@
   }
 
   .hero-text h2 {
-    font-size: 40px;
+    font-size: 36px;
   }
 
   .features-grid {
