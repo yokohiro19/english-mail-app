@@ -41,11 +41,11 @@ export default function Home() {
         <div className="hero-content">
           <div className="hero-text">
             <h2>
-              ちょうど楽しい難易度。<br />
-              だから、明日も読みたくなる。
+              努力に頼る英語は、もう終わり。<br />
+              今日もできた。また、明日も。
             </h2>
             <p className="hero-subtitle">
-              「気づけば継続している」に特化した、新しい英語学習。<br />
+              「気づけば習慣になる」に特化した、新しい英語体験。<br />
               いつものメールボックスで、１日１分、タップするだけ。
             </p>
             <div className="hero-cta">
