@@ -41,7 +41,7 @@ export default function Home() {
         <div className="hero-content">
           <div className="hero-text">
             <h2>
-              努力に頼る英語は、もう終わり。<br />
+              努力に頼るのは、もう終わり。<br />
               今日もできた。また、明日も。
             </h2>
             <p className="hero-subtitle">

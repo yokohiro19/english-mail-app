@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TapSmart English - 努力に頼る英語は、もう終わり。今日もできた。また、明日も。",
+  title: "TapSmart English - 努力に頼るのは、もう終わり。今日もできた。また、明日も。",
   description: "「気づけば習慣になる」に特化した、新しい英語体験。いつものメールボックスで、１日１分、タップするだけ。月額500円、初回7日間無料。",
   manifest: "/manifest.json",
 };
