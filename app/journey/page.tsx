@@ -455,10 +455,11 @@ function CalendarHeatmap({
     const isExcludedDay = deliveryDays.length < 7 && !deliveryDays.includes(dow);
     let nonDelivery = false;
     if (key < todayKey) {
-      nonDelivery = skippedDayOffSet.has(key);
+      const offSince = deliveryDayOffSince[String(dow)];
+      nonDelivery = skippedDayOffSet.has(key) || (!!offSince && offSince <= key);
     } else if (key === todayKey && isExcludedDay) {
       const offSince = deliveryDayOffSince[String(dow)];
-      nonDelivery = !offSince || offSince < todayKey;
+      nonDelivery = !offSince || offSince <= todayKey;
     } else if (key > todayKey && isExcludedDay) {
       nonDelivery = true;
     }
