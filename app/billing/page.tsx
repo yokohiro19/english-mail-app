@@ -457,6 +457,14 @@ export default function BillingPage() {
 
             {billingError && <div className="app-error" style={{ marginTop: 16 }}>{billingError}</div>}
           </div>
+
+          <p style={{ fontSize: 11, color: "#9CA3AF", textAlign: "center", lineHeight: 1.8 }}>
+            <a href="/privacy" style={{ color: "#9CA3AF" }}>プライバシーポリシー</a>
+            {" ・ "}
+            <a href="/terms" style={{ color: "#9CA3AF" }}>利用規約</a>
+            {" ・ "}
+            <a href="/legal/tokushoho" style={{ color: "#9CA3AF" }}>特定商取引法に基づく表記</a>
+          </p>
         </div>
       </main>
     </div>
