@@ -520,7 +520,7 @@ export default function SettingsPage() {
   return (
     <div className="app-page">
       <AppHeader />
-      <main style={{ maxWidth: 800, margin: "0 auto", padding: "32px 24px" }}>
+      <main className="routine-main">
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
 
           {/* Already read banner */}
@@ -919,18 +919,18 @@ export default function SettingsPage() {
               <p className="form-helper">※ 手軽な継続には100〜200がおすすめ</p>
             </div>
 
-            <p style={{ marginTop: 16, fontSize: 13, color: "#1d1f42", lineHeight: 1.7, fontWeight: 600 }}>
-              英文のテーマはビジネス関連のトピックからランダムに選出されます。<br />
-              同じようなテーマが連続で届く場合もありますので、あらかじめご了承ください。<br />
-              また、届く英文はAIにより生成されているため、内容に誤りが含まれる場合があります。
-            </p>
-
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 20 }}>
               <button onClick={onSaveDifficulty} disabled={savingDifficulty || !hasUnsavedDifficulty} className="app-btn-primary">
                 {savingDifficulty ? "保存中..." : "保存"}
               </button>
               {difficultySaveMsg && <span style={{ fontSize: 13, color: difficultySaveMsg.type === "success" ? "#059669" : "#991B1B", fontWeight: 600 }}>{difficultySaveMsg.text}</span>}
             </div>
+
+            <p style={{ marginTop: 16, fontSize: 13, color: "#1d1f42", lineHeight: 1.7, fontWeight: 600 }}>
+              英文のテーマはビジネス関連のトピックからランダムに選出されます。<br />
+              同じようなテーマが連続で届く場合もありますので、あらかじめご了承ください。<br />
+              また、届く英文はAIにより生成されているため、内容に誤りが含まれる場合があります。
+            </p>
           </div>
 
           </div>{/* /routine-settings-grid */}
