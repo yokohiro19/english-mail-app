@@ -475,6 +475,7 @@ export default function SettingsPage() {
   const hasUnsavedDifficulty = level !== savedLevel || wordCount !== savedWordCount;
   const hasUnsavedChanges = hasUnsavedDelivery || hasUnsavedDifficulty;
   const [unsavedWarningMsg, setUnsavedWarningMsg] = useState(false);
+  const [levelDropdownOpen, setLevelDropdownOpen] = useState(false);
 
   const sendTrialMail = async () => {
     if (!user) return;
@@ -733,6 +734,8 @@ export default function SettingsPage() {
             </div>
           )}
 
+          <div className="routine-settings-grid">
+
           {/* 配信設定 */}
           <div className="app-card">
             <h2 className="section-title">配信設定</h2>
@@ -839,7 +842,7 @@ export default function SettingsPage() {
 
             <div style={{ marginBottom: 20 }}>
               <label className="form-label">レベル</label>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 4 }}>
+              <div className="level-btn-list">
                 {LEVELS.map((lv) => (
                   <button
                     key={lv.value}
@@ -861,6 +864,48 @@ export default function SettingsPage() {
                     <span style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>{lv.tagline}</span>
                   </button>
                 ))}
+              </div>
+              <div className="level-dropdown-wrapper">
+                {levelDropdownOpen && (
+                  <div
+                    style={{ position: "fixed", inset: 0, zIndex: 99 }}
+                    onClick={() => setLevelDropdownOpen(false)}
+                  />
+                )}
+                <button
+                  type="button"
+                  className={`level-dropdown-trigger${levelDropdownOpen ? " open" : ""}`}
+                  onClick={() => setLevelDropdownOpen((o) => !o)}
+                >
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "#1d1f42" }}>
+                      Level {LEVELS[level - 1].value} : {LEVELS[level - 1].name}
+                    </div>
+                    <div style={{ fontSize: 12, color: "#6B7280", marginTop: 2 }}>
+                      {LEVELS[level - 1].tagline}
+                    </div>
+                  </div>
+                  <span style={{ fontSize: 12, color: "#9CA3AF" }}>{levelDropdownOpen ? "▲" : "▼"}</span>
+                </button>
+                {levelDropdownOpen && (
+                  <div className="level-dropdown-options">
+                    {LEVELS.map((lv) => (
+                      <button
+                        key={lv.value}
+                        type="button"
+                        className={`level-dropdown-option${level === lv.value ? " selected" : ""}`}
+                        onClick={() => { setLevel(lv.value); setLevelDropdownOpen(false); }}
+                      >
+                        <div style={{ fontSize: 14, fontWeight: 700, color: "#1d1f42" }}>
+                          Level {lv.value} : {lv.name}
+                        </div>
+                        <div style={{ fontSize: 12, color: "#6B7280", marginTop: 2 }}>
+                          {lv.tagline}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -887,6 +932,8 @@ export default function SettingsPage() {
               {difficultySaveMsg && <span style={{ fontSize: 13, color: difficultySaveMsg.type === "success" ? "#059669" : "#991B1B", fontWeight: 600 }}>{difficultySaveMsg.text}</span>}
             </div>
           </div>
+
+          </div>{/* /routine-settings-grid */}
 
           {/* Trial mail button */}
           {showTrialMailButton && (

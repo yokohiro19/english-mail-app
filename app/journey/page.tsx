@@ -81,8 +81,9 @@ export default function DashboardPage() {
   const [skippedDayOffSet, setSkippedDayOffSet] = useState<Set<string>>(new Set());
 
   const [calendarCursor, setCalendarCursor] = useState(() => {
-    const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), 1);
+    const todayKey = logicalTodayJst(); // "YYYY-MM-DD" with 4am boundary
+    const [y, m] = todayKey.split("-").map(Number);
+    return new Date(y, m - 1, 1);
   });
 
   useEffect(() => {
