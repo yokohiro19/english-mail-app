@@ -44,6 +44,38 @@ function getUidFromMetadata(obj: any): string | null {
 }
 
 /**
+ * Invoice オブジェクトから subscription ID を抽出する
+ * Stripe SDK v20 / API 2025+ では invoice.subscription が string でなくなる場合がある
+ * 複数のフィールドパスを試みる
+ */
+function extractSubIdFromInvoice(invoice: any): string | null {
+  // 旧 API: invoice.subscription が string ID
+  if (typeof invoice?.subscription === "string" && invoice.subscription.length > 0) {
+    return invoice.subscription;
+  }
+  // 展開済みオブジェクト: invoice.subscription.id
+  if (typeof invoice?.subscription?.id === "string") {
+    return invoice.subscription.id;
+  }
+  // 新 API (2025+): invoice.subscription_details.subscription
+  if (typeof invoice?.subscription_details?.subscription === "string") {
+    return invoice.subscription_details.subscription;
+  }
+  // 新 API (2025+): invoice.parent.subscription_details.subscription
+  if (typeof invoice?.parent?.subscription_details?.subscription === "string") {
+    return invoice.parent.subscription_details.subscription;
+  }
+  // フォールバック: 取れなかった場合はデバッグログを残す
+  console.warn("[stripe webhook] extractSubIdFromInvoice: could not extract subId", {
+    subscriptionType: typeof invoice?.subscription,
+    subscriptionValue: JSON.stringify(invoice?.subscription)?.slice(0, 100),
+    hasSubscriptionDetails: !!invoice?.subscription_details,
+    hasParent: !!invoice?.parent,
+  });
+  return null;
+}
+
+/**
  * Firestoreの users を Stripe IDs から逆引きして uid を取る
  * - stripeSubscriptionId があればそれ優先
  * - 無ければ stripeCustomerId で探す
@@ -199,12 +231,7 @@ function pickCommonIdsFromEvent(event: Stripe.Event) {
     subId = typeof obj?.id === "string" ? obj.id : null;
     customerId = typeof obj?.customer === "string" ? obj.customer : null;
   } else if (type.startsWith("invoice.")) {
-    subId =
-      typeof obj?.subscription === "string"
-        ? obj.subscription
-        : typeof obj?.subscription?.id === "string"
-          ? obj.subscription.id
-          : null;
+    subId = extractSubIdFromInvoice(obj);
 
     customerId =
       typeof obj?.customer === "string"
@@ -443,12 +470,7 @@ async function handleSubscriptionUpsert(event: Stripe.Event) {
 async function handleInvoicePaidLike(event: Stripe.Event) {
   const invoice = event.data.object as any;
 
-  const stripeSubscriptionId =
-    typeof invoice.subscription === "string"
-      ? invoice.subscription
-      : typeof invoice.subscription?.id === "string"
-        ? invoice.subscription.id
-        : null;
+  const stripeSubscriptionId = extractSubIdFromInvoice(invoice);
 
   const stripeCustomerId =
     typeof invoice.customer === "string"
