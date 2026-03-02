@@ -274,6 +274,23 @@
   display: none;
 }
 
+/* Description Image Section */
+.description-image-section {
+  width: 100%;
+  line-height: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.description-img {
+  width: 70%;
+  display: block;
+}
+
+.description-img-sp {
+  display: none;
+}
+
 /* Features Section */
 .features {
   padding: 100px 40px;
@@ -779,6 +796,15 @@
 
   .hero-image-sp {
     display: block;
+  }
+
+  .description-img-pc {
+    display: none;
+  }
+
+  .description-img-sp {
+    display: block;
+    width: 90%;
   }
 
   .hero-visual::after {

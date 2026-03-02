@@ -46,7 +46,8 @@ export default function Home() {
             </h2>
             <p className="hero-subtitle">
               「気づけば習慣になる」に特化した、新しい英語体験。<br />
-              いつものメールボックスで、１日１分、タップするだけ。
+              いつものメールボックスで、１日１分、タップするだけ。<br />
+              「ちょうど楽しい難易度」で、また明日も読みたくなる。
             </p>
             <div className="hero-cta">
               <div className="hero-cta-main">
@@ -66,6 +67,10 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="description-image-section">
+        <img src="/images/description_desktop.png" alt="" className="description-img description-img-pc" />
+        <img src="/images/description_mobile.png" alt="" className="description-img description-img-sp" />
+      </section>
 
       <section className="features" id="features">
         <div className="section-header">
