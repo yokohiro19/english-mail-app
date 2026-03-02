@@ -75,7 +75,7 @@ export default function Home() {
       <section className="features" id="features">
         <div className="section-header">
           <h2>TapSmart Englishの特徴</h2>
-          <p>自分に最適な難易度と文字数で、AIが生成した英文が毎日メールで届く。<br />無理なく続けられる、新しいビジネス英語学習。</p>
+          <p>自分に最適な難易度と文字数で、AIが生成した英文が毎日メールで届く。<br />無理なく続く、新しいビジネス英語学習。</p>
         </div>
         <div className="features-grid">
           <div className="feature-card">
