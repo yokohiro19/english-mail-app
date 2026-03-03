@@ -117,23 +117,24 @@
 }
 
 .hero-content {
-  max-width: none;
-  margin: 0;
+  max-width: 1600px;
+  margin: 0 auto;
   display: grid;
   grid-template-columns: 11fr 9fr;
   gap: 0;
   align-items: center;
   position: relative;
   z-index: 1;
+  width: 100%;
 }
 
 .hero-text {
-  padding: 60px 60px 80px calc(max((100vw - 1200px) / 2, 40px));
+  padding: 60px 60px 80px clamp(40px, 5vw, 80px);
 }
 
 .hero-text h2 {
   font-family: 'Outfit', sans-serif;
-  font-size: 40px;
+  font-size: clamp(30px, 3.2vw, 40px);
   font-weight: 700;
   color: var(--white);
   line-height: 1.2;
@@ -285,6 +286,7 @@
 
 .description-img {
   width: 70%;
+  max-width: 1000px;
   display: block;
 }
 
