@@ -82,21 +82,17 @@ export async function GET(req: Request) {
     let createdAtKey: string | null = null;
     const rawOrigin = userData?.trialStartedAt ?? userData?.createdAt;
     if (rawOrigin) {
-      const ts = rawOrigin.toDate
-        ? rawOrigin.toDate()
-        : new Date(rawOrigin);
+      const ts = rawOrigin.toDate ? rawOrigin.toDate() : new Date(rawOrigin);
       const createdLogical = new Date(ts.getTime() + 5 * 60 * 60 * 1000);
       createdAtKey = dateKeyFromJst(createdLogical);
     }
 
     const deliveryDays: number[] = Array.isArray(userData?.deliveryDays) ? userData.deliveryDays : [0,1,2,3,4,5,6];
-
-    // 曜日ごとの配信停止開始日
     const deliveryDayOffSince = (userData?.deliveryDayOffSince ?? {}) as Record<string, string>;
 
-    // 指定期間内の配信対象外日数を計算するヘルパー
-    // - 過去: skippedDayOffSet（cron記録）で判定
-    // - 今日: deliveryDayOffSince で前日以前に設定済みなら対象外
+    // 指定期間内の配信対象外日数を計算
+    // - 過去: deliveryDayOffSince[dow] <= dateKey なら対象外
+    // - 今日: deliveryDayOffSince が todayKey より前に設定済みなら対象外
     // - 未来: 現在の deliveryDays 設定で対象外なら常に適用
     function countPausedDaysInRange(rangeStart: string, rangeEnd: string): number {
       const pausedDateSet = new Set<string>();
@@ -105,21 +101,17 @@ export async function GET(req: Request) {
       const re = new Date(rangeEnd + "T00:00:00Z");
       for (let d = new Date(rs); d <= re; d.setUTCDate(d.getUTCDate() + 1)) {
         const dk = dateKeyFromJst(d);
+        const dow = (d.getUTCDay() + 6) % 7;
         if (dk < todayKey) {
-          if (skippedDayOffSet.has(dk)) pausedDateSet.add(dk);
+          const offSince = deliveryDayOffSince[String(dow)];
+          if (offSince && offSince <= dk) pausedDateSet.add(dk);
         } else if (dk === todayKey) {
-          if (deliveryDays.length < 7) {
-            const dow = (d.getUTCDay() + 6) % 7;
-            if (!deliveryDays.includes(dow)) {
-              const offSince = deliveryDayOffSince[String(dow)];
-              if (!offSince || offSince < todayKey) pausedDateSet.add(dk);
-            }
+          if (!deliveryDays.includes(dow)) {
+            const offSince = deliveryDayOffSince[String(dow)];
+            if (!offSince || offSince < todayKey) pausedDateSet.add(dk);
           }
         } else {
-          if (deliveryDays.length < 7) {
-            const dow = (d.getUTCDay() + 6) % 7;
-            if (!deliveryDays.includes(dow)) pausedDateSet.add(dk);
-          }
+          if (!deliveryDays.includes(dow)) pausedDateSet.add(dk);
         }
       }
 
@@ -133,22 +125,19 @@ export async function GET(req: Request) {
     // 指定日が配信対象外かどうかを判定（学習した日は対象外扱いしない）
     function isDatePaused(dateKey: string): boolean {
       if (allDateKeys.has(dateKey)) return false;
+      const d = new Date(dateKey + "T00:00:00Z");
+      const dow = (d.getUTCDay() + 6) % 7;
       if (dateKey < todayKey) {
-        return skippedDayOffSet.has(dateKey);
+        const offSince = deliveryDayOffSince[String(dow)];
+        return !!offSince && offSince <= dateKey;
       }
-      if (dateKey === todayKey && deliveryDays.length < 7) {
-        const d = new Date(dateKey + "T00:00:00Z");
-        const dow = (d.getUTCDay() + 6) % 7;
+      if (dateKey === todayKey) {
         if (!deliveryDays.includes(dow)) {
           const offSince = deliveryDayOffSince[String(dow)];
           return !offSince || offSince < todayKey;
         }
       }
-      if (dateKey > todayKey && deliveryDays.length < 7) {
-        const d = new Date(dateKey + "T00:00:00Z");
-        const dow = (d.getUTCDay() + 6) % 7;
-        if (!deliveryDays.includes(dow)) return true;
-      }
+      if (dateKey > todayKey && !deliveryDays.includes(dow)) return true;
       return false;
     }
 
@@ -169,7 +158,7 @@ export async function GET(req: Request) {
     const twelveMonthsAgo = addMonthsJstMidnight(base, -11);
     const rangeStartKey = dateKeyFromJst(twelveMonthsAgo);
 
-    // ---- 1回のクエリで直近12ヶ月分の studyLogs を全取得 + 直近ログも兼用 ----
+    // ---- 1回のクエリで直近12ヶ月分の studyLogs を全取得 ----
     const fetchAllLogs = async () => {
       const snap = await db
         .collection("studyLogs")
@@ -194,24 +183,8 @@ export async function GET(req: Request) {
       return sum;
     };
 
-    // ---- 配信曜日OFFでスキップされた日を取得 ----
-    const fetchSkippedDayOff = async () => {
-      const snap = await db
-        .collection("deliveries")
-        .where("uid", "==", uid)
-        .where("status", "==", "skipped_day_off")
-        .select("dateKey")
-        .get();
-      const set = new Set<string>();
-      for (const d of snap.docs) {
-        const k = (d.data() as any)?.dateKey;
-        if (typeof k === "string") set.add(k);
-      }
-      return set;
-    };
-
     // ---- 並列実行 ----
-    const [allLogs, total, skippedDayOffSet] = await Promise.all([
+    const [allLogs, total] = await Promise.all([
       fetchAllLogs().catch((e: any) => {
         console.error("[stats] allLogs failed:", e);
         partialErrors.push(isIndexError(e) ? "allLogs_requires_index" : "allLogs_failed");
@@ -221,11 +194,6 @@ export async function GET(req: Request) {
         console.error("[stats] totalStudyLogs failed:", e);
         partialErrors.push("totalStudyLogs_failed");
         return 0;
-      }),
-      fetchSkippedDayOff().catch((e: any) => {
-        console.error("[stats] skippedDayOff failed:", e);
-        partialErrors.push("skippedDayOff_failed");
-        return new Set<string>();
       }),
     ]);
 
@@ -240,15 +208,14 @@ export async function GET(req: Request) {
 
     // ---- 今週（月曜始まり） ----
     try {
-      const dow = nowLogical.getUTCDay(); // 0=日, 1=月, ..., 6=土
-      const mondayOffset = dow === 0 ? -6 : -(dow - 1); // 月曜までの日数
+      const dow = nowLogical.getUTCDay();
+      const mondayOffset = dow === 0 ? -6 : -(dow - 1);
       const mondayJst = addDaysUtc(
         jstMidnightUtcDate(y, m1to12, nowLogical.getUTCDate()),
         mondayOffset
       );
       let weekStartKey = dateKeyFromJst(mondayJst);
 
-      // createdAt より前の日を除外
       if (createdAtKey && createdAtKey > weekStartKey) {
         weekStartKey = createdAtKey;
       }
@@ -271,7 +238,6 @@ export async function GET(req: Request) {
     try {
       let monthStartKey = dateKeyFromJst(base);
 
-      // createdAt より前の日を除外
       if (createdAtKey && createdAtKey > monthStartKey) {
         monthStartKey = createdAtKey;
       }
@@ -302,16 +268,13 @@ export async function GET(req: Request) {
 
         let startKey = dateKeyFromJst(start);
         const end = jstMidnightUtcDate(sy, sm, totalDaysInMonth);
-        // 当月以降は今日までに制限（未来の日を分母に含めない）
         const rawEndKey = dateKeyFromJst(end);
         const endKey = rawEndKey > todayKey ? todayKey : rawEndKey;
 
-        // createdAt より前の日を除外
         if (createdAtKey && createdAtKey > startKey) {
           startKey = createdAtKey;
         }
 
-        // 登録前の月はスキップ
         if (startKey > endKey) {
           months.push({
             ym: `${sy}-${String(sm).padStart(2, "0")}`,
