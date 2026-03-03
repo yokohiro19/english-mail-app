@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import UtmCapture from "./components/UtmCapture";
+import PullToRefresh from "./components/PullToRefresh";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -53,6 +54,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <UtmCapture />
+        <PullToRefresh />
         {children}
       </body>
     </html>
