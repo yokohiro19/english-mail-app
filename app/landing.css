@@ -317,6 +317,11 @@
   color: var(--text-gray);
 }
 
+.features .section-header,
+.how-it-works .section-header {
+  margin-bottom: 40px;
+}
+
 .features-grid {
   max-width: 1200px;
   margin: 0 auto;
@@ -398,6 +403,7 @@
 .function-details .section-header {
   position: relative;
   z-index: 1;
+  margin-bottom: 40px;
 }
 
 .strengths-brand {
