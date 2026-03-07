@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import "../landing.css";
 
 const h2Style: React.CSSProperties = {
@@ -13,7 +16,7 @@ const news = [
     body: (
       <>
         <p>いつもTapSmart Englishをご利用いただき、ありがとうございます。</p>
-        <p style={{ marginTop: 12 }}>「自分がどれだけ続けられたか振り返りたい」というご要望を多くいただいていました。お待たせしました——毎月1日に、先月1ヶ月分の学習記録をまとめた<strong>「マンスリーレポート」</strong>をメールでお届けします。</p>
+        <p style={{ marginTop: 12 }}>ご利用者の皆様からの要望を受け、毎月の初めに、先月1ヶ月分の学習記録をまとめた<strong>「マンスリーレポート」</strong>の配信を開始いたしました。</p>
         <p style={{ marginTop: 12 }}>レポートには、読んだ英文の数・継続した日数・難易度の変化などを掲載予定です。「続いてるじゃん、自分」と思える瞬間を、これからも一緒に増やしていきましょう。</p>
         <p style={{ marginTop: 12 }}>引き続き、毎日の継続を応援しています。</p>
       </>
@@ -26,7 +29,7 @@ const news = [
     title: "プライバシーポリシー改定のお知らせ",
     body: (
       <>
-        <p>「大切な情報は、ちゃんと守りたい。」という思いから、プライバシーポリシーを一部改定しました。</p>
+        <p>プライバシーポリシーを一部改定しました。</p>
         <p style={{ marginTop: 12 }}>今回の主な変更点は、<strong>アカウント削除後に保持していたハッシュ化済みメールアドレスの保存期間を、最大1年間に短縮</strong>したことです。これまで明確な期限を設けていなかった部分を整理し、より透明性のある運用にしました。</p>
         <p style={{ marginTop: 12 }}>引き続き、安心してご利用いただけるサービスを目指してまいります。詳しくは<a href="/privacy" style={{ color: "var(--primary-blue)", textDecoration: "underline" }}>プライバシーポリシー</a>をご確認ください。</p>
       </>
@@ -34,7 +37,18 @@ const news = [
   },
 ];
 
+const PER_PAGE = 5;
+
 export default function NewsPage() {
+  const [page, setPage] = useState(1);
+  const totalPages = Math.ceil(news.length / PER_PAGE);
+  const paginated = news.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+
+  const goTo = (p: number) => {
+    setPage(p);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <div className="landing">
       <header>
@@ -60,7 +74,7 @@ export default function NewsPage() {
         </p>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-          {news.map((item, i) => (
+          {paginated.map((item, i) => (
             <article
               key={i}
               style={{
@@ -72,9 +86,7 @@ export default function NewsPage() {
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
-                <span style={{
-                  fontSize: 13, color: "#6B7280", fontWeight: 500,
-                }}>
+                <span style={{ fontSize: 13, color: "#6B7280", fontWeight: 500 }}>
                   {item.date}
                 </span>
                 <span style={{
@@ -95,6 +107,51 @@ export default function NewsPage() {
             </article>
           ))}
         </div>
+
+        {/* ページネーション */}
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, marginTop: 48 }}>
+            <button
+              onClick={() => goTo(page - 1)}
+              disabled={page === 1}
+              style={{
+                padding: "8px 16px", borderRadius: 8, border: "1.5px solid #D1D5DB",
+                background: "#fff", cursor: page === 1 ? "default" : "pointer",
+                color: page === 1 ? "#D1D5DB" : "var(--dark-navy)",
+                fontWeight: 600, fontSize: 14,
+              }}
+            >
+              ← 前へ
+            </button>
+
+            {Array.from({ length: totalPages }).map((_, i) => (
+              <button
+                key={i}
+                onClick={() => goTo(i + 1)}
+                style={{
+                  width: 36, height: 36, borderRadius: 8, border: "1.5px solid",
+                  borderColor: page === i + 1 ? "var(--dark-navy)" : "#D1D5DB",
+                  background: page === i + 1 ? "var(--dark-navy)" : "#fff",
+                  color: page === i + 1 ? "#fff" : "var(--dark-navy)",
+                  fontWeight: 600, fontSize: 14, cursor: "pointer",
+                }}
+              >
+                {i + 1}
+              </button>
+            ))}
+
+            <button
+              onClick={() => goTo(page + 1)}
+              disabled={page === totalPages}
+              style={{
+                padding: "8px 16px", borderRadius: 8, border: "1.5px solid #D1D5DB",
+                background: "#fff", cursor: page === totalPages ? "default" : "pointer",
+                color: page === totalPages ? "#D1D5DB" : "var(--dark-navy)",
+                fontWeight: 600, fontSize: 14,
+              }}
+            >
+              次へ →
+            </button>
+          </div>
       </section>
 
       <footer>
