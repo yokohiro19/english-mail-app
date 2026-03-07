@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import "../landing.css";
 
-const CATEGORIES = ["機能追加のリクエスト", "エラー報告", "質問", "利用者の声投稿希望"] as const;
+const CATEGORIES = ["機能追加のリクエスト", "エラー報告", "質問", "利用者の声投稿希望", "その他"] as const;
 
 const inputStyle: React.CSSProperties = {
   width: "100%", padding: "12px 16px", borderRadius: 10,

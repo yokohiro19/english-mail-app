@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: "入力が不正です。" }, { status: 400 });
     }
 
-    const validCategories = ["機能追加のリクエスト", "エラー報告", "質問", "利用者の声投稿希望"];
+    const validCategories = ["機能追加のリクエスト", "エラー報告", "質問", "利用者の声投稿希望", "その他"];
     if (!validCategories.includes(category)) {
       return NextResponse.json({ ok: false, error: "お問い合わせ種別が不正です。" }, { status: 400 });
     }
