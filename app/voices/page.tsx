@@ -70,11 +70,7 @@ export default function VoicesPage() {
                 boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
               }}
             >
-              <Stars count={v.stars} />
-              <div style={{ fontSize: 15, lineHeight: 1.9, color: "#374151", marginBottom: 20 }}>
-                {v.body}
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
                 <div style={{
                   width: 36, height: 36, borderRadius: "50%",
                   background: "linear-gradient(135deg, var(--primary-blue), var(--primary-cyan))",
@@ -89,6 +85,10 @@ export default function VoicesPage() {
                     <div style={{ fontSize: 12, color: "#9CA3AF" }}>{v.profile}</div>
                   )}
                 </div>
+              </div>
+              <Stars count={v.stars} />
+              <div style={{ fontSize: 15, lineHeight: 1.9, color: "#374151" }}>
+                {v.body}
               </div>
             </article>
           ))}
