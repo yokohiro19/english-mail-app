@@ -23,7 +23,7 @@ export default function TermsPage() {
         <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 32, fontWeight: 800, marginBottom: 8, color: "var(--dark-navy)" }}>
           利用規約
         </h1>
-        <p style={{ fontSize: 13, color: "#9CA3AF", marginBottom: 40 }}>最終更新日: 2026年2月6日</p>
+        <p style={{ fontSize: 13, color: "#9CA3AF", marginBottom: 40 }}>最終更新日: 2026年1月5日</p>
 
         <div style={{ fontSize: 15, lineHeight: 1.9, color: "#374151" }}>
           <h2 style={h2Style}>第1条（適用）</h2>

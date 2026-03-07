@@ -148,7 +148,7 @@ export default function BillingPage() {
           cancelPath: "/billing?billing=cancel",
           consent: {
             agreedAt: new Date().toISOString(),
-            termsVersion: "2026-02-20",
+            termsVersion: "2026-01-05",
             privacyVersion: "2026-02-06",
             displayedTerms: [
               "月額500円（税込）",
