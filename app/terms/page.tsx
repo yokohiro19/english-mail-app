@@ -12,14 +12,14 @@ export default function TermsPage() {
           </a>
           <div className="nav-menu">
             <a href="/#features">特徴</a>
-            <a href="/#strengths">強み</a>
-            <a href="/#how">使い方</a>
+            <a href="/news">お知らせ</a>
+            <a href="/voices">利用者の声</a>
             <a href="/login" className="nav-cta">ログイン</a>
           </div>
         </nav>
       </header>
 
-      <section style={{ padding: "120px 24px 80px", maxWidth: 800, margin: "0 auto" }}>
+      <section className="page-section">
         <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 32, fontWeight: 800, marginBottom: 8, color: "var(--dark-navy)" }}>
           利用規約
         </h1>

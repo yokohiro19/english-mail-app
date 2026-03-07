@@ -167,7 +167,7 @@ export default function ContactPage() {
         </nav>
       </header>
 
-      <section style={{ padding: "120px 24px 80px", maxWidth: 640, margin: "0 auto" }}>
+      <section className="page-section" style={{ maxWidth: 640 }}>
         <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 32, fontWeight: 800, marginBottom: 8, color: "var(--dark-navy)" }}>
           お問い合わせ
         </h1>

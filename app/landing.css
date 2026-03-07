@@ -842,7 +842,17 @@
   }
 }
 
+.page-section {
+  padding: 120px 24px 80px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
 @media (max-width: 640px) {
+  .page-section {
+    padding: 40px 20px 60px;
+  }
+
   /* Header: compact for mobile */
   .landing header {
     position: sticky;

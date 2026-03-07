@@ -78,7 +78,7 @@ export default function NewsPage() {
         </nav>
       </header>
 
-      <section style={{ padding: "120px 24px 80px", maxWidth: 800, margin: "0 auto" }}>
+      <section className="page-section">
         <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 32, fontWeight: 800, marginBottom: 8, color: "var(--dark-navy)" }}>
           お知らせ
         </h1>
