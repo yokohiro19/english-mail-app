@@ -23,6 +23,19 @@ const news = [
     ),
   },
   {
+    date: "2026年1月30日",
+    category: "お知らせ",
+    categoryColor: "#059669",
+    title: "「利用者の声」ページを設置しました",
+    body: (
+      <>
+        <p>この度、<a href="/voices" style={{ color: "var(--primary-blue)", textDecoration: "underline" }}>「利用者の声」ページ</a>を設置しました。</p>
+        <p style={{ marginTop: 12 }}>サービス開始以来、感想や応援のメッセージをお寄せいただいた皆さまに、心より感謝申し上げます。皆さまの声が、日々の開発の励みになっています。</p>
+        <p style={{ marginTop: 12 }}>今後、掲載させていただいた方には、<strong>Amazonギフト券500円分</strong>をプレゼントいたします。ご投稿は<a href="/contact?category=利用者の声投稿希望" style={{ color: "var(--primary-blue)", textDecoration: "underline" }}>お問い合わせフォーム</a>からお気軽にどうぞ。引き続き、皆さまのご意見をお待ちしております。</p>
+      </>
+    ),
+  },
+  {
     date: "2026年2月6日",
     category: "重要なお知らせ",
     categoryColor: "#B45309",
@@ -30,7 +43,7 @@ const news = [
     body: (
       <>
         <p>プライバシーポリシーを一部改定しました。</p>
-        <p style={{ marginTop: 12 }}>今回の主な変更点は、<strong>アカウント削除後に保持していたハッシュ化済みメールアドレスの保存期間を、最大1年間に短縮</strong>したことです。これまで明確な期限を設けていなかった部分を整理し、より透明性のある運用にしました。</p>
+        <p style={{ marginTop: 12 }}>今回の変更点は、<strong>アカウント削除後に保持していたハッシュ化済みメールアドレスの保存期間を、最大1年間に短縮</strong>したことです。これまで明確な期限を設けていなかった部分を整理し、より透明性のある運用にしました。</p>
         <p style={{ marginTop: 12 }}>引き続き、安心してご利用いただけるサービスを目指してまいります。詳しくは<a href="/privacy" style={{ color: "var(--primary-blue)", textDecoration: "underline" }}>プライバシーポリシー</a>をご確認ください。</p>
       </>
     ),
