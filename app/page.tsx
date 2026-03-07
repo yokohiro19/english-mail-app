@@ -30,8 +30,8 @@ export default function Home() {
           </a>
           <div className="nav-menu">
             <a href="#features">特徴</a>
-            <a href="#strengths">強み</a>
-            <a href="#how">使い方</a>
+            <a href="/news">お知らせ</a>
+            <a href="/voices">利用者の声</a>
             <a href="/login" className="nav-cta">ログイン</a>
           </div>
         </nav>
@@ -187,6 +187,8 @@ export default function Home() {
               <li><a href="#features">特徴</a></li>
               <li><a href="#strengths">強み</a></li>
               <li><a href="#how">使い方</a></li>
+              <li><a href="/news">お知らせ</a></li>
+              <li><a href="/voices">利用者の声</a></li>
             </ul>
           </div>
           <div className="footer-links">

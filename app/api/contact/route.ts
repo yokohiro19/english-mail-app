@@ -6,14 +6,19 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, email, message } = await req.json();
+    const { name, email, category, message } = await req.json();
 
-    if (!name || !email || !message) {
+    if (!name || !email || !category || !message) {
       return NextResponse.json({ ok: false, error: "必須項目が入力されていません。" }, { status: 400 });
     }
 
-    if (typeof name !== "string" || typeof email !== "string" || typeof message !== "string") {
+    if (typeof name !== "string" || typeof email !== "string" || typeof category !== "string" || typeof message !== "string") {
       return NextResponse.json({ ok: false, error: "入力が不正です。" }, { status: 400 });
+    }
+
+    const validCategories = ["機能追加のリクエスト", "エラー報告", "質問", "利用者の声投稿希望"];
+    if (!validCategories.includes(category)) {
+      return NextResponse.json({ ok: false, error: "お問い合わせ種別が不正です。" }, { status: 400 });
     }
 
     if (name.length > 200 || email.length > 320 || message.length > 5000) {
@@ -31,6 +36,7 @@ export async function POST(req: NextRequest) {
     await contactLogRef.set({
       name,
       email,
+      category,
       message,
       createdAt: new Date(),
       status: "pending", // pending -> replied -> resolved
@@ -46,6 +52,7 @@ export async function POST(req: NextRequest) {
         <h2>お問い合わせ</h2>
         <p><strong>お名前:</strong> ${escapeHtml(name)}</p>
         <p><strong>メールアドレス:</strong> ${escapeHtml(email)}</p>
+        <p><strong>お問い合わせ種別:</strong> ${escapeHtml(category)}</p>
         <p><strong>ログID:</strong> ${contactLogRef.id}</p>
         <hr />
         <p style="white-space: pre-wrap;">${escapeHtml(message)}</p>
