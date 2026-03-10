@@ -74,7 +74,7 @@ export default function Home() {
 
       <section className="features" id="features">
         <div className="section-header">
-          <h2>TapSmart Englishの特徴</h2>
+          <h2>タップ・スマート イングリッシュの特徴</h2>
           <p>自分に最適な難易度と文字数で、AIが生成した英文が毎日メールで届く。<br />無理なく続く、新しいビジネス英語学習。</p>
         </div>
         <div className="features-grid">
@@ -100,7 +100,7 @@ export default function Home() {
 
       <section className="function-details" id="strengths">
         <div className="section-header strengths-header">
-          <h2><span className="strengths-brand">TapSmart Englishの強み</span></h2>
+          <h2><span className="strengths-brand">タップ・スマート イングリッシュの強み</span></h2>
           <p>継続することを徹底サポート</p>
         </div>
         <div className="function-list">
