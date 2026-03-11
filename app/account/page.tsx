@@ -5,6 +5,9 @@ import {
   onAuthStateChanged,
   EmailAuthProvider,
   reauthenticateWithCredential,
+  reauthenticateWithPopup,
+  GoogleAuthProvider,
+  OAuthProvider,
   updatePassword,
   signOut,
   User,
@@ -107,6 +110,8 @@ export default function AccountPage() {
   }, [user]);
 
   const displayName = savedNickname || user?.email || "";
+  const providerId = user?.providerData[0]?.providerId ?? "password";
+  const isPasswordUser = providerId === "password";
 
   // Save nickname
   const saveNickname = async () => {
@@ -210,13 +215,21 @@ export default function AccountPage() {
   // Delete account
   const doDeleteAccount = async () => {
     if (!user || !user.email) return;
-    if (!deletePassword) return;
+    if (isPasswordUser && !deletePassword) return;
     setDeleteLoading(true);
     setDeleteMsg(null);
     try {
-      // 再認証（パスワード確認）
-      const credential = EmailAuthProvider.credential(user.email, deletePassword);
-      await reauthenticateWithCredential(user, credential);
+      // 再認証
+      if (isPasswordUser) {
+        const credential = EmailAuthProvider.credential(user.email, deletePassword);
+        await reauthenticateWithCredential(user, credential);
+      } else if (providerId === "google.com") {
+        await reauthenticateWithPopup(user, new GoogleAuthProvider());
+      } else if (providerId === "apple.com") {
+        const provider = new OAuthProvider("apple.com");
+        provider.addScope("email");
+        await reauthenticateWithPopup(user, provider);
+      }
 
       // サーバー側で Stripe キャンセル + Firestore 論理削除 + Auth 削除
       const token = await user.getIdToken();
@@ -230,7 +243,9 @@ export default function AccountPage() {
       await signOut(auth);
       router.replace("/login");
     } catch (err: any) {
-      setDeleteMsg({ text: firebaseErrorJa(err), type: "error" });
+      if (err.code !== "auth/popup-closed-by-user" && err.code !== "auth/cancelled-popup-request") {
+        setDeleteMsg({ text: firebaseErrorJa(err), type: "error" });
+      }
     } finally {
       setDeleteLoading(false);
     }
@@ -291,8 +306,8 @@ export default function AccountPage() {
             )}
           </div>
 
-          {/* Email change */}
-          <div className="app-card">
+          {/* Email change — password users only */}
+          {isPasswordUser && <div className="app-card">
             <h2 className="section-title">メールアドレスの変更</h2>
             <p style={{ fontSize: 13, color: "#6B7280", marginBottom: 12 }}>現在: {user?.email}</p>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -316,10 +331,10 @@ export default function AccountPage() {
                 {emailMsg.text}
               </div>
             )}
-          </div>
+          </div>}
 
-          {/* Password change */}
-          <div className="app-card">
+          {/* Password change — password users only */}
+          {isPasswordUser && <div className="app-card">
             <h2 className="section-title">パスワードの変更</h2>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <div>
@@ -346,7 +361,7 @@ export default function AccountPage() {
                 {passwordMsg.text}
               </div>
             )}
-          </div>
+          </div>}
 
           {/* Delete account */}
           <div className="app-card" style={{ borderColor: "#FECACA" }}>
@@ -367,18 +382,24 @@ export default function AccountPage() {
               </button>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                <div>
-                  <label className="form-label">パスワードを入力して確認</label>
-                  <input className="app-input" type="password" value={deletePassword} onChange={(e) => setDeletePassword(e.target.value)} />
-                </div>
+                {isPasswordUser ? (
+                  <div>
+                    <label className="form-label">パスワードを入力して確認</label>
+                    <input className="app-input" type="password" value={deletePassword} onChange={(e) => setDeletePassword(e.target.value)} />
+                  </div>
+                ) : (
+                  <p style={{ fontSize: 14, color: "#6B7280" }}>
+                    確認のため、{providerId === "google.com" ? "Google" : "Apple"}でのサインインが必要です。
+                  </p>
+                )}
                 <div style={{ display: "flex", gap: 8 }}>
                   <button
                     onClick={doDeleteAccount}
-                    disabled={deleteLoading || !deletePassword}
+                    disabled={deleteLoading || (isPasswordUser && !deletePassword)}
                     style={{
                       background: "#DC2626", color: "#fff", fontWeight: 600,
                       padding: "10px 24px", borderRadius: 10, border: "none", cursor: "pointer",
-                      fontSize: 14, fontFamily: "'Inter', sans-serif", opacity: deleteLoading || !deletePassword ? 0.5 : 1,
+                      fontSize: 14, fontFamily: "'Inter', sans-serif", opacity: deleteLoading || (isPasswordUser && !deletePassword) ? 0.5 : 1,
                     }}
                   >
                     {deleteLoading ? "処理中..." : "削除を実行"}
