@@ -221,7 +221,7 @@ export default function SignupPage() {
             Appleで新規登録
           </button>
 
-          <p style={{ marginTop: 20, fontSize: 14, color: "#6B7280" }}>
+          <p style={{ marginTop: 20, fontSize: 14, color: "#6B7280", textAlign: "center" }}>
             既にアカウントをお持ちの方は{" "}
             <a href="/login" style={{ color: "#1d1f42", fontWeight: 600, textDecoration: "underline" }}>
               ログイン
