@@ -126,7 +126,7 @@ export default function LoginPage() {
 
             {error && <div className="app-error">{error}</div>}
 
-            <button className="app-btn-primary" type="submit" disabled={loading} style={{ width: "100%", padding: "12px 24px", fontSize: 16, marginTop: 8 }}>
+            <button className="app-btn-primary" type="submit" disabled={loading} style={{ width: "100%", padding: "12px 24px", fontSize: 16, marginTop: 16 }}>
               {loading ? "ログイン中..." : "ログイン"}
             </button>
           </form>
