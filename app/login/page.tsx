@@ -62,7 +62,13 @@ export default function LoginPage() {
       const provider = new OAuthProvider("apple.com");
       provider.addScope("email");
       provider.addScope("name");
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      const email = result.user.email ?? "";
+      if (!email || email.endsWith("@privaterelay.appleid.com")) {
+        await result.user.delete().catch(() => {});
+        setError("メールアドレスの共有が必要です。Appleサインインで「メールアドレスを共有する」を選択してください。");
+        return;
+      }
       router.push("/routine");
     } catch (err: any) {
       if (err.code !== "auth/popup-closed-by-user" && err.code !== "auth/cancelled-popup-request") {
