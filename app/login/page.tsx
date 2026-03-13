@@ -145,7 +145,7 @@ export default function LoginPage() {
           fetch("/api/change-email", {
             method: "POST",
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
-            body: JSON.stringify({ newEmail: appleEmail }),
+            body: JSON.stringify({ newEmail: appleEmail, mode: "register" }),
           }).catch(() => {});
         }).catch(() => {});
       }

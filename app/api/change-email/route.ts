@@ -34,6 +34,7 @@ export async function POST(req: Request) {
 
     const body = await req.json().catch(() => ({}));
     const newEmail = (body.newEmail || "").trim().toLowerCase();
+    const isRegister = body.mode === "register";
     if (!newEmail || !newEmail.includes("@")) {
       return NextResponse.json({ ok: false, error: "invalid_email" }, { status: 400 });
     }
@@ -59,12 +60,14 @@ export async function POST(req: Request) {
     const baseUrl = process.env.APP_BASE_URL || "https://www.tapsmart.jp";
     const link = `${baseUrl}/api/apply-email-change?token=${encodeURIComponent(token)}`;
 
-    const html = buildEmailChangeHtml(link, newEmail);
+    const html = buildEmailChangeHtml(link, newEmail, isRegister);
 
     await resend.emails.send({
       from: "TapSmart English <noreply@tapsmart.jp>",
       to: newEmail,
-      subject: "【TapSmart English】メールアドレス変更の確認",
+      subject: isRegister
+        ? "【TapSmart English】メールアドレスの登録確認"
+        : "【TapSmart English】メールアドレス変更の確認",
       html,
     });
 
@@ -78,7 +81,13 @@ export async function POST(req: Request) {
   }
 }
 
-function buildEmailChangeHtml(link: string, newEmail: string): string {
+function buildEmailChangeHtml(link: string, newEmail: string, isRegister = false): string {
+  const title = isRegister ? "メールアドレスの登録確認" : "メールアドレス変更の確認";
+  const body = isRegister
+    ? `メールアドレス <strong>${newEmail}</strong> を登録するリクエストを受け付けました。<br />以下のボタンをクリックして登録を確定してください。`
+    : `メールアドレスを <strong>${newEmail}</strong> に変更するリクエストを受け付けました。<br />以下のボタンをクリックして変更を確定してください。`;
+  const btnLabel = isRegister ? "メールアドレスを登録する" : "メールアドレスを変更する";
+
   return `
 <!DOCTYPE html>
 <html lang="ja">
@@ -97,17 +106,16 @@ function buildEmailChangeHtml(link: string, newEmail: string): string {
         <tr>
           <td style="padding:36px 32px 20px;">
             <h1 style="margin:0 0 16px;font-size:20px;font-weight:700;color:#1d1f42;text-align:center;">
-              メールアドレス変更の確認
+              ${title}
             </h1>
             <p style="margin:0 0 24px;font-size:14px;line-height:1.8;color:#374151;text-align:center;">
-              メールアドレスを <strong>${newEmail}</strong> に変更するリクエストを受け付けました。<br />
-              以下のボタンをクリックして変更を確定してください。
+              ${body}
             </p>
             <table cellpadding="0" cellspacing="0" style="margin:0 auto;padding:8px 0 28px;">
               <tr><td align="center" style="background:#2A3B6F;border-radius:10px;">
                 <a href="${link}"
                    style="display:block;padding:14px 40px;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;">
-                  メールアドレスを変更する
+                  ${btnLabel}
                 </a>
               </td></tr>
             </table>
