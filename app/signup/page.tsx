@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, OAuthProvider, onAuthStateChanged } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, OAuthProvider, onAuthStateChanged, updateEmail, sendEmailVerification } from "firebase/auth";
 import { auth, db } from "../../src/lib/firebase";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
@@ -132,10 +132,15 @@ export default function SignupPage() {
 
   const handleAppleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!pendingAppleUid) return;
+    if (!pendingAppleUid || !auth.currentUser) return;
     setError(null);
     setLoading(true);
     try {
+      // Firebase Auth のメールアドレスを更新
+      await updateEmail(auth.currentUser, appleEmail);
+      // 確認メールを送信
+      await sendEmailVerification(auth.currentUser);
+      // Firestore に保存
       const raw = localStorage.getItem("utm_data");
       const utm = raw ? JSON.parse(raw) : null;
       const userData: Record<string, any> = { email: appleEmail, createdAt: serverTimestamp() };
@@ -146,9 +151,15 @@ export default function SignupPage() {
         (window as any).gtag("set", "user_data", { email: appleEmail.trim().toLowerCase() });
       }
       oauthInProgress.current = false;
-      router.push("/routine");
-    } catch {
-      setError("登録に失敗しました。もう一度お試しください。");
+      router.push("/verify-email");
+    } catch (err: any) {
+      if (err.code === "auth/email-already-in-use") {
+        setError("このメールアドレスは既に使用されています。");
+      } else if (err.code === "auth/requires-recent-login") {
+        setError("セキュリティエラーが発生しました。一度ログアウトして再度お試しください。");
+      } else {
+        setError("登録に失敗しました。もう一度お試しください。");
+      }
     } finally {
       setLoading(false);
     }
