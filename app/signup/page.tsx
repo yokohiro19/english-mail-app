@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, OAuthProvider, onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../../src/lib/firebase";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
@@ -28,9 +28,11 @@ export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const oauthInProgress = useRef(false);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
+      if (oauthInProgress.current) return;
       if (user) {
         router.replace("/routine");
       } else {
@@ -54,6 +56,7 @@ export default function SignupPage() {
   const handleGoogleSignIn = async () => {
     setError(null);
     setLoading(true);
+    oauthInProgress.current = true;
     try {
       const result = await signInWithPopup(auth, new GoogleAuthProvider());
       const user = result.user;
@@ -71,12 +74,14 @@ export default function SignupPage() {
           (window as any).gtag("set", "user_data", { email: user.email?.trim().toLowerCase() });
         }
       }
+      oauthInProgress.current = false;
       router.push("/routine");
     } catch (err: any) {
       if (err.code !== "auth/popup-closed-by-user" && err.code !== "auth/cancelled-popup-request") {
         setError("Googleログインに失敗しました。");
       }
     } finally {
+      oauthInProgress.current = false;
       setLoading(false);
     }
   };
@@ -84,6 +89,7 @@ export default function SignupPage() {
   const handleAppleSignIn = async () => {
     setError(null);
     setLoading(true);
+    oauthInProgress.current = true;
     try {
       const provider = new OAuthProvider("apple.com");
       provider.addScope("email");
@@ -110,12 +116,14 @@ export default function SignupPage() {
           (window as any).gtag("set", "user_data", { email: user.email?.trim().toLowerCase() });
         }
       }
+      oauthInProgress.current = false;
       router.push("/routine");
     } catch (err: any) {
       if (err.code !== "auth/popup-closed-by-user" && err.code !== "auth/cancelled-popup-request") {
-        setError("Apple Sign-Inに失敗しました。");
+        setError("Appleでの登録に失敗しました。");
       }
     } finally {
+      oauthInProgress.current = false;
       setLoading(false);
     }
   };
