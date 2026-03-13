@@ -157,14 +157,18 @@ export default function SignupPage() {
       if (typeof (window as any).gtag === "function") {
         (window as any).gtag("set", "user_data", { email: appleEmail.trim().toLowerCase() });
       }
-      // Firebase Auth のメールアドレスを確認後に更新（ベストエフォート）
-      await verifyBeforeUpdateEmail(auth.currentUser!, appleEmail, {
-        url: `${window.location.origin}/routine`,
-      }).catch(() => {});
-      pendingRef.current = null; // 正常完了 → アンマウント時の削除を抑制
+      pendingRef.current = null;
       oauthInProgress.current = false;
+      // 確認メール送信（fire-and-forget: 失敗しても登録は完了）
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        verifyBeforeUpdateEmail(currentUser, appleEmail, {
+          url: `${window.location.origin}/routine`,
+        }).catch(() => {});
+      }
       router.push("/routine");
-    } catch {
+    } catch (err: any) {
+      console.error("Apple email submit error:", err);
       setError("登録に失敗しました。もう一度お試しください。");
     } finally {
       setLoading(false);
