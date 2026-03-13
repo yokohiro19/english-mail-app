@@ -49,13 +49,13 @@ export default function LoginPage() {
       const snap = await getDoc(doc(db, "users", result.user.uid));
       if (!snap.exists()) {
         await result.user.delete().catch(() => {});
-        setError("アカウントが見つかりません。先に新規登録してください。");
+        setError("このGoogleアカウントは登録されていません。先に新規登録してください。");
         return;
       }
       router.push("/routine");
     } catch (err: any) {
       if (err.code !== "auth/popup-closed-by-user" && err.code !== "auth/cancelled-popup-request") {
-        setError("Googleログインに失敗しました。");
+        setError("Googleでのログインに失敗しました。");
       }
     } finally {
       setLoading(false);
@@ -74,13 +74,13 @@ export default function LoginPage() {
       const snap = await getDoc(doc(db, "users", user.uid));
       if (!snap.exists()) {
         await user.delete().catch(() => {});
-        setError("アカウントが見つかりません。先に新規登録してください。");
+        setError("このAppleアカウントは登録されていません。先に新規登録してください。");
         return;
       }
       router.push("/routine");
     } catch (err: any) {
       if (err.code !== "auth/popup-closed-by-user" && err.code !== "auth/cancelled-popup-request") {
-        setError("Apple Sign-Inに失敗しました。");
+        setError("Appleでのログインに失敗しました。");
       }
     } finally {
       setLoading(false);
