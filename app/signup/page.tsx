@@ -28,6 +28,8 @@ export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [pendingAppleUid, setPendingAppleUid] = useState<string | null>(null);
+  const [appleEmail, setAppleEmail] = useState("");
   const oauthInProgress = useRef(false);
 
   useEffect(() => {
@@ -96,18 +98,24 @@ export default function SignupPage() {
       provider.addScope("name");
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
+      const userEmail = user.email ?? "";
+      if (!userEmail || userEmail.endsWith("@privaterelay.appleid.com")) {
+        // メールが取得できなかった場合は入力フォームへ
+        setPendingAppleUid(user.uid);
+        return;
+      }
       const isNew = user.metadata.creationTime === user.metadata.lastSignInTime;
       if (isNew) {
         try {
           const raw = localStorage.getItem("utm_data");
           const utm = raw ? JSON.parse(raw) : null;
-          const userData: Record<string, any> = { email: user.email, createdAt: serverTimestamp() };
+          const userData: Record<string, any> = { email: userEmail, createdAt: serverTimestamp() };
           if (utm && typeof utm === "object") userData.utm = utm;
           await setDoc(doc(db, "users", user.uid), userData, { merge: true });
           if (utm) localStorage.removeItem("utm_data");
         } catch {}
         if (typeof (window as any).gtag === "function") {
-          (window as any).gtag("set", "user_data", { email: user.email?.trim().toLowerCase() });
+          (window as any).gtag("set", "user_data", { email: userEmail.trim().toLowerCase() });
         }
       }
       oauthInProgress.current = false;
@@ -117,7 +125,31 @@ export default function SignupPage() {
         setError("Appleでの登録に失敗しました。");
       }
     } finally {
+      if (!pendingAppleUid) oauthInProgress.current = false;
+      setLoading(false);
+    }
+  };
+
+  const handleAppleEmailSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pendingAppleUid) return;
+    setError(null);
+    setLoading(true);
+    try {
+      const raw = localStorage.getItem("utm_data");
+      const utm = raw ? JSON.parse(raw) : null;
+      const userData: Record<string, any> = { email: appleEmail, createdAt: serverTimestamp() };
+      if (utm && typeof utm === "object") userData.utm = utm;
+      await setDoc(doc(db, "users", pendingAppleUid), userData, { merge: true });
+      if (utm) localStorage.removeItem("utm_data");
+      if (typeof (window as any).gtag === "function") {
+        (window as any).gtag("set", "user_data", { email: appleEmail.trim().toLowerCase() });
+      }
       oauthInProgress.current = false;
+      router.push("/routine");
+    } catch {
+      setError("登録に失敗しました。もう一度お試しください。");
+    } finally {
       setLoading(false);
     }
   };
@@ -158,6 +190,34 @@ export default function SignupPage() {
       setLoading(false);
     }
   };
+
+  if (pendingAppleUid) {
+    return (
+      <div className="app-page">
+        <AppHeader variant="auth" />
+        <main style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "calc(100vh - 56px)", padding: 24 }}>
+          <div className="auth-card">
+            <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 28, fontWeight: 800, marginBottom: 8 }}>
+              メールアドレスを入力
+            </h1>
+            <p style={{ fontSize: 14, color: "#6B7280", marginBottom: 24 }}>
+              Appleからメールアドレスを取得できませんでした。サービスのご利用に必要なため、実際のメールアドレスを入力してください。
+            </p>
+            <form onSubmit={handleAppleEmailSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <div>
+                <label className="form-label">メールアドレス</label>
+                <input className="app-input" type="email" value={appleEmail} onChange={(e) => setAppleEmail(e.target.value)} required />
+              </div>
+              {error && <div className="app-error">{error}</div>}
+              <button className="app-btn-primary" type="submit" disabled={loading} style={{ width: "100%", padding: "12px 24px", fontSize: 16, marginTop: 8 }}>
+                {loading ? "登録中..." : "登録を完了する"}
+              </button>
+            </form>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="app-page">
