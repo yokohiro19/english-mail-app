@@ -96,12 +96,6 @@ export default function SignupPage() {
       provider.addScope("name");
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
-      const email = user.email ?? "";
-      if (!email || email.endsWith("@privaterelay.appleid.com")) {
-        await user.delete().catch(() => {});
-        setError("メールアドレスの共有が必要です。Appleサインインで「メールアドレスを共有する」を選択してください。");
-        return;
-      }
       const isNew = user.metadata.creationTime === user.metadata.lastSignInTime;
       if (isNew) {
         try {
