@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, OAuthProvider, onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../../src/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
@@ -29,9 +29,11 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const oauthInProgress = useRef(false);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
+      if (oauthInProgress.current) return;
       if (user) {
         router.replace("/routine");
       } else {
@@ -44,6 +46,7 @@ export default function LoginPage() {
   const handleGoogleSignIn = async () => {
     setError(null);
     setLoading(true);
+    oauthInProgress.current = true;
     try {
       const result = await signInWithPopup(auth, new GoogleAuthProvider());
       const snap = await getDoc(doc(db, "users", result.user.uid));
@@ -52,12 +55,14 @@ export default function LoginPage() {
         setError("このGoogleアカウントは登録されていません。先に新規登録してください。");
         return;
       }
+      oauthInProgress.current = false;
       router.push("/routine");
     } catch (err: any) {
       if (err.code !== "auth/popup-closed-by-user" && err.code !== "auth/cancelled-popup-request") {
         setError("Googleでのログインに失敗しました。");
       }
     } finally {
+      oauthInProgress.current = false;
       setLoading(false);
     }
   };
@@ -65,6 +70,7 @@ export default function LoginPage() {
   const handleAppleSignIn = async () => {
     setError(null);
     setLoading(true);
+    oauthInProgress.current = true;
     try {
       const provider = new OAuthProvider("apple.com");
       provider.addScope("email");
@@ -77,12 +83,14 @@ export default function LoginPage() {
         setError("このAppleアカウントは登録されていません。先に新規登録してください。");
         return;
       }
+      oauthInProgress.current = false;
       router.push("/routine");
     } catch (err: any) {
       if (err.code !== "auth/popup-closed-by-user" && err.code !== "auth/cancelled-popup-request") {
         setError("Appleでのログインに失敗しました。");
       }
     } finally {
+      oauthInProgress.current = false;
       setLoading(false);
     }
   };
