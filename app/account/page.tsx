@@ -39,6 +39,9 @@ export default function AccountPage() {
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [loadingData, setLoadingData] = useState(true);
 
+  // Firestore email (Apple Sign-In users store real email here)
+  const [firestoreEmail, setFirestoreEmail] = useState("");
+
   // Nickname
   const [savedNickname, setSavedNickname] = useState("");
   const [nickname, setNickname] = useState("");
@@ -103,13 +106,15 @@ export default function AccountPage() {
         const nn = data.nickname ?? "";
         setSavedNickname(nn);
         setNickname(nn);
+        if (data.email) setFirestoreEmail(data.email);
       }
       setLoadingData(false);
     };
     load().catch(() => setLoadingData(false));
   }, [user]);
 
-  const displayName = savedNickname || user?.email || "";
+  const displayEmail = firestoreEmail || user?.email || "";
+  const displayName = savedNickname || displayEmail || "";
   const providerId = user?.providerData[0]?.providerId ?? "password";
   const isPasswordUser = providerId === "password";
 
@@ -309,7 +314,7 @@ export default function AccountPage() {
           {/* Email change — password users only */}
           {isPasswordUser && <div className="app-card">
             <h2 className="section-title">メールアドレスの変更</h2>
-            <p style={{ fontSize: 13, color: "#6B7280", marginBottom: 12 }}>現在: {user?.email}</p>
+            <p style={{ fontSize: 13, color: "#6B7280", marginBottom: 12 }}>現在: {displayEmail}</p>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <div>
                 <label className="form-label">新しいメールアドレス</label>
