@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, OAuthProvider, onAuthStateChanged } from "firebase/auth";
-import { auth } from "../../src/lib/firebase";
+import { auth, db } from "../../src/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import "../app.css";
 import AppHeader from "../components/AppHeader";
@@ -44,7 +45,13 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
     try {
-      await signInWithPopup(auth, new GoogleAuthProvider());
+      const result = await signInWithPopup(auth, new GoogleAuthProvider());
+      const snap = await getDoc(doc(db, "users", result.user.uid));
+      if (!snap.exists()) {
+        await result.user.delete().catch(() => {});
+        setError("アカウントが見つかりません。先に新規登録してください。");
+        return;
+      }
       router.push("/routine");
     } catch (err: any) {
       if (err.code !== "auth/popup-closed-by-user" && err.code !== "auth/cancelled-popup-request") {
@@ -63,10 +70,11 @@ export default function LoginPage() {
       provider.addScope("email");
       provider.addScope("name");
       const result = await signInWithPopup(auth, provider);
-      const email = result.user.email ?? "";
-      if (!email || email.endsWith("@privaterelay.appleid.com")) {
-        await result.user.delete().catch(() => {});
-        setError("メールアドレスの共有が必要です。Appleサインインで「メールアドレスを共有する」を選択してください。");
+      const user = result.user;
+      const snap = await getDoc(doc(db, "users", user.uid));
+      if (!snap.exists()) {
+        await user.delete().catch(() => {});
+        setError("アカウントが見つかりません。先に新規登録してください。");
         return;
       }
       router.push("/routine");
