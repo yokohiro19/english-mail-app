@@ -63,6 +63,7 @@ export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [nickname, setNickname] = useState("");
+  const [firestoreEmail, setFirestoreEmail] = useState("");
   const [emailVerified, setEmailVerified] = useState(true);
   const [verifyMsg, setVerifyMsg] = useState<string | null>(null);
   const [sendingVerify, setSendingVerify] = useState(false);
@@ -197,6 +198,7 @@ export default function DashboardPage() {
       const snap = await getDoc(ref);
       if (snap.exists()) {
         setNickname(snap.data().nickname ?? "");
+        if (snap.data().email) setFirestoreEmail(snap.data().email);
         const origin = snap.data().trialStartedAt ?? snap.data().createdAt;
         if (origin) {
           const d = origin.toDate ? origin.toDate() : new Date(origin);
@@ -269,7 +271,7 @@ export default function DashboardPage() {
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div>
               <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 28, fontWeight: 800, marginBottom: 4 }}>日々の歩み</h1>
-              <p style={{ fontSize: 14, color: "#6B7280" }}>{nickname || user?.email || ""}様</p>
+              <p style={{ fontSize: 14, color: "#6B7280" }}>{nickname || firestoreEmail || user?.email || ""}様</p>
             </div>
             <button
               onClick={refreshAll}

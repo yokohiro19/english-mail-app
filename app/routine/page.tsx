@@ -127,6 +127,7 @@ export default function SettingsPage() {
   const [difficultySaveMsg, setDifficultySaveMsg] = useState<{text: string; type: "success"|"error"} | null>(null);
 
   const [nickname, setNickname] = useState("");
+  const [firestoreEmail, setFirestoreEmail] = useState("");
 
   const [level, setLevel] = useState(DEFAULT_SETTINGS.level);
   const [wordCount, setWordCount] = useState(DEFAULT_SETTINGS.wordCount);
@@ -188,6 +189,7 @@ export default function SettingsPage() {
     if (snap.exists()) {
       const data = snap.data() as Partial<UserSettings> & { nickname?: string; examType?: string; examLevel?: string };
       setNickname(data.nickname ?? "");
+      if ((data as any).email) setFirestoreEmail((data as any).email);
       const loadedLevel = typeof (data as any).level === "number"
         ? (data as any).level
         : (data as any).examType
@@ -551,7 +553,7 @@ export default function SettingsPage() {
           {/* Page title */}
           <div>
             <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 28, fontWeight: 800, marginBottom: 4 }}>学習プラン</h1>
-            <p style={{ fontSize: 14, color: "#6B7280" }}>{nickname || user?.email || ""}様</p>
+            <p style={{ fontSize: 14, color: "#6B7280" }}>{nickname || firestoreEmail || user?.email || ""}様</p>
           </div>
 
           {message && (

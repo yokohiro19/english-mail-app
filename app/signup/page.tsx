@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, OAuthProvider, onAuthStateChanged } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, OAuthProvider, onAuthStateChanged, verifyBeforeUpdateEmail } from "firebase/auth";
 import { auth, db } from "../../src/lib/firebase";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
@@ -147,7 +147,7 @@ export default function SignupPage() {
     setError(null);
     setLoading(true);
     try {
-      // Firestore にメールアドレスを保存（Firebase Auth は変更しない）
+      // Firestore にメールアドレスを保存
       const raw = localStorage.getItem("utm_data");
       const utm = raw ? JSON.parse(raw) : null;
       const userData: Record<string, any> = { email: appleEmail, createdAt: serverTimestamp() };
@@ -157,6 +157,10 @@ export default function SignupPage() {
       if (typeof (window as any).gtag === "function") {
         (window as any).gtag("set", "user_data", { email: appleEmail.trim().toLowerCase() });
       }
+      // Firebase Auth のメールアドレスを確認後に更新（ベストエフォート）
+      await verifyBeforeUpdateEmail(auth.currentUser!, appleEmail, {
+        url: `${window.location.origin}/routine`,
+      }).catch(() => {});
       pendingRef.current = null; // 正常完了 → アンマウント時の削除を抑制
       oauthInProgress.current = false;
       router.push("/routine");
