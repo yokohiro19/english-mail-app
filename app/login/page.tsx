@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, OAuthProvider, onAuthStateChanged, verifyBeforeUpdateEmail } from "firebase/auth";
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, OAuthProvider, onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../../src/lib/firebase";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
@@ -141,8 +141,12 @@ export default function LoginPage() {
       oauthInProgress.current = false;
       const currentUser = auth.currentUser;
       if (currentUser) {
-        verifyBeforeUpdateEmail(currentUser, appleEmail, {
-          url: `${window.location.origin}/routine`,
+        currentUser.getIdToken().then((idToken) => {
+          fetch("/api/change-email", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
+            body: JSON.stringify({ newEmail: appleEmail }),
+          }).catch(() => {});
         }).catch(() => {});
       }
       router.push("/routine");
