@@ -1,12 +1,19 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, OAuthProvider, onAuthStateChanged } from "firebase/auth";
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, OAuthProvider, onAuthStateChanged, verifyBeforeUpdateEmail } from "firebase/auth";
 import { auth, db } from "../../src/lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import "../app.css";
 import AppHeader from "../components/AppHeader";
+
+function isApplePrivateRelay(user: { providerData: any[]; email: string | null }) {
+  return (
+    user.providerData[0]?.providerId === "apple.com" &&
+    (!user.email || user.email.endsWith("@privaterelay.appleid.com"))
+  );
+}
 
 function firebaseErrorJa(err: any): string {
   const code = typeof err?.code === "string" ? err.code : "";
@@ -29,12 +36,30 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [pendingAppleUid, setPendingAppleUid] = useState<string | null>(null);
+  const [appleEmail, setAppleEmail] = useState("");
+  const [savedAppleEmail, setSavedAppleEmail] = useState(""); // Firestoreに保存済みのメール
   const oauthInProgress = useRef(false);
+  const pendingRef = useRef<string | null>(null);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (user) => {
+    const unsub = onAuthStateChanged(auth, async (user) => {
       if (oauthInProgress.current) return;
       if (user) {
+        // Apple private relay ユーザーはメール確認フォームへ
+        if (isApplePrivateRelay(user)) {
+          oauthInProgress.current = true;
+          pendingRef.current = user.uid;
+          // Firestore に既存メールがあれば取得して表示
+          const snap = await getDoc(doc(db, "users", user.uid)).catch(() => null);
+          const existing = snap?.data()?.email ?? "";
+          if (existing && !existing.endsWith("@privaterelay.appleid.com")) {
+            setSavedAppleEmail(existing);
+          }
+          setPendingAppleUid(user.uid);
+          setCheckingAuth(false);
+          return;
+        }
         router.replace("/routine");
       } else {
         setCheckingAuth(false);
@@ -83,6 +108,16 @@ export default function LoginPage() {
         setError("このAppleアカウントは登録されていません。先に新規登録してください。");
         return;
       }
+      // private relay のままならメール確認フォームへ
+      if (isApplePrivateRelay(user)) {
+        pendingRef.current = user.uid;
+        const existing = snap.data()?.email ?? "";
+        if (existing && !existing.endsWith("@privaterelay.appleid.com")) {
+          setSavedAppleEmail(existing);
+        }
+        setPendingAppleUid(user.uid);
+        return;
+      }
       oauthInProgress.current = false;
       router.push("/routine");
     } catch (err: any) {
@@ -90,7 +125,31 @@ export default function LoginPage() {
         setError("Appleでのログインに失敗しました。");
       }
     } finally {
+      if (!pendingRef.current) oauthInProgress.current = false;
+      setLoading(false);
+    }
+  };
+
+  const handleAppleEmailSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pendingAppleUid || !auth.currentUser) return;
+    setError(null);
+    setLoading(true);
+    try {
+      await setDoc(doc(db, "users", pendingAppleUid), { email: appleEmail }, { merge: true });
+      pendingRef.current = null;
       oauthInProgress.current = false;
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        verifyBeforeUpdateEmail(currentUser, appleEmail, {
+          url: `${window.location.origin}/routine`,
+        }).catch(() => {});
+      }
+      router.push("/routine");
+    } catch (err: any) {
+      console.error("Apple email submit error:", err);
+      setError("登録に失敗しました。もう一度お試しください。");
+    } finally {
       setLoading(false);
     }
   };
@@ -115,6 +174,42 @@ export default function LoginPage() {
         <AppHeader variant="auth" />
         <main style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "calc(100vh - 56px)" }}>
           <div className="loading-spinner" />
+        </main>
+      </div>
+    );
+  }
+
+  // Apple private relay ユーザー：メール確認フォーム
+  if (pendingAppleUid) {
+    return (
+      <div className="app-page">
+        <AppHeader variant="auth" />
+        <main style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "calc(100vh - 56px)", padding: 24 }}>
+          <div className="auth-card">
+            <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 24, fontWeight: 800, marginBottom: 8 }}>
+              メールアドレスの確認
+            </h1>
+            {savedAppleEmail ? (
+              <p style={{ fontSize: 14, color: "#6B7280", marginBottom: 24 }}>
+                <strong style={{ color: "#1d1f42" }}>{savedAppleEmail}</strong> に確認メールを送信済みです。メールのリンクをクリックして認証を完了してください。<br /><br />
+                別のアドレスを使用する場合は下記に入力してください。
+              </p>
+            ) : (
+              <p style={{ fontSize: 14, color: "#6B7280", marginBottom: 24 }}>
+                Appleからメールアドレスを取得できませんでした。サービスのご利用に必要なため、実際のメールアドレスを入力してください。
+              </p>
+            )}
+            <form onSubmit={handleAppleEmailSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <div>
+                <label className="form-label">メールアドレス</label>
+                <input className="app-input" type="email" value={appleEmail} onChange={(e) => setAppleEmail(e.target.value)} required placeholder={savedAppleEmail || ""} />
+              </div>
+              {error && <div className="app-error">{error}</div>}
+              <button className="app-btn-primary" type="submit" disabled={loading} style={{ width: "100%", padding: "12px 24px", fontSize: 16, marginTop: 8 }}>
+                {loading ? "送信中..." : "確認メールを送信して続ける"}
+              </button>
+            </form>
+          </div>
         </main>
       </div>
     );

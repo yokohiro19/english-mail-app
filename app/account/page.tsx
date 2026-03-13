@@ -90,6 +90,9 @@ export default function AccountPage() {
     const unsub = onAuthStateChanged(auth, (u) => {
       if (!u) { router.replace("/login"); return; }
       if (!u.emailVerified) { router.replace("/verify-email"); return; }
+      if (u.providerData[0]?.providerId === "apple.com" && (!u.email || u.email.endsWith("@privaterelay.appleid.com"))) {
+        router.replace("/login"); return;
+      }
       setUser(u);
       setLoadingAuth(false);
     });

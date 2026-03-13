@@ -37,6 +37,10 @@ export default function SignupPage() {
     const unsub = onAuthStateChanged(auth, (user) => {
       if (oauthInProgress.current) return;
       if (user) {
+        // Apple private relay のままなら signup は管轄外 → login へ
+        if (user.providerData[0]?.providerId === "apple.com" && (!user.email || user.email.endsWith("@privaterelay.appleid.com"))) {
+          router.replace("/login"); return;
+        }
         router.replace("/routine");
       } else {
         setCheckingAuth(false);
