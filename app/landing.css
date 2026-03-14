@@ -515,7 +515,7 @@
 
 .cta-content h2 {
   font-family: 'Outfit', sans-serif;
-  font-size: 48px;
+  font-size: 38px;
   font-weight: 800;
   color: var(--white);
   margin-bottom: 40px;
@@ -843,7 +843,7 @@
   }
 
   .cta-content h2 {
-    font-size: 32px;
+    font-size: 26px;
   }
 
   .cta-section {

@@ -141,7 +141,7 @@ export default function Home() {
 
       <section className="cta-section" id="cta">
         <div className="cta-content">
-          <h2><span className="cta-highlight">全く新しい継続習慣</span>を、まずは無料でご体験ください</h2>
+          <h2><span className="cta-highlight">全く新しい継続習慣</span>を、<br />まずは無料でご体験ください</h2>
           <a href="/signup" className="btn-primary" style={{ fontSize: "20px", padding: "18px 50px" }}>
             無料で始める →
             <span className="price-note">月額500円（初回7日間無料）</span>
