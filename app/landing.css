@@ -278,7 +278,7 @@
 /* Description Image Section */
 .description-image-section {
   width: 100%;
-  padding-top: 100px;
+  padding-top: 60px;
   padding-bottom: 0px;
   background: var(--light-gray);
   display: flex;
