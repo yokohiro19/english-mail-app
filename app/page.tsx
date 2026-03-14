@@ -99,7 +99,7 @@ export default function Home() {
       </section>
 
       <section className="calender-section">
-        <img src="/images/calenderDescription_mobile.png" alt="" className="calender-img-sp" />
+        <img src="/images/calenderDescription_mobile_v2.png" alt="" className="calender-img-sp" />
       </section>
 
       <section className="how-it-works" id="how">
