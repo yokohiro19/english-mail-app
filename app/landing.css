@@ -394,8 +394,20 @@
   background: var(--white);
 }
 
-/* Calender Section (SP only) */
+/* Calender Section */
 .calender-section {
+  display: flex;
+  justify-content: center;
+  padding: 60px 40px;
+  background: var(--light-gray);
+}
+
+.calender-img-pc {
+  width: 70%;
+  max-width: 1000px;
+}
+
+.calender-img-sp {
   display: none;
 }
 
@@ -752,13 +764,15 @@
   }
 
   .calender-section {
-    display: flex;
-    justify-content: center;
     padding: 40px 20px;
-    background: var(--light-gray);
+  }
+
+  .calender-img-pc {
+    display: none;
   }
 
   .calender-img-sp {
+    display: block;
     width: 90%;
     max-width: 1000px;
   }
