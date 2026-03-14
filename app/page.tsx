@@ -98,34 +98,8 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="function-details" id="strengths">
-        <div className="section-header strengths-header">
-          <h2><span className="strengths-brand">TapSmart Englishの強み</span></h2>
-          <p>継続することを徹底サポート</p>
-        </div>
-        <div className="function-list">
-          <div className="function-item">
-            <img src="/images/strength-tap.png" alt="Tap" className="function-icon-img" />
-            <div className="function-content">
-              <h3>アプリを開かず、「Tap」するだけの簡単操作</h3>
-              <p>毎日指定した時間に、英文、単語の解説、日本語訳、が記載されたメールが届くので、読んだら「Read ✔」ボタンを押すだけ</p>
-            </div>
-          </div>
-          <div className="function-item">
-            <img src="/images/strength-adjust.png" alt="調整" className="function-icon-img" />
-            <div className="function-content">
-              <h3>モチベーションに合わせた難易度調整</h3>
-              <p>「ちょっと読むのが大変」と感じたら、文章の難易度を下げるか、単語数を下げて調整、もちろん逆も大歓迎</p>
-            </div>
-          </div>
-          <div className="function-item">
-            <img src="/images/strength-record.png" alt="記録" className="function-icon-img" />
-            <div className="function-content">
-              <h3>「日々の歩み」で積み重ねを確認</h3>
-              <p>完璧じゃなくても大丈夫、月間・週間の達成率で自分の「歩み」を実感。</p>
-            </div>
-          </div>
-        </div>
+      <section className="calender-section">
+        <img src="/images/calenderDescription_mobile.png" alt="" className="calender-img-sp" />
       </section>
 
       <section className="how-it-works" id="how">
