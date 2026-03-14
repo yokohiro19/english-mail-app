@@ -391,7 +391,7 @@
 /* How It Works */
 .how-it-works {
   padding: 100px 40px;
-  background: var(--white);
+  background: linear-gradient(170deg, #F5FFFE 0%, #ECFCFA 50%, #F5FFFE 100%);
 }
 
 /* Calender Section */
@@ -777,10 +777,8 @@
     max-width: 1000px;
   }
 
-  .how-it-works {
-    background: linear-gradient(170deg, #F5FFFE 0%, #ECFCFA 50%, #F5FFFE 100%);
-  }
 }
+
 
 .page-section {
   padding: 120px 24px 80px;
