@@ -1,21 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { sendPasswordResetEmail } from "firebase/auth";
-import { auth } from "../../src/lib/firebase";
 import "../app.css";
 import AppHeader from "../components/AppHeader";
-
-function firebaseErrorJa(err: any): string {
-  const code = typeof err?.code === "string" ? err.code : "";
-  switch (code) {
-    case "auth/invalid-email": return "メールアドレスの形式が正しくありません。";
-    case "auth/user-not-found": return "このメールアドレスは登録されていません。";
-    case "auth/too-many-requests": return "リクエストが多すぎます。しばらくしてから再度お試しください。";
-    case "auth/network-request-failed": return "ネットワークエラーが発生しました。接続を確認してください。";
-    default: return "送信に失敗しました。しばらくしてから再度お試しください。";
-  }
-}
 
 export default function ResetPasswordPage() {
   const [email, setEmail] = useState("");
@@ -28,10 +15,25 @@ export default function ResetPasswordPage() {
     setError(null);
     setLoading(true);
     try {
-      await sendPasswordResetEmail(auth, email);
-      setSent(true);
-    } catch (err: any) {
-      setError(firebaseErrorJa(err));
+      const res = await fetch("/api/send-reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        setSent(true);
+      } else if (json.error === "user_not_found") {
+        setError("このメールアドレスは登録されていません。");
+      } else if (json.error === "invalid_email") {
+        setError("メールアドレスの形式が正しくありません。");
+      } else if (json.error === "too_many_requests") {
+        setError("リクエストが多すぎます。しばらくしてから再度お試しください。");
+      } else {
+        setError("送信に失敗しました。しばらくしてから再度お試しください。");
+      }
+    } catch {
+      setError("送信に失敗しました。接続を確認してください。");
     } finally {
       setLoading(false);
     }

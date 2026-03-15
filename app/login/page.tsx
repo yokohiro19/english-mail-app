@@ -235,13 +235,13 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                <label className="form-label" style={{ marginBottom: 0 }}>パスワード</label>
+              <label className="form-label">パスワード</label>
+              <input className="app-input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+              <div style={{ textAlign: "right", marginTop: 6 }}>
                 <a href="/reset-password" style={{ fontSize: 12, color: "#6B7280", textDecoration: "underline" }}>
                   パスワードをお忘れの方はこちら
                 </a>
               </div>
-              <input className="app-input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
             </div>
 
             {error && <div className="app-error">{error}</div>}
