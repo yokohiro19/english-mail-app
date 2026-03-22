@@ -266,17 +266,6 @@
   height: clamp(300px, 34vw, 520px);
 }
 
-.hero-visual::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 2%;
-  height: 100%;
-  background: linear-gradient(to right, #232c56 0%, rgba(35, 44, 86, 0) 100%);
-  z-index: 1;
-  pointer-events: none;
-}
 
 .hero-image {
   width: 100%;
