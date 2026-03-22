@@ -274,6 +274,9 @@ export default function SignupPage() {
             <button className="app-btn-primary" type="submit" disabled={loading} style={{ width: "100%", padding: "12px 24px", fontSize: 16, marginTop: 8 }}>
               {loading ? "作成中..." : "アカウント作成"}
             </button>
+            <p style={{ fontSize: 12, color: "#9CA3AF", textAlign: "center", lineHeight: 1.7, marginTop: 12 }}>
+              登録することで、<a href="/terms" style={{ color: "#6B7280", textDecoration: "underline" }}>利用規約</a>および<a href="/privacy" style={{ color: "#6B7280", textDecoration: "underline" }}>プライバシーポリシー</a>に同意し、サービスに関するお知らせメールの受信に同意したものとみなします。
+            </p>
           </form>
 
           <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "36px 0 0" }}>
