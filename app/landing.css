@@ -117,28 +117,31 @@
 }
 
 .hero-content {
-  max-width: 1600px;
-  margin: 0 auto;
   display: grid;
   grid-template-columns: 11fr 9fr;
   gap: 0;
-  align-items: center;
+  align-items: stretch;
   position: relative;
   z-index: 1;
   width: 100%;
 }
 
 .hero-text {
-  padding: 60px 60px 80px clamp(40px, calc((100vw - 1200px) / 2 + 40px), 240px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-self: stretch;
+  padding: clamp(24px, 3vw, 48px) clamp(20px, 4vw, 60px) clamp(24px, 3vw, 48px) max(40px, calc((100vw - 1200px) / 2 + 40px));
+  z-index: 2;
 }
 
 .hero-text h2 {
   font-family: 'Outfit', sans-serif;
-  font-size: clamp(30px, 3.2vw, 40px);
+  font-size: clamp(18px, 3.2vw, 40px);
   font-weight: 700;
   color: var(--white);
   line-height: 1.2;
-  margin-bottom: 20px;
+  margin-bottom: clamp(8px, 1.5vw, 20px);
   letter-spacing: -1px;
   animation: fadeInUp 0.8s ease;
 }
@@ -155,16 +158,16 @@
 }
 
 .hero-text p {
-  font-size: 20px;
+  font-size: clamp(12px, 1.6vw, 20px);
   color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 40px;
+  margin-bottom: clamp(16px, 3vw, 40px);
   animation: fadeInUp 0.8s ease 0.2s both;
 }
 
 .hero-subtitle {
-  font-size: 19px;
+  font-size: clamp(11px, 1.5vw, 19px);
   font-weight: 600;
-  margin-bottom: 20px;
+  margin-bottom: clamp(8px, 1.5vw, 20px);
 }
 
 .hero-cta {
@@ -257,9 +260,22 @@
   position: relative;
   animation: fadeInRight 1s ease;
   display: flex;
-  align-items: flex-end;
+  align-items: stretch;
   justify-content: flex-end;
-  align-self: stretch;
+  align-self: center;
+  height: clamp(300px, 34vw, 520px);
+}
+
+.hero-visual::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2%;
+  height: 100%;
+  background: linear-gradient(to right, #232c56 0%, rgba(35, 44, 86, 0) 100%);
+  z-index: 1;
+  pointer-events: none;
 }
 
 .hero-image {
@@ -267,6 +283,7 @@
   max-width: none;
   height: 100%;
   object-fit: cover;
+  object-position: center 20%;
   border-radius: 0;
   box-shadow: none;
 }
@@ -710,6 +727,7 @@
     left: 0;
     right: 0;
     bottom: 0;
+    height: auto;
     z-index: 0;
   }
 
